@@ -1,4 +1,4 @@
--- 02_usuario_demo.sql
+-- 004_usuario_demo.sql
 -- Usuario de prueba para poder iniciar sesión (SOLO desarrollo, datos ficticios).
 -- Ejecutar en Supabase -> SQL Editor si necesitas recrear la contraseña.
 --
