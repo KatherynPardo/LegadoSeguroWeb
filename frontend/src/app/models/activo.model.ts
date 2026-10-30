@@ -7,3 +7,10 @@ export interface Activo {
     sensibilidad: string;
     estado: string;
 }
+
+// Datos del formulario para crear un activo
+export interface NuevoActivo {
+    nombre: string;
+    descripcion: string;
+    id_tipo: number;
+}

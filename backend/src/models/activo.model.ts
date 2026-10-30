@@ -7,3 +7,10 @@ export type Activo = {
   sensibilidad: string;
   estado: string;
 };
+
+// Datos que llegan desde el formulario para crear un activo.
+export type NuevoActivo = {
+  nombre: string;
+  descripcion?: string;
+  id_tipo: number;
+};

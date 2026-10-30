@@ -1,0 +1,42 @@
+<header class="barra">
+  <h1>Dashboard</h1>
+</header>
+
+<section class="pagina">
+  <p class="saludo">Este es el estado actual de tu legado digital.</p>
+
+  @if (resumen(); as r) {
+  <div class="cifras">
+    <div class="cifra">
+      <span class="numero azul">{{ r.activos }}</span>
+      <span class="etiqueta">Activos registrados</span>
+    </div>
+    <div class="cifra">
+      <span class="numero azul">{{ r.beneficiarios }}</span>
+      <span class="etiqueta">Beneficiarios designados</span>
+    </div>
+    <div class="cifra">
+      <span class="numero verde">{{ r.reglasActivas }}</span>
+      <span class="etiqueta">Regla de liberación activa</span>
+    </div>
+    <div class="cifra">
+      <span class="numero gris">{{ r.procesosEnCurso }}</span>
+      <span class="etiqueta">Procesos en curso</span>
+    </div>
+  </div>
+
+  <div class="tarjeta">
+    <h2 class="subtitulo">Actividad reciente</h2>
+    @for (item of r.actividadReciente; track $index) {
+    <div class="fila-actividad">
+      <span>{{ item.texto }}</span>
+      <span class="fecha">{{ item.fecha | date:'dd/MM/yyyy' }}</span>
+    </div>
+    } @empty {
+    <p class="vacio">Todavía no hay actividad.</p>
+    }
+  </div>
+  } @else {
+  <p class="vacio">Cargando... ¿Está encendido el backend?</p>
+  }
+</section>

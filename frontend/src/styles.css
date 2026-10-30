@@ -1,1 +1,81 @@
 /* You can add global styles to this file, and also import other style files */
+:root {
+  /* Colores de LegadoSeguro (Figma) */
+  --bs-primary: #1A4E8A;
+  --bs-primary-rgb: 26, 78, 138;
+  --bs-body-bg: #F2F5FA;
+  --bs-body-color: #1F2937;
+  --bs-border-color: #D9D9D9;
+  --bs-border-radius: 8px;
+  --bs-body-font-family: 'Inter', sans-serif;
+
+  --lg-dorado: #C9962C;
+  --lg-exito: #1E6B36;
+  --lg-advertencia: #D68A26;
+  --lg-error: #B23A3A;
+}
+
+.btn-primary {
+  --bs-btn-bg: #1A4E8A;
+  --bs-btn-border-color: #1A4E8A;
+  --bs-btn-hover-bg: #163F70;
+  --bs-btn-hover-border-color: #163F70;
+}
+
+/* ===== Estilos compartidos de las pantallas ===== */
+.barra {
+  background: #fff;
+  padding: 24px 40px;
+  border-bottom: 1px solid #D9D9D9;
+}
+
+.barra h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.pagina {
+  padding: 32px 40px;
+}
+
+.acciones {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 24px;
+}
+
+.tarjeta {
+  background: #fff;
+  border: 1px solid #D9D9D9;
+  border-radius: 12px;
+  padding: 24px 30px;
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabla th {
+  text-align: left;
+  font-size: 13px;
+  text-transform: uppercase;
+  color: #6B7280;
+  padding: 12px 0;
+  border-bottom: 1px solid #D9D9D9;
+}
+
+.tabla td {
+  padding: 16px 0;
+  border-bottom: 1px solid #F0F2F5;
+}
+
+.nombre {
+  font-weight: 600;
+}
+
+.vacio {
+  text-align: center;
+  color: #6B7280;
+}

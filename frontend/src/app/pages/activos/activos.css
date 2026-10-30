@@ -1,0 +1,41 @@
+/* Formulario de nuevo activo */
+.formulario {
+  margin-bottom: 24px;
+  max-width: 560px;
+}
+
+.titulo-form {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 16px;
+}
+
+.formulario label {
+  display: block;
+  font-weight: 600;
+  margin: 12px 0 6px;
+}
+
+.botones-form {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+/* Sensibilidad y estado: "BAJA" se muestra como "Baja", en verde; "FINANCIERA" en rojo */
+.sens,
+.estado {
+  text-transform: lowercase;
+  font-weight: 600;
+  color: var(--lg-exito);
+}
+
+.sens::first-letter,
+.estado::first-letter {
+  text-transform: uppercase;
+}
+
+.sens.financiera {
+  color: var(--lg-error);
+}
