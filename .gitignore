@@ -1,0 +1,12 @@
+# Dependencias y compilados
+node_modules/
+dist/
+.angular/
+
+# Secretos: nunca se suben
+.env
+*.env.local
+
+# Sistema y editor
+.DS_Store
+Thumbs.db
