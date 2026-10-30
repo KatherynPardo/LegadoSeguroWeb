@@ -4,7 +4,7 @@
 
 <section class="pagina">
   <div class="acciones">
-    <button class="btn btn-primary">+ Nuevo Heredero</button>
+    <button class="btn btn-primary" (click)="abrir()">+ Nuevo Heredero</button>
   </div>
 
   <div class="tarjeta">
@@ -32,3 +32,46 @@
     </table>
   </div>
 </section>
+
+<app-modal titulo="Nuevo heredero" [abierto]="mostrarFormulario()" (cerrar)="mostrarFormulario.set(false)">
+  <form class="campos" (ngSubmit)="guardar()">
+    <label for="dni">DNI</label>
+    <div class="input-group">
+      <input id="dni" name="dni" class="form-control" required maxlength="8" inputmode="numeric" [(ngModel)]="nuevo.dni" />
+      <button type="button" class="btn btn-outline-primary" [disabled]="buscandoDni()" (click)="buscarDni()">
+        {{ buscandoDni() ? 'Buscando...' : 'Buscar' }}
+      </button>
+    </div>
+    @if (avisoDni()) {
+    <p class="aviso-dni">{{ avisoDni() }}</p>
+    }
+
+    <label for="nombres">Nombres</label>
+    <input id="nombres" name="nombres" class="form-control" required [(ngModel)]="nuevo.nombres" />
+
+    <label for="apellidos">Apellidos</label>
+    <input id="apellidos" name="apellidos" class="form-control" required [(ngModel)]="nuevo.apellidos" />
+
+    <label for="correo">Correo electrónico</label>
+    <input id="correo" name="correo" type="email" class="form-control" required autocomplete="off" [(ngModel)]="nuevo.correo" />
+
+    <label for="parentesco">Parentesco</label>
+    <select id="parentesco" name="parentesco" class="form-select" [(ngModel)]="nuevo.parentesco">
+      @for (p of parentescos; track p) {
+      <option [value]="p">{{ p }}</option>
+      }
+    </select>
+
+    <label for="clave">Clave de acceso del heredero</label>
+    <input id="clave" name="claveAcceso" type="password" class="form-control" required minlength="6" autocomplete="new-password" [(ngModel)]="nuevo.claveAcceso" />
+
+    @if (error()) {
+    <p class="error-form">{{ error() }}</p>
+    }
+
+    <div class="botones-form">
+      <button type="button" class="btn btn-outline-secondary" (click)="mostrarFormulario.set(false)">Cancelar</button>
+      <button type="submit" class="btn btn-primary">Guardar</button>
+    </div>
+  </form>
+</app-modal>

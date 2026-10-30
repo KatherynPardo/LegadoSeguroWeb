@@ -4,4 +4,12 @@
 
 .contenido {
   flex: 1;
+  min-width: 0; /* evita que una tabla ancha empuje y deforme el diseño */
+}
+
+/* En pantallas pequeñas el menú pasa arriba */
+@media (max-width: 768px) {
+  .layout {
+    flex-direction: column;
+  }
 }

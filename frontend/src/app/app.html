@@ -1,5 +1,7 @@
 <div class="layout">
+  @if (auth.logueado()) {
   <app-sidebar />
+  }
   <main class="contenido">
     <router-outlet />
   </main>

@@ -4,32 +4,8 @@
 
 <section class="pagina">
   <div class="acciones">
-    <button class="btn btn-primary" (click)="mostrarFormulario.set(true)">+ Nuevo Activo</button>
+    <button class="btn btn-primary" (click)="abrir()">+ Nuevo Activo</button>
   </div>
-
-  @if (mostrarFormulario()) {
-  <form class="tarjeta formulario" (ngSubmit)="guardar()">
-    <h2 class="titulo-form">Nuevo activo digital</h2>
-
-    <label for="nombre">Nombre</label>
-    <input id="nombre" name="nombre" class="form-control" required [(ngModel)]="nuevo.nombre" />
-
-    <label for="tipo">Tipo</label>
-    <select id="tipo" name="tipo" class="form-select" [(ngModel)]="nuevo.id_tipo">
-      @for (t of tipos; track t.id) {
-      <option [ngValue]="t.id">{{ t.nombre }}</option>
-      }
-    </select>
-
-    <label for="descripcion">Descripción</label>
-    <input id="descripcion" name="descripcion" class="form-control" [(ngModel)]="nuevo.descripcion" />
-
-    <div class="botones-form">
-      <button type="button" class="btn btn-outline-secondary" (click)="mostrarFormulario.set(false)">Cancelar</button>
-      <button type="submit" class="btn btn-primary">Guardar</button>
-    </div>
-  </form>
-  }
 
   <div class="tarjeta">
     <table class="tabla">
@@ -58,3 +34,39 @@
     </table>
   </div>
 </section>
+
+<app-modal titulo="Nuevo activo digital" [abierto]="mostrarFormulario()" (cerrar)="mostrarFormulario.set(false)">
+  <form class="campos" (ngSubmit)="guardar()">
+    <label for="nombre">Nombre</label>
+    <input id="nombre" name="nombre" class="form-control" required [(ngModel)]="nuevo.nombre" />
+
+    <label for="tipo">Tipo</label>
+    <select id="tipo" name="tipo" class="form-select" [(ngModel)]="nuevo.id_tipo">
+      @for (t of tipos(); track t.id) {
+      <option [ngValue]="t.id">{{ t.nombre }}</option>
+      }
+    </select>
+
+    @if (tipoSeleccionado(); as tipo) {
+    <p class="aviso-sens">
+      Sensibilidad:
+      <span class="sens" [class.financiera]="tipo.sensibilidad === 'FINANCIERA'">{{ tipo.sensibilidad }}</span>
+    </p>
+    @if (tipo.sensibilidad === 'FINANCIERA') {
+    <p class="nota-sens">Los activos financieros requieren mayor protección y verificación al liberarse.</p>
+    }
+    }
+
+    <label for="descripcion">Descripción</label>
+    <input id="descripcion" name="descripcion" class="form-control" [(ngModel)]="nuevo.descripcion" />
+
+    @if (error()) {
+    <p class="error-form">{{ error() }}</p>
+    }
+
+    <div class="botones-form">
+      <button type="button" class="btn btn-outline-secondary" (click)="mostrarFormulario.set(false)">Cancelar</button>
+      <button type="submit" class="btn btn-primary">Guardar</button>
+    </div>
+  </form>
+</app-modal>

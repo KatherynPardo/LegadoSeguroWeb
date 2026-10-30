@@ -1,0 +1,46 @@
+<div class="login">
+  <section class="panel-azul">
+    <svg class="escudo" viewBox="0 0 64 72" aria-hidden="true">
+      <path d="M32 3 L59 13 V36 C59 53 47 65 32 69 C17 65 5 53 5 36 V13 Z" fill="none" stroke="#C9962C" stroke-width="5" stroke-linejoin="round" />
+      <rect x="21" y="32" width="22" height="17" rx="3" fill="#C9962C" />
+      <path d="M25 32 V27 A7 7 0 0 1 39 27 V32" fill="none" stroke="#C9962C" stroke-width="4" />
+    </svg>
+
+    <h1>LegadoSeguro</h1>
+    <p class="lema">Tu legado digital, entregado a quien tú decidas, solo cuando realmente lo necesites — y sin saltarte la ley.</p>
+
+    <ul class="beneficios">
+      <li>Verificación de identidad en 3 capas</li>
+      <li>Cumple el marco legal peruano vigente</li>
+      <li>Tus datos, siempre cifrados</li>
+    </ul>
+
+    <p class="pie">© 2026 LegadoSeguro — Proyecto académico UTP</p>
+  </section>
+
+  <section class="panel-form">
+    <form (ngSubmit)="ingresar()">
+      <h2>Bienvenido de nuevo</h2>
+      <p class="subtitulo">Ingresa a tu cuenta de LegadoSeguro</p>
+
+      <label for="correo">Correo electrónico</label>
+      <input id="correo" name="correo" type="email" required autocomplete="username" [(ngModel)]="correo" />
+
+      <label for="password">Contraseña</label>
+      <input id="password" name="password" type="password" required autocomplete="current-password" [(ngModel)]="password" />
+
+      @if (error()) {
+      <p class="error">{{ error() }}</p>
+      }
+
+      <button type="submit" class="boton" [disabled]="cargando()">
+        {{ cargando() ? 'Ingresando...' : 'Iniciar Sesión' }}
+      </button>
+
+      <hr />
+
+      <p class="enlace"><a href="#">¿Olvidaste tu contraseña?</a></p>
+      <p class="enlace gris">¿No tienes cuenta? <a href="#"><strong>Regístrate</strong></a></p>
+    </form>
+  </section>
+</div>

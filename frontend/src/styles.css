@@ -79,3 +79,35 @@
   text-align: center;
   color: #6B7280;
 }
+/* ===== Campos de formulario (dentro de los modales) ===== */
+.campos label {
+  display: block;
+  font-weight: 600;
+  margin: 14px 0 6px;
+}
+
+.botones-form {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.error-form {
+  color: var(--lg-error);
+  font-weight: 600;
+  margin: 14px 0 0;
+}
+
+/* ===== Responsivo ===== */
+.tarjeta {
+  overflow-x: auto; /* las tablas anchas se desplazan en vez de romper la página */
+}
+
+@media (max-width: 768px) {
+  .barra,
+  .pagina {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}

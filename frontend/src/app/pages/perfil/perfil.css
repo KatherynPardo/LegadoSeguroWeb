@@ -1,0 +1,18 @@
+.rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+  align-items: start;
+}
+
+.titulo {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.ok-form {
+  color: var(--lg-exito);
+  font-weight: 600;
+  margin: 14px 0 0;
+}

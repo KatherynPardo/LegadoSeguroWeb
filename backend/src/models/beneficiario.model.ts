@@ -6,3 +6,13 @@ export type Beneficiario = {
   parentesco: string | null;
   correo: string;
 };
+
+// Datos que llegan desde el formulario para registrar un beneficiario.
+export type NuevoBeneficiario = {
+  nombres: string;
+  apellidos: string;
+  dni: string;
+  correo: string;
+  parentesco?: string;
+  claveAcceso: string; // se guarda cifrada (hash), nunca en texto plano
+};

@@ -1,15 +1,25 @@
 .sidebar {
+  position: sticky;
+  top: 0;
   width: 260px;
-  min-height: 100vh;
+  height: 100vh;
+  flex-shrink: 0;
+  overflow-y: auto;
   background: linear-gradient(180deg, #1A4E8A 0%, #0F2350 100%);
   color: #fff;
   padding: 24px 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .marca {
   font-size: 22px;
   font-weight: 700;
   padding: 0 24px 32px;
+}
+
+nav {
+  flex: 1;
 }
 
 nav a {
@@ -29,4 +39,67 @@ nav a.activo {
   font-weight: 600;
   background: rgba(255, 255, 255, 0.15);
   border-left-color: #C9962C;
+}
+
+/* Usuario con sesión iniciada */
+.usuario {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+}
+
+.avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #C9962C;
+  color: #0F2350;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.datos {
+  display: flex;
+  flex-direction: column;
+}
+
+.nombre-usuario {
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.nombre-usuario:hover {
+  text-decoration: underline;
+}
+
+.datos button {
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.datos button:hover {
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+    padding: 12px 0;
+  }
+  .marca { padding-bottom: 8px; }
+  nav { display: flex; flex: none; overflow-x: auto; }
+  nav a { white-space: nowrap; border-left: none; border-bottom: 4px solid transparent; padding: 10px 16px; }
+  nav a.activo { border-bottom-color: #C9962C; }
+  .usuario { display: none; }
 }

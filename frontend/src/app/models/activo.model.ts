@@ -14,3 +14,10 @@ export interface NuevoActivo {
     descripcion: string;
     id_tipo: number;
 }
+
+// Tipo de activo con su sensibilidad (viene de /api/tipos-activo)
+export interface TipoActivo {
+    id: number;
+    nombre: string;
+    sensibilidad: string;
+}

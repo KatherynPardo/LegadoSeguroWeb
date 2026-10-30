@@ -1,0 +1,57 @@
+<header class="barra">
+  <h1>Mi Perfil</h1>
+</header>
+
+<section class="pagina">
+  @if (!cargado()) {
+  <p class="vacio">Cargando tu perfil...</p>
+  } @else {
+  <div class="rejilla">
+    <form class="tarjeta campos" (ngSubmit)="guardarPerfil()">
+      <h2 class="titulo">Datos personales</h2>
+
+      <label for="nombres">Nombres</label>
+      <input id="nombres" name="nombres" class="form-control" required [(ngModel)]="datos.nombres" />
+
+      <label for="apellidos">Apellidos</label>
+      <input id="apellidos" name="apellidos" class="form-control" required [(ngModel)]="datos.apellidos" />
+
+      <label for="dni">DNI</label>
+      <input id="dni" name="dni" class="form-control" [value]="dni" disabled />
+
+      <label for="correo">Correo electrónico</label>
+      <input id="correo" name="correo" type="email" class="form-control" required [(ngModel)]="datos.correo" />
+
+      <label for="telefono">Teléfono</label>
+      <input id="telefono" name="telefono" class="form-control" [(ngModel)]="datos.telefono" />
+
+      @if (errorPerfil()) { <p class="error-form">{{ errorPerfil() }}</p> }
+      @if (mensajePerfil()) { <p class="ok-form">{{ mensajePerfil() }}</p> }
+
+      <div class="botones-form">
+        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+      </div>
+    </form>
+
+    <form class="tarjeta campos" (ngSubmit)="guardarClave()">
+      <h2 class="titulo">Cambiar contraseña</h2>
+
+      <label for="actual">Contraseña actual</label>
+      <input id="actual" name="actual" type="password" class="form-control" required autocomplete="current-password" [(ngModel)]="clave.actual" />
+
+      <label for="nueva">Nueva contraseña</label>
+      <input id="nueva" name="nueva" type="password" class="form-control" required minlength="6" autocomplete="new-password" [(ngModel)]="clave.nueva" />
+
+      <label for="confirmar">Confirmar nueva contraseña</label>
+      <input id="confirmar" name="confirmar" type="password" class="form-control" required autocomplete="new-password" [(ngModel)]="confirmar" />
+
+      @if (errorClave()) { <p class="error-form">{{ errorClave() }}</p> }
+      @if (mensajeClave()) { <p class="ok-form">{{ mensajeClave() }}</p> }
+
+      <div class="botones-form">
+        <button type="submit" class="btn btn-primary">Actualizar contraseña</button>
+      </div>
+    </form>
+  </div>
+  }
+</section>

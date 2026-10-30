@@ -1,13 +1,12 @@
 // Servicio del dashboard: cuenta los registros del usuario y trae su actividad reciente.
 
 import { pool } from '../config/database';
-import { USUARIO_TEMPORAL } from '../config/usuario-temporal';
 import { Dashboard } from '../models/dashboard.model';
 
-export async function obtenerResumen(): Promise<Dashboard> {
-  const id = [USUARIO_TEMPORAL];
+export async function obtenerResumen(idUsuario: number): Promise<Dashboard> {
+  const id = [idUsuario];
 
-  // Las cuatro consultas se lanzan a la vez para que respondan más rápido
+  // Las consultas se lanzan a la vez para que respondan más rápido
   const [activos, beneficiarios, reglas, procesos, recientes] = await Promise.all([
     pool.query('SELECT COUNT(*)::int AS n FROM activo_digital WHERE id_usuario = $1', id),
     pool.query('SELECT COUNT(*)::int AS n FROM beneficiario WHERE id_usuario_propietario = $1', id),

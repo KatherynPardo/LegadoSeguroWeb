@@ -5,5 +5,14 @@
     <a routerLink="/dashboard" routerLinkActive="activo">Dashboard</a>
     <a routerLink="/activos" routerLinkActive="activo">Mis Activos</a>
     <a routerLink="/beneficiarios" routerLinkActive="activo">Mis Herederos</a>
+    <a routerLink="/perfil" routerLinkActive="activo">Mi Perfil</a>
   </nav>
+
+  <div class="usuario">
+    <div class="avatar">{{ iniciales() }}</div>
+    <div class="datos">
+      <a routerLink="/perfil" class="nombre-usuario">{{ nombre() }}</a>
+      <button type="button" (click)="salir()">Cerrar sesión</button>
+    </div>
+  </div>
 </aside>

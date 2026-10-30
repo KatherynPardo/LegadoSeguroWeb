@@ -6,3 +6,20 @@ export interface Beneficiario {
     parentesco: string;
     correo: string | null;
 }
+
+// Datos del formulario para registrar un beneficiario
+export interface NuevoBeneficiario {
+    nombres: string;
+    apellidos: string;
+    dni: string;
+    correo: string;
+    parentesco: string;
+    claveAcceso: string;
+}
+
+// Persona devuelta por la consulta de DNI
+export interface PersonaDni {
+    dni: string;
+    nombres: string;
+    apellidos: string;
+}
