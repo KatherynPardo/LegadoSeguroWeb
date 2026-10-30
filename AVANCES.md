@@ -17,6 +17,8 @@ Bitácora de lo construido, en orden cronológico.
 | 30/10/2026 | **Búsqueda de nombres por DNI** con apiperu.dev, a través del backend. |
 | 30/10/2026 | La base de datos se organiza en `supabase/migrations/` (4 migraciones numeradas). Se redacta el manual de construcción. |
 
+| 30/10/2026 | **Reglas de Liberación**: pantalla con el diseño de Figma (días de inactividad, confirmaciones mínimas, período de espera y validador externo) y panel "Así funcionará tu regla" que se actualiza al cambiar los valores. Cada usuario tiene una regla activa; el Dashboard ya cuenta la regla activa. |
+
 ## Próximos pasos
 
 1. Editar y eliminar activos y beneficiarios.

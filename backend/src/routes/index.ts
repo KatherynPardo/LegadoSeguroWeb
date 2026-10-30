@@ -10,6 +10,7 @@ import dashboardRoutes from './dashboard.routes';
 import tipoActivoRoutes from './tipo-activo.routes';
 import perfilRoutes from './perfil.routes';
 import reniecRoutes from './reniec.routes';
+import reglaRoutes from './regla.routes';
 
 const router = Router();
 
@@ -24,5 +25,6 @@ router.use('/dashboard', verificarToken, dashboardRoutes);
 router.use('/tipos-activo', verificarToken, tipoActivoRoutes);
 router.use('/perfil', verificarToken, perfilRoutes);
 router.use('/reniec', verificarToken, reniecRoutes);
+router.use('/reglas', verificarToken, reglaRoutes);
 
 export default router;

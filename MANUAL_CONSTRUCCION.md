@@ -308,6 +308,7 @@ Son datos ficticios, solo para desarrollo.
 | Dashboard | `/dashboard` | Cifras (activos, beneficiarios, reglas, procesos) y actividad reciente |
 | Mis Activos | `/activos` | Listar activos y crear uno nuevo; muestra su **sensibilidad** |
 | Mis Herederos | `/beneficiarios` | Listar y registrar herederos, con búsqueda de nombres por DNI |
+| Reglas de Liberación | `/reglas` | Configurar cuándo y cómo se libera el legado (inactividad, confirmaciones, espera, validador) |
 | Mi Perfil | `/perfil` | Editar datos personales y cambiar la contraseña |
 
 ### Endpoints de la API
@@ -320,6 +321,7 @@ Son datos ficticios, solo para desarrollo.
 | GET / POST | `/api/activos` | Sí | Listar y crear activos |
 | GET | `/api/tipos-activo` | Sí | Tipos de activo con su sensibilidad |
 | GET / POST | `/api/beneficiarios` | Sí | Listar y crear herederos |
+| GET / PUT | `/api/reglas` | Sí | Ver y guardar la regla de liberación del usuario |
 | GET / PUT | `/api/perfil` | Sí | Ver y editar el perfil |
 | PUT | `/api/perfil/password` | Sí | Cambiar la contraseña |
 | GET | `/api/reniec/dni/:dni` | Sí | Buscar nombres por DNI (servicio externo) |
@@ -327,6 +329,19 @@ Son datos ficticios, solo para desarrollo.
 ### Regla de negocio: la sensibilidad
 
 La sensibilidad (`BAJA` o `FINANCIERA`) **no se elige a mano**: la define el **tipo de activo**. Así una cuenta bancaria siempre es financiera.
+
+### Regla de liberación
+
+Cada usuario tiene **una regla activa** (tabla `regla_liberacion`). Define:
+
+| Campo | Significado | Opciones |
+|---|---|---|
+| Días de inactividad | Tiempo sin actividad antes de iniciar el proceso | 90, 180, 270 o 365 |
+| Confirmaciones mínimas | Beneficiarios que deben confirmar | De 1 hasta el total de beneficiarios designados |
+| Período de espera final | Margen antes de liberar los activos | 7, 15, 30 o 60 días |
+| Validador externo | Si los activos financieros requieren aprobación de una persona de confianza | Sí o no |
+
+Si el usuario ya tiene regla, al guardar se **actualiza** la misma; si no, se crea. Para guardarla hace falta tener al menos un beneficiario, y las confirmaciones mínimas no pueden superar el total.
 
 ### Búsqueda por DNI
 

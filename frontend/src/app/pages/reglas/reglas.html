@@ -1,0 +1,98 @@
+<header class="barra">
+  <h1>Reglas de Liberación</h1>
+</header>
+
+<section class="pagina">
+  @if (!cargado()) {
+  <p class="vacio">Cargando tu regla...</p>
+  } @else {
+  <div class="rejilla">
+    <form class="tarjeta" (ngSubmit)="guardar()">
+      <h2 class="titulo">Configuración de tu regla</h2>
+      <p class="ayuda">Define cuándo y cómo se debe iniciar el proceso de liberación de tu legado.</p>
+
+      <label for="inactividad">Días de inactividad antes de iniciar el proceso</label>
+      <p class="ayuda">Tiempo sin actividad tras el cual el sistema te enviará una alerta de verificación.</p>
+      <select id="inactividad" name="inactividad" class="form-select" [(ngModel)]="regla.diasInactividad">
+        @for (o of opcionesInactividad; track o.dias) {
+        <option [ngValue]="o.dias">{{ o.texto }}</option>
+        }
+      </select>
+
+      <div class="dos-columnas">
+        <div>
+          <label for="confirmaciones">Confirmaciones mínimas</label>
+          <p class="ayuda">Beneficiarios que deben confirmar.</p>
+          <select id="confirmaciones" name="confirmaciones" class="form-select" [(ngModel)]="regla.minConfirmaciones">
+            @for (n of opcionesConfirmaciones(); track n) {
+            <option [ngValue]="n">{{ n }} de {{ totalBeneficiarios || 1 }} beneficiarios</option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label for="espera">Período de espera final</label>
+          <p class="ayuda">Margen antes de liberar los activos.</p>
+          <select id="espera" name="espera" class="form-select" [(ngModel)]="regla.diasPeriodoEspera">
+            @for (d of opcionesEspera; track d) {
+            <option [ngValue]="d">{{ d }} días</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="form-check form-switch interruptor">
+        <input class="form-check-input" type="checkbox" role="switch" id="validador" name="validador" [(ngModel)]="regla.requiereValidador" />
+        <label class="form-check-label" for="validador">
+          <strong>Requerir validador externo para activos financieros</strong>
+          <span class="ayuda">Una persona de confianza deberá aprobar antes de liberar activos financieros.</span>
+        </label>
+      </div>
+
+      @if (totalBeneficiarios === 0) {
+      <p class="error-form">Primero designa al menos un beneficiario en "Mis Herederos".</p>
+      }
+      @if (error()) { <p class="error-form">{{ error() }}</p> }
+      @if (mensaje()) { <p class="ok-form">{{ mensaje() }}</p> }
+
+      <div class="botones-form">
+        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+      </div>
+    </form>
+
+    <aside class="tarjeta">
+      <h2 class="titulo">Así funcionará tu regla</h2>
+
+      <ol class="pasos">
+        <li>
+          <span class="num">1</span>
+          <div><strong>Monitoreo continuo</strong><span>El sistema revisa tu actividad a diario.</span></div>
+        </li>
+        <li>
+          <span class="num">2</span>
+          <div><strong>Alerta de verificación</strong><span>Si pasan {{ regla.diasInactividad }} días sin actividad, te pediremos confirmar que estás bien.</span></div>
+        </li>
+        <li>
+          <span class="num">3</span>
+          <div><strong>Aviso a beneficiarios</strong><span>Si no respondes, se les notifica.</span></div>
+        </li>
+        <li>
+          <span class="num">4</span>
+          <div><strong>{{ regla.minConfirmaciones }} de {{ totalBeneficiarios || 1 }} deben confirmar</strong><span>Con DNI y verificación facial.</span></div>
+        </li>
+        <li>
+          <span class="num naranja">5</span>
+          <div><strong>Espera de {{ regla.diasPeriodoEspera }} días</strong><span>Puedes cancelar todo si reapareces.</span></div>
+        </li>
+        <li>
+          <span class="num verde">6</span>
+          <div>
+            <strong>Liberación diferenciada</strong>
+            <span>Activos digitales: entrega directa. Financieros: {{ regla.requiereValidador ? 'aprobación del validador y orientación legal.' : 'orientación legal.' }}</span>
+          </div>
+        </li>
+      </ol>
+    </aside>
+  </div>
+  }
+</section>

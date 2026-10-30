@@ -5,6 +5,7 @@ import { Dashboard } from './pages/dashboard/dashboard';
 import { Beneficiarios } from './pages/beneficiarios/beneficiarios';
 import { Activos } from './pages/activos/activos';
 import { Perfil } from './pages/perfil/perfil';
+import { Reglas } from './pages/reglas/reglas';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -13,6 +14,7 @@ export const routes: Routes = [
   { path: 'dashboard', component: Dashboard, canActivate: [authGuard] },
   { path: 'beneficiarios', component: Beneficiarios, canActivate: [authGuard] },
   { path: 'activos', component: Activos, canActivate: [authGuard] },
+  { path: 'reglas', component: Reglas, canActivate: [authGuard] },
   { path: 'perfil', component: Perfil, canActivate: [authGuard] },
   { path: '**', redirectTo: 'dashboard' }
 ];
