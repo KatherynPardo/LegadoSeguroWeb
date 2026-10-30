@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { API_URL } from '../core/api.config';
 import { NuevoUsuario, Sesion, UsuarioSesion } from '../models/auth.model';
+import { PersonaDni } from '../models/beneficiario.model';
 
 const CLAVE_TOKEN = 'lg_token';
 const CLAVE_USUARIO = 'lg_usuario';
@@ -30,6 +31,11 @@ export class AuthService {
         return this.http.post<Sesion>(`${this.apiUrl}/registro`, datos).pipe(
             tap(sesion => this.guardarSesion(sesion))
         );
+    }
+
+    // Consulta pública de DNI para el registro (los datos vienen de RENIEC)
+    buscarDni(dni: string): Observable<PersonaDni> {
+        return this.http.get<PersonaDni>(`${this.apiUrl}/dni/${dni}`);
     }
 
     private guardarSesion(sesion: Sesion): void {

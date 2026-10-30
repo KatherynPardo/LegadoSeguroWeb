@@ -8,15 +8,44 @@ import { NuevoUsuario } from '../../models/auth.model';
   selector: 'app-registro',
   imports: [FormsModule, RouterLink],
   templateUrl: './registro.html',
-  styleUrl: '../login/login.css'
+  styleUrls: ['../login/login.css', './registro.css']
 })
 export class Registro {
   datos: NuevoUsuario = { nombres: '', apellidos: '', dni: '', correo: '', telefono: '', password: '' };
   confirmar = '';
   error = signal('');
   cargando = signal(false);
+  buscandoDni = signal(false);
+  aviso = signal('');
+  verificado = signal(false); // true cuando los nombres vinieron de RENIEC
 
   constructor(private auth: AuthService, private router: Router) {}
+
+  // Trae nombres y apellidos de RENIEC. Si el servicio no responde, se pueden escribir a mano.
+  buscarDni(): void {
+    this.aviso.set('');
+    this.verificado.set(false);
+
+    if (!/^\d{8}$/.test(this.datos.dni)) {
+      this.aviso.set('Escribe un DNI de 8 dígitos');
+      return;
+    }
+
+    this.buscandoDni.set(true);
+    this.auth.buscarDni(this.datos.dni).subscribe({
+      next: p => {
+        this.datos.nombres = p.nombres;
+        this.datos.apellidos = p.apellidos;
+        this.verificado.set(true);
+        this.buscandoDni.set(false);
+        this.aviso.set('Datos verificados con RENIEC.');
+      },
+      error: err => {
+        this.buscandoDni.set(false);
+        this.aviso.set((err.error?.mensaje ?? 'No se pudo consultar el DNI') + '. Puedes escribir los datos a mano.');
+      }
+    });
+  }
 
   crearCuenta(): void {
     this.error.set('');

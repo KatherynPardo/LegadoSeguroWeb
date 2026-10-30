@@ -1,0 +1,35 @@
+.fila-dni {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.fila-dni input {
+  margin-bottom: 0;
+}
+
+.fila-dni button {
+  padding: 0 20px;
+  background: #fff;
+  color: #1A4E8A;
+  border: 1px solid #1A4E8A;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.fila-dni button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.aviso {
+  margin: -12px 0 20px;
+  font-size: 14px;
+  color: #6B7280;
+}
+
+input[readonly] {
+  background: #ECEEF1;
+  color: #374151;
+}

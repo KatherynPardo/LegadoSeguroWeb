@@ -17,14 +17,20 @@
       <h2>Crea tu cuenta</h2>
       <p class="subtitulo">Completa tus datos para registrarte</p>
 
+      <label for="dni">DNI</label>
+      <div class="fila-dni">
+        <input id="dni" name="dni" required maxlength="8" inputmode="numeric" [(ngModel)]="datos.dni" />
+        <button type="button" [disabled]="buscandoDni()" (click)="buscarDni()">{{ buscandoDni() ? 'Buscando...' : 'Buscar' }}</button>
+      </div>
+      @if (aviso()) {
+      <p class="aviso">{{ aviso() }}</p>
+      }
+
       <label for="nombres">Nombres</label>
-      <input id="nombres" name="nombres" required [(ngModel)]="datos.nombres" />
+      <input id="nombres" name="nombres" required [readonly]="verificado()" [(ngModel)]="datos.nombres" />
 
       <label for="apellidos">Apellidos</label>
-      <input id="apellidos" name="apellidos" required [(ngModel)]="datos.apellidos" />
-
-      <label for="dni">DNI</label>
-      <input id="dni" name="dni" required maxlength="8" inputmode="numeric" [(ngModel)]="datos.dni" />
+      <input id="apellidos" name="apellidos" required [readonly]="verificado()" [(ngModel)]="datos.apellidos" />
 
       <label for="correo">Correo electrónico</label>
       <input id="correo" name="correo" type="email" required autocomplete="off" [(ngModel)]="datos.correo" />

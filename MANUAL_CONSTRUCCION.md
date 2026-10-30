@@ -326,6 +326,7 @@ Son datos ficticios, solo para desarrollo.
 | GET / POST | `/api/beneficiarios` | Sí | Listar y crear herederos |
 | GET / PUT | `/api/reglas` | Sí | Ver y guardar la regla de liberación del usuario |
 | GET | `/api/procesos` y `/api/procesos/:id` | Sí | Listar procesos y ver el detalle de uno |
+| GET | `/api/auth/dni/:dni` | No | Nombres desde RENIEC para el registro (máx. 10 por minuto por IP) |
 | POST | `/api/auth/registro` | No | Crear cuenta nueva (rol PROPIETARIO) |
 | GET | `/api/admin/usuarios` | Admin | Listar todos los usuarios |
 | PATCH | `/api/admin/usuarios/:id/estado` | Admin | Activar o desactivar una cuenta |
@@ -431,6 +432,10 @@ El `.env` está ignorado por Git, así que las claves no se suben.
 - Portal del heredero en React.
 - Despliegue.
 
+
+## Registro con DNI de RENIEC
+
+En `/registro` se escribe el DNI y se pulsa **Buscar**: los nombres y apellidos vienen de RENIEC (apiperu.dev) y quedan de solo lectura. Al crear la cuenta, el backend vuelve a consultar RENIEC y usa esos nombres, no los que mande el navegador; si el DNI no existe, rechaza el registro. Si no hay token configurado, se aceptan los datos escritos a mano. La consulta pública está limitada a 10 por minuto por IP para no gastar el token.
 
 ## Usuario administrador
 

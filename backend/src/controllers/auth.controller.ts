@@ -2,6 +2,7 @@
 
 import { Request, Response } from 'express';
 import { iniciarSesion, registrarUsuario } from '../services/auth.service';
+import { consultarDni, ErrorConsultaDni } from '../services/reniec.service';
 
 export async function login(req: Request, res: Response) {
   const { correo, password } = req.body;
@@ -48,9 +49,25 @@ export async function registro(req: Request, res: Response) {
   }
 
   try {
+    // Los nombres salen de RENIEC, no de lo que escriba la persona. Si la consulta no está
+    // configurada (503) se aceptan los datos escritos; si el DNI no existe, se rechaza.
+    let nombresFinal = nombres.trim();
+    let apellidosFinal = apellidos.trim();
+    try {
+      const persona = await consultarDni(dni);
+      nombresFinal = persona.nombres;
+      apellidosFinal = persona.apellidos;
+    } catch (e) {
+      if (e instanceof ErrorConsultaDni && e.estado === 404) {
+        res.status(400).json({ mensaje: 'No se encontró ese DNI en RENIEC' });
+        return;
+      }
+      if (!(e instanceof ErrorConsultaDni) || e.estado !== 503) throw e;
+    }
+
     const sesion = await registrarUsuario({
-      nombres: nombres.trim(),
-      apellidos: apellidos.trim(),
+      nombres: nombresFinal,
+      apellidos: apellidosFinal,
       dni,
       correo: correo.trim().toLowerCase(),
       telefono: telefono?.trim() || null,
