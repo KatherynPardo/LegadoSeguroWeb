@@ -1,0 +1,4 @@
+.inactivo {
+  color: var(--lg-error);
+  font-weight: 600;
+}

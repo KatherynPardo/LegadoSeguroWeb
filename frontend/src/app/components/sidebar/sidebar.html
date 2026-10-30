@@ -7,6 +7,9 @@
     <a routerLink="/beneficiarios" routerLinkActive="activo">Mis Herederos</a>
     <a routerLink="/reglas" routerLinkActive="activo">Reglas de Liberación</a>
     <a routerLink="/procesos" routerLinkActive="activo">Procesos</a>
+    @if (esAdmin()) {
+    <a routerLink="/usuarios" routerLinkActive="activo">Usuarios</a>
+    }
     <a routerLink="/perfil" routerLinkActive="activo">Mi Perfil</a>
   </nav>
 

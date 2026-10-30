@@ -310,6 +310,8 @@ Son datos ficticios, solo para desarrollo.
 | Mis Herederos | `/beneficiarios` | Listar y registrar herederos, con búsqueda de nombres por DNI |
 | Reglas de Liberación | `/reglas` | Configurar cuándo y cómo se libera el legado (inactividad, confirmaciones, espera, validador) |
 | Procesos | `/procesos` | Ver los procesos de liberación, su detalle (activos, confirmaciones, objeciones, entregas) y cancelarlos |
+| Registro | `/registro` | Crear una cuenta nueva |
+| Usuarios | `/usuarios` | Solo administrador: ver cuentas y activarlas o desactivarlas |
 | Mi Perfil | `/perfil` | Editar datos personales y cambiar la contraseña |
 
 ### Endpoints de la API
@@ -324,6 +326,9 @@ Son datos ficticios, solo para desarrollo.
 | GET / POST | `/api/beneficiarios` | Sí | Listar y crear herederos |
 | GET / PUT | `/api/reglas` | Sí | Ver y guardar la regla de liberación del usuario |
 | GET | `/api/procesos` y `/api/procesos/:id` | Sí | Listar procesos y ver el detalle de uno |
+| POST | `/api/auth/registro` | No | Crear cuenta nueva (rol PROPIETARIO) |
+| GET | `/api/admin/usuarios` | Admin | Listar todos los usuarios |
+| PATCH | `/api/admin/usuarios/:id/estado` | Admin | Activar o desactivar una cuenta |
 | POST | `/api/procesos/:id/cancelar` | Sí | Cancelar un proceso abierto |
 | GET / PUT | `/api/perfil` | Sí | Ver y editar el perfil |
 | PUT | `/api/perfil/password` | Sí | Cambiar la contraseña |
@@ -425,3 +430,8 @@ El `.env` está ignorado por Git, así que las claves no se suben.
 - Planes, suscripciones y pagos con Culqi (modo de pruebas).
 - Portal del heredero en React.
 - Despliegue.
+
+
+## Usuario administrador
+
+La migración `006_usuario_admin.sql` crea la cuenta `admin@legadoseguro.pe` (contraseña de prueba `Admin2026!`) con el rol `ADMINISTRADOR`. El backend valida el rol consultando la base en cada petición a `/api/admin` (middleware `soloAdmin`), y el frontend oculta el menú y bloquea la ruta con `adminGuard`. Un usuario desactivado ya no puede iniciar sesión.

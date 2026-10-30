@@ -12,6 +12,8 @@ import perfilRoutes from './perfil.routes';
 import reniecRoutes from './reniec.routes';
 import reglaRoutes from './regla.routes';
 import procesoRoutes from './proceso.routes';
+import adminRoutes from './admin.routes';
+import { soloAdmin } from '../middlewares/admin.middleware';
 
 const router = Router();
 
@@ -28,5 +30,8 @@ router.use('/perfil', verificarToken, perfilRoutes);
 router.use('/reniec', verificarToken, reniecRoutes);
 router.use('/reglas', verificarToken, reglaRoutes);
 router.use('/procesos', verificarToken, procesoRoutes);
+
+// Solo administradores
+router.use('/admin', verificarToken, soloAdmin, adminRoutes);
 
 export default router;

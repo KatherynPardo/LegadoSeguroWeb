@@ -1,4 +1,4 @@
-// Servicio de autenticación: valida correo y contraseña y entrega una sesión (JWT).
+// Servicio de autenticación: valida correo y contraseña, registra usuarios y entrega una sesión (JWT).
 
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -7,14 +7,33 @@ import { JWT_SECRET } from '../config/env';
 
 export type Sesion = {
   token: string;
-  usuario: { id: number; nombres: string; apellidos: string; correo: string };
+  usuario: { id: number; nombres: string; apellidos: string; correo: string; rol: string };
 };
+
+export type NuevoUsuario = {
+  nombres: string;
+  apellidos: string;
+  dni: string;
+  correo: string;
+  telefono: string | null;
+  password: string;
+};
+
+function crearSesion(u: { id_usuario: number; nombres: string; apellidos: string; correo: string; rol: string }): Sesion {
+  // El token lleva el id del usuario y vence en 8 horas
+  const token = jwt.sign({ id: u.id_usuario }, JWT_SECRET, { expiresIn: '8h' });
+  return {
+    token,
+    usuario: { id: u.id_usuario, nombres: u.nombres, apellidos: u.apellidos, correo: u.correo, rol: u.rol }
+  };
+}
 
 export async function iniciarSesion(correo: string, password: string): Promise<Sesion | null> {
   const resultado = await pool.query(
-    `SELECT id_usuario, nombres, apellidos, correo, password_hash
-     FROM usuario
-     WHERE correo = $1 AND estado = 'ACTIVO'`,
+    `SELECT u.id_usuario, u.nombres, u.apellidos, u.correo, u.password_hash, r.nombre AS rol
+     FROM usuario u
+     JOIN rol r ON r.id_rol = u.id_rol
+     WHERE u.correo = $1 AND u.estado = 'ACTIVO'`,
     [correo]
   );
 
@@ -31,16 +50,30 @@ export async function iniciarSesion(correo: string, password: string): Promise<S
     [usuario.id_usuario]
   );
 
-  // El token lleva el id del usuario y vence en 8 horas
-  const token = jwt.sign({ id: usuario.id_usuario }, JWT_SECRET, { expiresIn: '8h' });
+  return crearSesion(usuario);
+}
 
-  return {
-    token,
-    usuario: {
-      id: usuario.id_usuario,
-      nombres: usuario.nombres,
-      apellidos: usuario.apellidos,
-      correo: usuario.correo
-    }
-  };
+// Crea una cuenta nueva con rol PROPIETARIO. Devuelve null si el correo o el DNI ya existen.
+export async function registrarUsuario(datos: NuevoUsuario): Promise<Sesion | null> {
+  const existe = await pool.query(
+    'SELECT 1 FROM usuario WHERE correo = $1 OR dni = $2',
+    [datos.correo, datos.dni]
+  );
+  if (existe.rows.length > 0) return null;
+
+  const hash = await bcrypt.hash(datos.password, 10);
+
+  const resultado = await pool.query(
+    `INSERT INTO usuario (id_rol, nombres, apellidos, dni, correo, password_hash, telefono)
+     VALUES ((SELECT id_rol FROM rol WHERE nombre = 'PROPIETARIO'), $1, $2, $3, $4, $5, $6)
+     RETURNING id_usuario, nombres, apellidos, correo`,
+    [datos.nombres, datos.apellidos, datos.dni, datos.correo, hash, datos.telefono]
+  );
+
+  await pool.query(
+    `INSERT INTO actividad_usuario (id_usuario, tipo_evento) VALUES ($1, 'REGISTRO')`,
+    [resultado.rows[0].id_usuario]
+  );
+
+  return crearSesion({ ...resultado.rows[0], rol: 'PROPIETARIO' });
 }

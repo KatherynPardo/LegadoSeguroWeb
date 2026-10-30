@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { API_URL } from '../core/api.config';
-import { Sesion, UsuarioSesion } from '../models/auth.model';
+import { NuevoUsuario, Sesion, UsuarioSesion } from '../models/auth.model';
 
 const CLAVE_TOKEN = 'lg_token';
 const CLAVE_USUARIO = 'lg_usuario';
@@ -15,17 +15,27 @@ export class AuthService {
 
     usuario = signal<UsuarioSesion | null>(this.leerUsuario());
     logueado = computed(() => this.usuario() !== null);
+    esAdmin = computed(() => this.usuario()?.rol === 'ADMINISTRADOR');
 
     constructor(private http: HttpClient, private router: Router) { }
 
     login(correo: string, password: string): Observable<Sesion> {
         return this.http.post<Sesion>(`${this.apiUrl}/login`, { correo, password }).pipe(
-            tap(sesion => {
-                localStorage.setItem(CLAVE_TOKEN, sesion.token);
-                localStorage.setItem(CLAVE_USUARIO, JSON.stringify(sesion.usuario));
-                this.usuario.set(sesion.usuario);
-            })
+            tap(sesion => this.guardarSesion(sesion))
         );
+    }
+
+    // Crea la cuenta y deja la sesión iniciada
+    registrar(datos: NuevoUsuario): Observable<Sesion> {
+        return this.http.post<Sesion>(`${this.apiUrl}/registro`, datos).pipe(
+            tap(sesion => this.guardarSesion(sesion))
+        );
+    }
+
+    private guardarSesion(sesion: Sesion): void {
+        localStorage.setItem(CLAVE_TOKEN, sesion.token);
+        localStorage.setItem(CLAVE_USUARIO, JSON.stringify(sesion.usuario));
+        this.usuario.set(sesion.usuario);
     }
 
     logout(): void {
@@ -36,7 +46,8 @@ export class AuthService {
     }
 
     // Actualiza el nombre que se muestra en el menú después de editar el perfil
-    actualizarUsuario(usuario: UsuarioSesion): void {
+    actualizarUsuario(cambios: Partial<UsuarioSesion>): void {
+        const usuario = { ...this.usuario()!, ...cambios };
         localStorage.setItem(CLAVE_USUARIO, JSON.stringify(usuario));
         this.usuario.set(usuario);
     }

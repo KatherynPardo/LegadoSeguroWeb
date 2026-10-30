@@ -9,6 +9,8 @@ import { AuthService } from '../../services/auth.service';
   styleUrl: './sidebar.css'
 })
 export class Sidebar {
+  esAdmin = computed(() => this.auth.esAdmin());
+
   nombre = computed(() => {
     const u = this.auth.usuario();
     return u ? `${u.nombres} ${u.apellidos}` : '';

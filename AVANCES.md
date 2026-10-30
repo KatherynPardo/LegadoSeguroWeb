@@ -21,10 +21,12 @@ Bitácora de lo construido, en orden cronológico.
 
 | 30/10/2026 | **Procesos de liberación**: el sistema registra cada inicio de sesión en `actividad_usuario`, un monitoreo (al arrancar y cada hora) detecta la inactividad contra la regla y crea el proceso con sus activos y confirmaciones pendientes. Pantalla de Procesos con detalle y cancelación (queda en `auditoria`). |
 
+| 30/10/2026 | **Registro de usuarios** (`/registro`, rol PROPIETARIO, contraseña cifrada, sesión iniciada al crear la cuenta) y **usuario administrador** con rol validado en la base: pantalla Usuarios para ver cuentas y activarlas o desactivarlas. |
+
 ## Próximos pasos
 
 1. Editar y eliminar activos y beneficiarios.
 2. Asignar beneficiarios a cada activo.
-3. Registro de usuarios y recuperación de contraseña por correo.
+3. Recuperación de contraseña por correo.
 4. Planes, suscripciones y pagos (Culqi).
 5. Portal del heredero (React) y despliegue.
