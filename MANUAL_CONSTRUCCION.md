@@ -329,6 +329,7 @@ Son datos ficticios, solo para desarrollo.
 | GET | `/api/auth/dni/:dni` | No | Nombres desde RENIEC para el registro (máx. 10 por minuto por IP) |
 | POST | `/api/auth/registro` | No | Crear cuenta nueva (rol PROPIETARIO) |
 | GET | `/api/admin/usuarios` | Admin | Listar todos los usuarios |
+| GET | `/api/admin/auditoria` | Admin | Últimas 100 acciones con usuario e IP |
 | PATCH | `/api/admin/usuarios/:id/estado` | Admin | Activar o desactivar una cuenta |
 | POST | `/api/procesos/:id/cancelar` | Sí | Cancelar un proceso abierto |
 | GET / PUT | `/api/perfil` | Sí | Ver y editar el perfil |
@@ -436,6 +437,10 @@ El `.env` está ignorado por Git, así que las claves no se suben.
 ## Registro con DNI de RENIEC
 
 En `/registro` se escribe el DNI y se pulsa **Buscar**: los nombres y apellidos vienen de RENIEC (apiperu.dev) y quedan de solo lectura. Al crear la cuenta, el backend vuelve a consultar RENIEC y usa esos nombres, no los que mande el navegador; si el DNI no existe, rechaza el registro. Si no hay token configurado, se aceptan los datos escritos a mano. La consulta pública está limitada a 10 por minuto por IP para no gastar el token.
+
+## Auditoría e IP
+
+La migración `007_auditoria_ip.sql` agrega `ip_registro` (en `usuario`) e `ip_origen` (en `actividad_usuario` y `auditoria`). La IP se toma de `req.ip` (`utils/ip.ts`). Se guarda al registrarse, al iniciar sesión y al activar o desactivar una cuenta. En local aparece `::1` (la propia máquina); detrás de un proxy hay que activar `trust proxy` en `app.ts`. La fecha de creación de cada cuenta es `usuario.fecha_registro`.
 
 ## Usuario administrador
 

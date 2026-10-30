@@ -2,7 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { AdminService } from '../../services/admin.service';
 import { AuthService } from '../../services/auth.service';
-import { UsuarioAdmin } from '../../models/auth.model';
+import { RegistroAuditoria, UsuarioAdmin } from '../../models/auth.model';
 
 @Component({
   selector: 'app-admin',
@@ -12,6 +12,7 @@ import { UsuarioAdmin } from '../../models/auth.model';
 })
 export class Admin implements OnInit {
   usuarios = signal<UsuarioAdmin[]>([]);
+  auditoria = signal<RegistroAuditoria[]>([]);
   cargado = signal(false);
   error = signal('');
 
@@ -28,6 +29,11 @@ export class Admin implements OnInit {
         this.cargado.set(true);
       },
       error: err => this.error.set(err.error?.mensaje ?? 'No se pudo cargar la lista')
+    });
+
+    this.adminService.getAuditoria().subscribe({
+      next: lista => this.auditoria.set(lista),
+      error: err => this.error.set(err.error?.mensaje ?? 'No se pudo cargar la auditoría')
     });
   }
 

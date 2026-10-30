@@ -30,5 +30,17 @@ export interface UsuarioAdmin {
     rol: string;
     estado: string;
     fechaRegistro: string;
+    ipRegistro: string | null;
+    ultimoAcceso: string | null;
     activos: number;
+}
+
+export interface RegistroAuditoria {
+    id: number;
+    fecha: string;
+    accion: string;
+    entidad: string | null;
+    descripcion: string | null;
+    ipOrigen: string | null;
+    usuario: string;
 }

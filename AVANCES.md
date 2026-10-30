@@ -22,6 +22,7 @@ Bitácora de lo construido, en orden cronológico.
 | 30/10/2026 | **Procesos de liberación**: el sistema registra cada inicio de sesión en `actividad_usuario`, un monitoreo (al arrancar y cada hora) detecta la inactividad contra la regla y crea el proceso con sus activos y confirmaciones pendientes. Pantalla de Procesos con detalle y cancelación (queda en `auditoria`). |
 
 | 30/10/2026 | **Registro de usuarios** (`/registro`, rol PROPIETARIO, contraseña cifrada, sesión iniciada al crear la cuenta) y **usuario administrador** con rol validado en la base: pantalla Usuarios para ver cuentas y activarlas o desactivarlas. |
+| 30/10/2026 | **Auditoría con IP**: se guarda la IP de registro e inicio de sesión; la pantalla Usuarios muestra fecha de creación, IP de registro y último acceso, y una tabla de auditoría con las acciones del administrador. |
 
 ## Próximos pasos
 

@@ -28,7 +28,7 @@ function crearSesion(u: { id_usuario: number; nombres: string; apellidos: string
   };
 }
 
-export async function iniciarSesion(correo: string, password: string): Promise<Sesion | null> {
+export async function iniciarSesion(correo: string, password: string, ip: string | null): Promise<Sesion | null> {
   const resultado = await pool.query(
     `SELECT u.id_usuario, u.nombres, u.apellidos, u.correo, u.password_hash, r.nombre AS rol
      FROM usuario u
@@ -46,15 +46,15 @@ export async function iniciarSesion(correo: string, password: string): Promise<S
 
   // Cada inicio de sesión cuenta como actividad: es lo que mira el monitoreo de inactividad
   await pool.query(
-    `INSERT INTO actividad_usuario (id_usuario, tipo_evento) VALUES ($1, 'INICIO_SESION')`,
-    [usuario.id_usuario]
+    `INSERT INTO actividad_usuario (id_usuario, tipo_evento, ip_origen) VALUES ($1, 'INICIO_SESION', $2)`,
+    [usuario.id_usuario, ip]
   );
 
   return crearSesion(usuario);
 }
 
 // Crea una cuenta nueva con rol PROPIETARIO. Devuelve null si el correo o el DNI ya existen.
-export async function registrarUsuario(datos: NuevoUsuario): Promise<Sesion | null> {
+export async function registrarUsuario(datos: NuevoUsuario, ip: string | null): Promise<Sesion | null> {
   const existe = await pool.query(
     'SELECT 1 FROM usuario WHERE correo = $1 OR dni = $2',
     [datos.correo, datos.dni]
@@ -64,15 +64,21 @@ export async function registrarUsuario(datos: NuevoUsuario): Promise<Sesion | nu
   const hash = await bcrypt.hash(datos.password, 10);
 
   const resultado = await pool.query(
-    `INSERT INTO usuario (id_rol, nombres, apellidos, dni, correo, password_hash, telefono)
-     VALUES ((SELECT id_rol FROM rol WHERE nombre = 'PROPIETARIO'), $1, $2, $3, $4, $5, $6)
+    `INSERT INTO usuario (id_rol, nombres, apellidos, dni, correo, password_hash, telefono, ip_registro)
+     VALUES ((SELECT id_rol FROM rol WHERE nombre = 'PROPIETARIO'), $1, $2, $3, $4, $5, $6, $7)
      RETURNING id_usuario, nombres, apellidos, correo`,
-    [datos.nombres, datos.apellidos, datos.dni, datos.correo, hash, datos.telefono]
+    [datos.nombres, datos.apellidos, datos.dni, datos.correo, hash, datos.telefono, ip]
   );
+  const idUsuario = resultado.rows[0].id_usuario;
 
   await pool.query(
-    `INSERT INTO actividad_usuario (id_usuario, tipo_evento) VALUES ($1, 'REGISTRO')`,
-    [resultado.rows[0].id_usuario]
+    `INSERT INTO actividad_usuario (id_usuario, tipo_evento, ip_origen) VALUES ($1, 'REGISTRO', $2)`,
+    [idUsuario, ip]
+  );
+  await pool.query(
+    `INSERT INTO auditoria (id_usuario, accion, entidad, id_entidad, descripcion, ip_origen)
+     VALUES ($1, 'REGISTRAR_USUARIO', 'usuario', $1, 'Cuenta creada desde el formulario de registro', $2)`,
+    [idUsuario, ip]
   );
 
   return crearSesion({ ...resultado.rows[0], rol: 'PROPIETARIO' });

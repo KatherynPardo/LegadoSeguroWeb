@@ -2,6 +2,7 @@
 
 import { Request, Response } from 'express';
 import { iniciarSesion, registrarUsuario } from '../services/auth.service';
+import { obtenerIp } from '../utils/ip';
 import { consultarDni, ErrorConsultaDni } from '../services/reniec.service';
 
 export async function login(req: Request, res: Response) {
@@ -13,7 +14,7 @@ export async function login(req: Request, res: Response) {
   }
 
   try {
-    const sesion = await iniciarSesion(correo, password);
+    const sesion = await iniciarSesion(correo, password, obtenerIp(req));
 
     if (!sesion) {
       // Mismo mensaje para correo o contraseña incorrectos: no se revela cuál falló
@@ -72,7 +73,7 @@ export async function registro(req: Request, res: Response) {
       correo: correo.trim().toLowerCase(),
       telefono: telefono?.trim() || null,
       password
-    });
+    }, obtenerIp(req));
 
     if (!sesion) {
       res.status(409).json({ mensaje: 'Ya existe una cuenta con ese correo o DNI' });

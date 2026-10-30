@@ -11,7 +11,10 @@
   <div class="tarjeta">
     <table class="tabla">
       <thead>
-        <tr><th>Nombre</th><th>Correo</th><th>DNI</th><th>Rol</th><th>Activos</th><th>Registro</th><th>Estado</th><th></th></tr>
+        <tr>
+          <th>Nombre</th><th>Correo</th><th>DNI</th><th>Rol</th><th>Activos</th>
+          <th>Fecha de creación</th><th>IP de registro</th><th>Último acceso</th><th>Estado</th><th></th>
+        </tr>
       </thead>
       <tbody>
         @for (u of usuarios(); track u.id) {
@@ -21,7 +24,9 @@
           <td>{{ u.dni }}</td>
           <td>{{ u.rol }}</td>
           <td>{{ u.activos }}</td>
-          <td>{{ u.fechaRegistro | date:'dd/MM/yyyy' }}</td>
+          <td>{{ u.fechaRegistro | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td>{{ u.ipRegistro ?? '—' }}</td>
+          <td>{{ u.ultimoAcceso ? (u.ultimoAcceso | date:'dd/MM/yyyy HH:mm') : '—' }}</td>
           <td [class.inactivo]="u.estado !== 'ACTIVO'">{{ u.estado }}</td>
           <td>
             @if (!esPropio(u)) {
@@ -31,6 +36,28 @@
             }
           </td>
         </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="subtitulo">Auditoría</h2>
+  <div class="tarjeta">
+    <table class="tabla">
+      <thead>
+        <tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Detalle</th><th>IP</th></tr>
+      </thead>
+      <tbody>
+        @for (a of auditoria(); track a.id) {
+        <tr>
+          <td>{{ a.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td class="nombre">{{ a.usuario }}</td>
+          <td>{{ a.accion }}</td>
+          <td>{{ a.descripcion }}</td>
+          <td>{{ a.ipOrigen ?? '—' }}</td>
+        </tr>
+        } @empty {
+        <tr><td colspan="5" class="vacio">Todavía no hay registros.</td></tr>
         }
       </tbody>
     </table>

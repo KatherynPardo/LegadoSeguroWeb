@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_URL } from '../core/api.config';
-import { UsuarioAdmin } from '../models/auth.model';
+import { RegistroAuditoria, UsuarioAdmin } from '../models/auth.model';
 
 // Servicio: administración de usuarios (solo rol ADMINISTRADOR)
 @Injectable({ providedIn: 'root' })
@@ -13,6 +13,10 @@ export class AdminService {
 
     getUsuarios(): Observable<UsuarioAdmin[]> {
         return this.http.get<UsuarioAdmin[]>(`${this.apiUrl}/usuarios`);
+    }
+
+    getAuditoria(): Observable<RegistroAuditoria[]> {
+        return this.http.get<RegistroAuditoria[]>(`${this.apiUrl}/auditoria`);
     }
 
     cambiarEstado(id: number, estado: 'ACTIVO' | 'INACTIVO'): Observable<{ mensaje: string }> {
