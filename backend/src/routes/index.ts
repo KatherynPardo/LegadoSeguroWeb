@@ -11,6 +11,7 @@ import tipoActivoRoutes from './tipo-activo.routes';
 import perfilRoutes from './perfil.routes';
 import reniecRoutes from './reniec.routes';
 import reglaRoutes from './regla.routes';
+import procesoRoutes from './proceso.routes';
 
 const router = Router();
 
@@ -26,5 +27,6 @@ router.use('/tipos-activo', verificarToken, tipoActivoRoutes);
 router.use('/perfil', verificarToken, perfilRoutes);
 router.use('/reniec', verificarToken, reniecRoutes);
 router.use('/reglas', verificarToken, reglaRoutes);
+router.use('/procesos', verificarToken, procesoRoutes);
 
 export default router;

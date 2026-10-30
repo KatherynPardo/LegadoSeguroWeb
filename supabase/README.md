@@ -8,13 +8,14 @@ Esta carpeta contiene **toda la información de la base de datos**: el esquema, 
 | `migrations/002_seguridad_rls.sql` | Activa **RLS** (Row Level Security) en todas las tablas |
 | `migrations/003_datos_iniciales.sql` | Carga roles, un usuario, tipos de activo, activos, beneficiarios y planes (datos ficticios) |
 | `migrations/004_usuario_demo.sql` | Deja una contraseña (cifrada) al usuario de prueba para poder iniciar sesión |
+| `migrations/005_proceso_demo.sql` | Carga un proceso de liberación de prueba (con activos y confirmaciones) para ver la pantalla Procesos |
 
 ## Cómo ejecutarlas
 
 1. Entra a tu proyecto en [supabase.com](https://supabase.com).
 2. Abre **SQL Editor** y pulsa **New query**.
 3. Pega el contenido de `001_esquema_inicial.sql` y pulsa **Run**.
-4. Repite con `002`, `003` y `004`, **en ese orden**: cada una depende de la anterior.
+4. Repite con `002`, `003`, `004` y `005`, **en ese orden**: cada una depende de la anterior.
 5. En **Table Editor** debes ver las 24 tablas.
 
 > Cada archivo se ejecuta **una sola vez**. Si lo corres de nuevo dará error de "ya existe".

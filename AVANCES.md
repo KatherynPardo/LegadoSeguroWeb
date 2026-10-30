@@ -19,6 +19,8 @@ Bitácora de lo construido, en orden cronológico.
 
 | 30/10/2026 | **Reglas de Liberación**: pantalla con el diseño de Figma (días de inactividad, confirmaciones mínimas, período de espera y validador externo) y panel "Así funcionará tu regla" que se actualiza al cambiar los valores. Cada usuario tiene una regla activa; el Dashboard ya cuenta la regla activa. |
 
+| 30/10/2026 | **Procesos de liberación**: el sistema registra cada inicio de sesión en `actividad_usuario`, un monitoreo (al arrancar y cada hora) detecta la inactividad contra la regla y crea el proceso con sus activos y confirmaciones pendientes. Pantalla de Procesos con detalle y cancelación (queda en `auditoria`). |
+
 ## Próximos pasos
 
 1. Editar y eliminar activos y beneficiarios.

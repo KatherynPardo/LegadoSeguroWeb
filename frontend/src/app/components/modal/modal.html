@@ -1,6 +1,6 @@
 @if (abierto()) {
 <div class="fondo" (click)="cerrar.emit()">
-  <div class="ventana" (click)="$event.stopPropagation()">
+  <div class="ventana" [class.ancho]="ancho()" (click)="$event.stopPropagation()">
     <header class="cabecera">
       <h2>{{ titulo() }}</h2>
       <button type="button" class="x" aria-label="Cerrar" (click)="cerrar.emit()">&times;</button>

@@ -10,5 +10,6 @@ import { Component, input, output } from '@angular/core';
 export class Modal {
   titulo = input('');
   abierto = input(false);
+  ancho = input(false); // true para contenido grande (por ejemplo, un detalle con tablas)
   cerrar = output<void>();
 }

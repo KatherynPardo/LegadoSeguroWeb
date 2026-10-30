@@ -25,6 +25,12 @@ export async function iniciarSesion(correo: string, password: string): Promise<S
   const coincide = await bcrypt.compare(password, usuario.password_hash);
   if (!coincide) return null;
 
+  // Cada inicio de sesión cuenta como actividad: es lo que mira el monitoreo de inactividad
+  await pool.query(
+    `INSERT INTO actividad_usuario (id_usuario, tipo_evento) VALUES ($1, 'INICIO_SESION')`,
+    [usuario.id_usuario]
+  );
+
   // El token lleva el id del usuario y vence en 8 horas
   const token = jwt.sign({ id: usuario.id_usuario }, JWT_SECRET, { expiresIn: '8h' });
 

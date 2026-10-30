@@ -309,6 +309,7 @@ Son datos ficticios, solo para desarrollo.
 | Mis Activos | `/activos` | Listar activos y crear uno nuevo; muestra su **sensibilidad** |
 | Mis Herederos | `/beneficiarios` | Listar y registrar herederos, con búsqueda de nombres por DNI |
 | Reglas de Liberación | `/reglas` | Configurar cuándo y cómo se libera el legado (inactividad, confirmaciones, espera, validador) |
+| Procesos | `/procesos` | Ver los procesos de liberación, su detalle (activos, confirmaciones, objeciones, entregas) y cancelarlos |
 | Mi Perfil | `/perfil` | Editar datos personales y cambiar la contraseña |
 
 ### Endpoints de la API
@@ -322,6 +323,8 @@ Son datos ficticios, solo para desarrollo.
 | GET | `/api/tipos-activo` | Sí | Tipos de activo con su sensibilidad |
 | GET / POST | `/api/beneficiarios` | Sí | Listar y crear herederos |
 | GET / PUT | `/api/reglas` | Sí | Ver y guardar la regla de liberación del usuario |
+| GET | `/api/procesos` y `/api/procesos/:id` | Sí | Listar procesos y ver el detalle de uno |
+| POST | `/api/procesos/:id/cancelar` | Sí | Cancelar un proceso abierto |
 | GET / PUT | `/api/perfil` | Sí | Ver y editar el perfil |
 | PUT | `/api/perfil/password` | Sí | Cambiar la contraseña |
 | GET | `/api/reniec/dni/:dni` | Sí | Buscar nombres por DNI (servicio externo) |
@@ -342,6 +345,17 @@ Cada usuario tiene **una regla activa** (tabla `regla_liberacion`). Define:
 | Validador externo | Si los activos financieros requieren aprobación de una persona de confianza | Sí o no |
 
 Si el usuario ya tiene regla, al guardar se **actualiza** la misma; si no, se crea. Para guardarla hace falta tener al menos un beneficiario, y las confirmaciones mínimas no pueden superar el total.
+
+### Proceso de liberación
+
+Es la entrega del legado cuando el dueño deja de dar señales. **No lo crea el dueño**: lo detecta el sistema.
+
+1. **Actividad:** cada inicio de sesión se registra en `actividad_usuario`.
+2. **Monitoreo:** al encender el backend y luego cada hora, se compara la última actividad con los días de inactividad de la regla activa.
+3. **Inicio:** si se superan y no hay un proceso abierto, se crea un `proceso_liberacion` (estado `DETECTADO`), con sus activos (`proceso_activo`) y las confirmaciones pendientes de los beneficiarios asignados (`confirmacion_beneficiario`).
+4. **Cancelación:** el dueño puede cancelar un proceso abierto (estado `CANCELADO`); queda registrado en `auditoria`.
+
+Estados: `DETECTADO`, `EN_CONFIRMACION`, `EN_ESPERA`, `LIBERADO`, `CANCELADO`. Las etapas de confirmación, objeción, espera y entrega se implementan después (portal del heredero).
 
 ### Búsqueda por DNI
 

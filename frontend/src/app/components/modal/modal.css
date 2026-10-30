@@ -41,3 +41,7 @@
   color: #6B7280;
   cursor: pointer;
 }
+
+.ventana.ancho {
+  max-width: 860px;
+}

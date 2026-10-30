@@ -1,0 +1,108 @@
+<header class="barra">
+  <h1>Procesos</h1>
+</header>
+
+<section class="pagina">
+  @if (mensaje()) { <p class="ok-form">{{ mensaje() }}</p> }
+  @if (error()) { <p class="error-form">{{ error() }}</p> }
+
+  @if (!cargado()) {
+  <p class="vacio">Cargando tus procesos...</p>
+  } @else {
+  @for (p of procesos(); track p.id) {
+  <article class="tarjeta proceso">
+    <div class="cabecera">
+      <div>
+        <h2 class="titulo">Proceso de liberación</h2>
+        <p class="ayuda">{{ p.motivo }} · iniciado el {{ p.fechaInicio | date:'dd/MM/yyyy' }}</p>
+      </div>
+      <span class="estado-proceso" [class]="'e-' + p.estado">{{ etiqueta(p.estado) }}</span>
+    </div>
+
+    <div class="metricas">
+      <div><strong>{{ p.activos }}</strong><span>Activos incluidos</span></div>
+      <div><strong>{{ p.confirmaciones }} de {{ p.minConfirmaciones }}</strong><span>Confirmaciones requeridas</span></div>
+      <div><strong>{{ p.objeciones }}</strong><span>Objeciones abiertas</span></div>
+      <div><strong>{{ p.diasPeriodoEspera }} días</strong><span>Período de espera final</span></div>
+    </div>
+
+    <div class="botones-form">
+      @if (abierto(p)) {
+      <button class="btn btn-outline-danger" (click)="pedirCancelar(p)">Cancelar proceso</button>
+      }
+      <button class="btn btn-primary" (click)="verDetalle(p)">Ver detalle</button>
+    </div>
+  </article>
+  } @empty {
+  <div class="tarjeta">
+    <p class="vacio">No tienes procesos de liberación.</p>
+    <p class="vacio ayuda">Se iniciarán automáticamente si pasa el tiempo de inactividad que definiste en tu regla.</p>
+  </div>
+  }
+  }
+</section>
+
+<app-modal titulo="Detalle del proceso" [abierto]="detalle() !== null" [ancho]="true" (cerrar)="detalle.set(null)">
+  @if (detalle(); as d) {
+  <p class="ayuda">{{ d.motivo }} · estado: <strong>{{ etiqueta(d.estado) }}</strong></p>
+
+  <h3 class="seccion">Activos incluidos ({{ d.activosIncluidos.length }})</h3>
+  <table class="tabla">
+    <thead><tr><th>Activo</th><th>Tipo</th><th>Sensibilidad</th><th>Estado</th></tr></thead>
+    <tbody>
+      @for (a of d.activosIncluidos; track a.nombre) {
+      <tr>
+        <td class="nombre">{{ a.nombre }}</td>
+        <td>{{ a.tipo }}</td>
+        <td class="sens" [class.financiera]="a.sensibilidad === 'FINANCIERA'">{{ a.sensibilidad }}</td>
+        <td>{{ a.estado }}</td>
+      </tr>
+      } @empty {
+      <tr><td colspan="4" class="vacio">Sin activos.</td></tr>
+      }
+    </tbody>
+  </table>
+
+  <h3 class="seccion">Confirmaciones de beneficiarios</h3>
+  <table class="tabla">
+    <thead><tr><th>Beneficiario</th><th>Activo</th><th>Resultado</th><th>Fecha</th></tr></thead>
+    <tbody>
+      @for (c of d.confirmacionesDetalle; track $index) {
+      <tr>
+        <td class="nombre">{{ c.beneficiario }}</td>
+        <td>{{ c.activo }}</td>
+        <td [class.confirmada]="c.resultado === 'CONFIRMADA'">{{ c.resultado }}</td>
+        <td>{{ c.fecha ? (c.fecha | date:'dd/MM/yyyy') : '—' }}</td>
+      </tr>
+      } @empty {
+      <tr><td colspan="4" class="vacio">Todavía no se pidió ninguna confirmación.</td></tr>
+      }
+    </tbody>
+  </table>
+
+  <h3 class="seccion">Objeciones</h3>
+  @for (o of d.objeccionesDetalle; track $index) {
+  <p class="linea"><strong>{{ o.autor }}</strong> ({{ o.estado }}): {{ o.motivo }}</p>
+  } @empty {
+  <p class="vacio">No hay objeciones.</p>
+  }
+
+  <h3 class="seccion">Entregas</h3>
+  @for (e of d.entregas; track $index) {
+  <p class="linea"><strong>{{ e.activo }}</strong> a {{ e.beneficiario }}: {{ e.estado }}</p>
+  } @empty {
+  <p class="vacio">Todavía no hay entregas.</p>
+  }
+  }
+</app-modal>
+
+<app-modal titulo="Cancelar proceso" [abierto]="porCancelar() !== null" (cerrar)="porCancelar.set(null)">
+  <p class="ayuda">
+    Vas a cancelar este proceso de liberación porque sigues activo. Tus activos permanecen bajo tu control
+    y la acción queda registrada.
+  </p>
+  <div class="botones-form">
+    <button type="button" class="btn btn-outline-secondary" (click)="porCancelar.set(null)">Volver</button>
+    <button type="button" class="btn btn-danger" (click)="confirmarCancelar()">Sí, cancelar proceso</button>
+  </div>
+</app-modal>

@@ -1,0 +1,91 @@
+.proceso {
+  margin-bottom: 24px;
+}
+
+.cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.titulo {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.ayuda {
+  color: #6B7280;
+  font-size: 14px;
+  margin: 4px 0 0;
+}
+
+.ok-form {
+  color: var(--lg-exito);
+  font-weight: 600;
+}
+
+/* Estado del proceso */
+.estado-proceso {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  background: #FDF1DE;
+  color: #8A5A12;
+}
+
+.e-EN_CONFIRMACION { background: #E3ECF8; color: #1A4E8A; }
+.e-EN_ESPERA { background: #FDF1DE; color: #8A5A12; }
+.e-LIBERADO { background: #E2F3E7; color: var(--lg-exito); }
+.e-CANCELADO { background: #ECEEF1; color: #6B7280; }
+
+.metricas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  margin: 24px 0 8px;
+}
+
+.metricas strong {
+  display: block;
+  font-size: 22px;
+  color: #1A4E8A;
+}
+
+.metricas span {
+  color: #6B7280;
+  font-size: 14px;
+}
+
+/* Detalle (modal) */
+.seccion {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 24px 0 8px;
+}
+
+.linea {
+  margin: 4px 0;
+}
+
+.confirmada {
+  color: var(--lg-exito);
+  font-weight: 600;
+}
+
+.sens {
+  text-transform: lowercase;
+  font-weight: 600;
+  color: var(--lg-exito);
+}
+
+.sens::first-letter {
+  text-transform: uppercase;
+}
+
+.sens.financiera {
+  color: var(--lg-error);
+}
