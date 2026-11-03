@@ -5,6 +5,7 @@ import { pool } from '../config/database';
 import { Beneficiario, EdicionBeneficiario, NuevoBeneficiario } from '../models/beneficiario.model';
 import { enviarCodigo, validarCodigo } from './verificacion.service';
 import { limiteDeHerederos } from './suscripcion.service';
+import { enFila } from '../utils/bloqueo';
 
 // Envía al correo del heredero el código que el dueño tendrá que escribir para registrarlo
 export async function enviarCodigoHeredero(correo: string, idUsuario: number): Promise<void> {
@@ -96,7 +97,12 @@ export async function listarBeneficiarios(idUsuario: number): Promise<Beneficiar
   return resultado.rows;
 }
 
-export async function crearBeneficiario(datos: NuevoBeneficiario, idUsuario: number): Promise<number> {
+// Los pedidos de un mismo propietario se atienden uno por uno: así un doble clic no crea dos herederos
+export function crearBeneficiario(datos: NuevoBeneficiario, idUsuario: number): Promise<number> {
+  return enFila(idUsuario, () => crearBeneficiarioSeguro(datos, idUsuario));
+}
+
+async function crearBeneficiarioSeguro(datos: NuevoBeneficiario, idUsuario: number): Promise<number> {
   await revisarLimite(idUsuario);
 
   const repetido = await pool.query(

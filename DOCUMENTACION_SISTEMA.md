@@ -1156,6 +1156,7 @@ Las pruebas del backend se hicieron contra la base real (con datos temporales qu
 | P-18 | Heredero sin código de verificación | 400 | 400 | Aprobado |
 | P-19 | Heredero con código correcto | 201 | 201 | Aprobado |
 | P-20 | Mismo DNI dos veces | 409 | 409 | Aprobado |
+| P-20b | Tres pedidos idénticos a la vez (doble clic en Guardar) | Solo 1 heredero | [201, 409, 409] y 1 en la base | Aprobado |
 | P-21 | Heredero por encima del límite del plan | 403 `LIMITE_PLAN` | 403 | Aprobado |
 | P-22 | Días de inactividad 5, 5000 y 15.5 | 400 | 400 | Aprobado |
 | P-23 | Días de inactividad 15 y 25 | 200 | 200 | Aprobado |
@@ -1235,6 +1236,7 @@ Las pruebas del backend se hicieron contra la base real (con datos temporales qu
 | 7 | `El token '&&' no es un separador válido` | PowerShell antiguo no entiende `&&` | Ejecutar un comando por línea | Los comandos corrieron |
 | 8 | Error 500 al marcar un documento del heredero | PostgreSQL no podía deducir el tipo del parámetro `$3` usado dos veces | Escribir `$3::varchar` en ambos usos | Respondió 200 |
 | 9 | `NG5002 Unexpected closing tag "td"` | Una etiqueta de la plantilla quedó mal cerrada al editar | Restaurar el `@else` que faltaba en la celda | Compiló |
+| 11 | Un doble clic en "Guardar" creó dos herederos idénticos y superó el límite del plan | Dos pedidos llegaron a la vez y ambos pasaron las revisiones antes de que el primero guardara | Botón desactivado mientras se guarda; los pedidos de un usuario se atienden en fila; índice único en la base (migración 018) | Tres pedidos simultáneos crean un solo heredero |
 | 10 | La descripción cifrada no entraba en la columna | `VARCHAR(300)` es corto para el texto cifrado | Cambiar la columna a `TEXT` (migración 009) | Se guardaron descripciones cifradas |
 
 ---

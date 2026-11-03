@@ -53,6 +53,10 @@ export async function validarCodigo(proposito: string, destino: string, codigo: 
   const coincide = await bcrypt.compare(codigo, fila.codigo_hash);
   if (!coincide) return false;
 
-  await pool.query('UPDATE codigo_verificacion SET usado = TRUE WHERE id_codigo = $1', [fila.id_codigo]);
-  return true;
+  // Se marca como usado solo si nadie lo usó antes: si dos pedidos llegan juntos, solo uno gana
+  const marcado = await pool.query(
+    'UPDATE codigo_verificacion SET usado = TRUE WHERE id_codigo = $1 AND usado = FALSE RETURNING id_codigo',
+    [fila.id_codigo]
+  );
+  return marcado.rows.length > 0;
 }

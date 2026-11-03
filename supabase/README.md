@@ -21,13 +21,14 @@ Esta carpeta contiene **toda la información de la base de datos**: el esquema, 
 | `migrations/015_confirmacion_heredero.sql` | Crea `verificacion_beneficiario` (DNI y selfie del heredero en un proceso) y `proceso_liberacion.fecha_espera` |
 | `migrations/016_documentos_por_tipo_y_tarjetas.sql` | Documentos según el tipo de activo (`requisito_tipo`), tarjetas (`detalle_tarjeta`, solo los 4 últimos dígitos), indicaciones cifradas por activo y bancos emisores de tarjetas |
 | `migrations/017_linea_credito_es_el_monto.sql` | Quita la columna de línea de crédito de `detalle_tarjeta`: la línea se registra como el monto del activo |
+| `migrations/018_dni_unico_por_propietario.sql` | Un propietario no puede tener dos herederos vigentes con el mismo DNI (lo exige la base) |
 
 ## Cómo ejecutarlas
 
 1. Entra a tu proyecto en [supabase.com](https://supabase.com).
 2. Abre **SQL Editor** y pulsa **New query**.
 3. Pega el contenido de `001_esquema_inicial.sql` y pulsa **Run**.
-4. Repite con `002` a `017`, **en ese orden**: cada una depende de la anterior.
+4. Repite con `002` a `018`, **en ese orden**: cada una depende de la anterior.
 5. En **Table Editor** debes ver 32 tablas: las 24 del modelo original más `entidad_financiera`, `historial_monto`, `codigo_verificacion`, `requisito_documental`, `documento_heredero`, `verificacion_beneficiario`, `requisito_tipo` y `detalle_tarjeta`.
 
 > Cada archivo se ejecuta **una sola vez**. Si lo corres de nuevo dará error de "ya existe".

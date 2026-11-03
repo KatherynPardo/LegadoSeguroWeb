@@ -40,6 +40,7 @@ export class Beneficiarios implements OnInit {
   // Código de verificación que recibe el heredero en su correo
   correoOriginal = ''; // al editar, solo se pide código si el correo cambia o aún no está verificado
   verificadoOriginal = false;
+  guardando = signal(false); // evita que un doble clic envíe el formulario dos veces
   enviandoCodigo = signal(false);
   avisoCodigo = signal('');
   errorCodigo = signal('');
@@ -195,6 +196,8 @@ export class Beneficiarios implements OnInit {
   }
 
   guardar(): void {
+    if (this.guardando()) return;
+    this.guardando.set(true);
     this.error.set('');
     const editando = this.editandoId !== null;
 
@@ -204,12 +207,14 @@ export class Beneficiarios implements OnInit {
 
     peticion.subscribe({
       next: () => {
+        this.guardando.set(false);
         this.mensaje.set(editando ? 'Heredero actualizado' : 'Heredero registrado');
         this.cargar(); // vuelve a pedir la lista para que aparezcan los cambios
         this.mostrarFormulario.set(false);
       },
       // Si el backend rechaza los datos (por ejemplo, DNI repetido), se muestra su mensaje
       error: err => {
+        this.guardando.set(false);
         if (err.error?.codigo === 'LIMITE_PLAN') {
           this.mostrarFormulario.set(false);
           this.avisoPlan.set(true);

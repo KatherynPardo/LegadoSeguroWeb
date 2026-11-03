@@ -21,6 +21,7 @@ export class Activos implements OnInit {
   herederos = signal<Beneficiario[]>([]);
   error = signal('');
   mensaje = signal('');
+  guardando = signal(false); // evita que un doble clic envíe el formulario dos veces
 
   // Formulario de alta / edición: editandoId es null cuando se crea
   mostrarFormulario = signal(false);
@@ -130,6 +131,8 @@ export class Activos implements OnInit {
   }
 
   guardar(): void {
+    if (this.guardando()) return;
+    this.guardando.set(true);
     this.error.set('');
     // El monto es opcional: si marcó registrarlo pero no escribió nada, simplemente no se registra
     const hayMonto = this.form.registrar_monto && this.form.monto !== null && String(this.form.monto) !== '';
@@ -146,11 +149,15 @@ export class Activos implements OnInit {
 
     peticion.subscribe({
       next: () => {
+        this.guardando.set(false);
         this.mensaje.set(this.editandoId === null ? 'Activo creado' : 'Activo actualizado');
         this.cargar();
         this.mostrarFormulario.set(false);
       },
-      error: err => this.error.set(err.error?.mensaje ?? 'No se pudo guardar el activo')
+      error: err => {
+        this.guardando.set(false);
+        this.error.set(err.error?.mensaje ?? 'No se pudo guardar el activo');
+      }
     });
   }
 

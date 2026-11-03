@@ -183,7 +183,7 @@
 
     <div class="botones-form">
       <button type="button" class="btn btn-outline-secondary" (click)="mostrarFormulario.set(false)">Cancelar</button>
-      <button type="submit" class="btn btn-primary" [disabled]="f.invalid">Guardar</button>
+      <button type="submit" class="btn btn-primary" [disabled]="f.invalid || guardando()">{{ guardando() ? 'Guardando...' : 'Guardar' }}</button>
     </div>
   </form>
 </app-modal>

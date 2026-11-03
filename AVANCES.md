@@ -36,6 +36,7 @@ Bitácora de lo construido, en orden cronológico.
 | 03/11/2026 | **Solicitud de liberación del heredero (Figma 06)** y proceso completo: avisos por correo, tres verificaciones (código, DNI y selfie cifrada), confirmar o presentar objeción, espera final automática y liberación con entregas. El propietario resuelve objeciones desde Procesos. |
 | 03/11/2026 | **Rediseño según las pruebas**: los documentos del heredero ahora dependen del tipo de activo que recibe (el administrador los asigna por tipo); al designar un heredero se eligen sus activos; cada activo lleva indicaciones cifradas para el heredero, con una guía por tipo; nuevas **tarjetas de crédito y débito** (solo 4 últimos dígitos, línea, día de pago y cierre); y las confirmaciones mínimas respetan el plan. |
 | 03/11/2026 | **Monto opcional y sin duplicados**: el monto ya no bloquea el botón Guardar; la línea de crédito de las tarjetas pasó a ser el monto del activo (una sola casilla, opcional, con historial) y se quitó la columna duplicada. |
+| 03/11/2026 | **Doble clic protegido**: el botón Guardar se desactiva mientras se envía, el backend atiende en fila los pedidos de un mismo usuario, el código de verificación solo se puede usar una vez y la base exige un DNI único por propietario (migración 018). |
 
 ## Próximos pasos
 
