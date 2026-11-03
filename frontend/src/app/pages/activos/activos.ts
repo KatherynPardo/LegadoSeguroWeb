@@ -70,10 +70,11 @@ export class Activos implements OnInit {
     const tipo = this.tipoSeleccionado();
     if (!tipo) return;
     if (tipo.sensibilidad === 'FINANCIERA' && !tipo.esTarjeta && this.editandoId === null) this.form.registrar_monto = true;
+    if (tipo.esTarjeta && this.editandoId === null) this.form.registrar_monto = false; // en las tarjetas, el usuario decide si registra la línea
     if (!tipo.requiereEntidad) this.form.id_entidad = null;
 
     // Las tarjetas llevan sus propios datos (solo los 4 últimos dígitos)
-    if (tipo.esTarjeta && !this.form.tarjeta) this.form.tarjeta = { ultimos4: '', linea: null, diaPago: null, diaCierre: null };
+    if (tipo.esTarjeta && !this.form.tarjeta) this.form.tarjeta = { ultimos4: '', diaPago: null, diaCierre: null };
     if (!tipo.esTarjeta) this.form.tarjeta = null;
   }
 
@@ -130,10 +131,12 @@ export class Activos implements OnInit {
 
   guardar(): void {
     this.error.set('');
+    // El monto es opcional: si marcó registrarlo pero no escribió nada, simplemente no se registra
+    const hayMonto = this.form.registrar_monto && this.form.monto !== null && String(this.form.monto) !== '';
     const datos: DatosActivo = {
       ...this.form,
-      registrar_monto: this.form.registrar_monto,
-      monto: this.form.registrar_monto ? this.form.monto : null,
+      registrar_monto: hayMonto,
+      monto: hayMonto ? this.form.monto : null,
       tarjeta: this.tipoSeleccionado()?.esTarjeta ? this.form.tarjeta : null
     };
 

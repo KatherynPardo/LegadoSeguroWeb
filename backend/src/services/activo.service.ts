@@ -34,12 +34,11 @@ async function guardarTarjeta(db: Db, idActivo: number, datos: DatosActivo): Pro
   }
   const t = datos.tarjeta;
   await db.query(
-    `INSERT INTO detalle_tarjeta (id_activo, ultimos4, linea_credito_cifrada, dia_pago, dia_cierre)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO detalle_tarjeta (id_activo, ultimos4, dia_pago, dia_cierre)
+     VALUES ($1, $2, $3, $4)
      ON CONFLICT (id_activo) DO UPDATE
-     SET ultimos4 = EXCLUDED.ultimos4, linea_credito_cifrada = EXCLUDED.linea_credito_cifrada,
-         dia_pago = EXCLUDED.dia_pago, dia_cierre = EXCLUDED.dia_cierre`,
-    [idActivo, t.ultimos4, t.linea !== null ? cifrar(String(t.linea)) : null, t.diaPago, t.diaCierre]
+     SET ultimos4 = EXCLUDED.ultimos4, dia_pago = EXCLUDED.dia_pago, dia_cierre = EXCLUDED.dia_cierre`,
+    [idActivo, t.ultimos4, t.diaPago, t.diaCierre]
   );
 }
 
@@ -49,7 +48,7 @@ export async function listarActivos(idUsuario: number): Promise<Activo[]> {
             a.id_tipo AS "idTipo", t.nombre AS tipo, t.categoria_sensibilidad AS sensibilidad, a.estado,
             a.id_entidad AS "idEntidad", e.nombre AS entidad,
             a.registrar_monto AS "registrarMonto", a.moneda, a.monto::float8 AS monto_plano, a.monto_cifrado,
-            a.indicaciones_cifradas, dt.ultimos4, dt.linea_credito_cifrada, dt.dia_pago AS "diaPago", dt.dia_cierre AS "diaCierre",
+            a.indicaciones_cifradas, dt.ultimos4, dt.dia_pago AS "diaPago", dt.dia_cierre AS "diaCierre",
             COALESCE((
               SELECT json_agg(json_build_object('id', b.id_beneficiario, 'nombre', b.nombres || ' ' || b.apellidos)
                               ORDER BY ab.prioridad)
@@ -68,7 +67,7 @@ export async function listarActivos(idUsuario: number): Promise<Activo[]> {
 
   // Descripción y monto están cifrados en la base: aquí se leen en claro
   return resultado.rows.map(fila => {
-    const { monto_plano, monto_cifrado, indicaciones_cifradas, ultimos4, linea_credito_cifrada, diaPago, diaCierre, ...resto } = fila;
+    const { monto_plano, monto_cifrado, indicaciones_cifradas, ultimos4, diaPago, diaCierre, ...resto } = fila;
     const montoTexto = monto_cifrado ? descifrar(monto_cifrado) : null;
     return {
       ...resto,
@@ -76,7 +75,7 @@ export async function listarActivos(idUsuario: number): Promise<Activo[]> {
       monto: montoTexto !== null ? Number(montoTexto) : monto_plano,
       indicaciones: indicaciones_cifradas ? descifrar(indicaciones_cifradas) : null,
       tarjeta: ultimos4
-        ? { ultimos4, linea: linea_credito_cifrada ? Number(descifrar(linea_credito_cifrada)) : null, diaPago, diaCierre }
+        ? { ultimos4, diaPago, diaCierre }
         : null
     } as Activo;
   });
@@ -92,10 +91,8 @@ async function validarContraBase(db: Db, datos: DatosActivo, idUsuario: number):
   if (t.es_tarjeta && !datos.tarjeta) throw new ReglaActivo('Indica los datos de la tarjeta', 400);
   if (!t.es_tarjeta && datos.tarjeta) throw new ReglaActivo('Este tipo de activo no lleva datos de tarjeta', 400);
   if (t.es_credito && datos.tarjeta) {
-    if (datos.tarjeta.linea === null) throw new ReglaActivo('Indica la línea de crédito', 400);
     if (datos.tarjeta.diaPago === null) throw new ReglaActivo('Indica el día de pago', 400);
     if (datos.tarjeta.diaCierre === null) throw new ReglaActivo('Indica el día de cierre de facturación', 400);
-    if (!datos.moneda) throw new ReglaActivo('Elige la moneda de la línea de crédito', 400);
   }
 
   if (tipo.rows[0].requiere_entidad && datos.id_entidad === null) {

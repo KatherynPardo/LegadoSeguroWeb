@@ -30,7 +30,7 @@
             {{ a.nombre }}
             @if (a.entidad) { <span class="banco">{{ a.entidad }}</span> }
             @if (a.tarjeta) {
-            <span class="banco">{{ mascara(a) }}@if (a.tarjeta.linea !== null) { · Línea {{ simbolo(a.moneda) }} {{ a.tarjeta.linea | number:'1.2-2' }} } @if (a.tarjeta.diaPago) { · Pago día {{ a.tarjeta.diaPago }} · Cierre día {{ a.tarjeta.diaCierre }} }</span>
+            <span class="banco">{{ mascara(a) }}@if (a.tarjeta.diaPago) { · Pago día {{ a.tarjeta.diaPago }} · Cierre día {{ a.tarjeta.diaCierre }} }</span>
             }
           </td>
           <td>{{ a.tipo }}</td>
@@ -121,19 +121,6 @@
       @if (tipoSeleccionado()?.esCredito) {
       <div class="fila-monto">
         <div>
-          <label for="monedaTarjeta">Moneda de la línea</label>
-          <select id="monedaTarjeta" name="monedaTarjeta" class="form-select" [(ngModel)]="form.moneda">
-            <option value="PEN">Soles (S/)</option>
-            <option value="USD">Dólares (US$)</option>
-          </select>
-        </div>
-        <div>
-          <label for="linea">Línea de crédito</label>
-          <input id="linea" name="linea" type="number" class="form-control" required min="0" step="0.01" [(ngModel)]="form.tarjeta.linea" />
-        </div>
-      </div>
-      <div class="fila-monto">
-        <div>
           <label for="diaPago">Día de pago</label>
           <input id="diaPago" name="diaPago" type="number" class="form-control" required min="1" max="31" placeholder="1 a 31" [(ngModel)]="form.tarjeta.diaPago" />
         </div>
@@ -152,7 +139,7 @@
 
     <div class="form-check opcion-monto">
       <input class="form-check-input" type="checkbox" id="registrarMonto" name="registrarMonto" [(ngModel)]="form.registrar_monto" />
-      <label class="form-check-label" for="registrarMonto">Registrar el monto de este activo</label>
+      <label class="form-check-label" for="registrarMonto">{{ tipoSeleccionado()?.esCredito ? 'Registrar la línea de crédito' : 'Registrar el monto de este activo' }}</label>
     </div>
     <p class="nota-sens">Sirve para ahorros, ingresos de una cuenta monetizada, etc. Cada cambio queda en el historial. Si lo desmarcas, se borra el monto y su historial.</p>
 
@@ -166,8 +153,8 @@
         </select>
       </div>
       <div>
-        <label for="monto">Monto</label>
-        <input id="monto" name="monto" type="number" class="form-control" required min="0" step="0.01" [(ngModel)]="form.monto" />
+        <label for="monto">{{ tipoSeleccionado()?.esCredito ? 'Línea de crédito' : 'Monto' }}</label>
+        <input id="monto" name="monto" type="number" class="form-control" min="0" step="0.01" placeholder="Opcional" [(ngModel)]="form.monto" />
       </div>
     </div>
     }

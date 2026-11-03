@@ -7,7 +7,6 @@ export interface HeredAsignado {
 // Datos de una tarjeta: solo los 4 últimos dígitos (nunca el número completo, el CVV ni la clave)
 export interface DatosTarjeta {
     ultimos4: string;
-    linea: number | null;
     diaPago: number | null;
     diaCierre: number | null;
 }

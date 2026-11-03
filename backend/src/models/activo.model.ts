@@ -7,7 +7,6 @@ export type HeredAsignado = {
 // Datos de una tarjeta: solo los 4 últimos dígitos (nunca el número completo, el CVV ni la clave).
 export type DatosTarjeta = {
   ultimos4: string;
-  linea: number | null;      // línea de crédito (solo tarjetas de crédito)
   diaPago: number | null;    // día del mes en que vence el pago
   diaCierre: number | null;  // día del mes en que cierra la facturación
 };

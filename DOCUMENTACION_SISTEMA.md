@@ -251,7 +251,6 @@ Respuesta de cada heredero a la solicitud de confirmación de un proceso.
 |---|---|---|---|---|
 | id_activo | INT | PK, FK → activo_digital | NOT NULL | Referencia a activo_digital. |
 | ultimos4 | VARCHAR(4) | — | NOT NULL; CHECK (((ultimos4)~ '^[0-9]{4}$')) | — |
-| linea_credito_cifrada | TEXT | — | Puede ser vacío | — |
 | dia_pago | INT2 | — | Puede ser vacío; CHECK (((dia_pago >= 1) AND (dia_pago <= 31))) | — |
 | dia_cierre | INT2 | — | Puede ser vacío; CHECK (((dia_cierre >= 1) AND (dia_cierre <= 31))) | — |
 
@@ -938,7 +937,7 @@ return `enc:${iv}:${etiqueta}:${cifrado}`;   // así se guarda en la base
   - No se puede eliminar un activo que está en un proceso de liberación abierto.
 - **Validaciones:** nombre y descripción obligatorios (con máximo de largo); tipo válido; banco válido; monto de 0 en adelante con moneda; herederos que existan y sean del propietario.
 - **Prueba:** casos P-11 a P-16.
-- **Tarjetas:** hay tipos de activo para tarjeta de crédito y de débito. Se guardan solo los **4 últimos dígitos**, el emisor (el mismo combo de bancos) y, en crédito, la línea, el día de pago y el cierre de facturación. **No se guardan el número completo, el CVV ni la clave** (ver Paso 8.10e del manual).
+- **Tarjetas:** hay tipos de activo para tarjeta de crédito y de débito. Se guardan solo los **4 últimos dígitos**, el emisor (el mismo combo de bancos) y, en crédito, el día de pago y el cierre de facturación. La **línea de crédito es el monto del activo** (opcional, con moneda e historial): así no hay dos campos de dinero. **No se guardan el número completo, el CVV ni la clave** (ver Paso 8.10e del manual).
 - **Indicaciones para el heredero:** cada activo tiene un cuadro cifrado, con una guía distinta según el tipo, que se entrega al heredero solo cuando se libera el proceso.
 - **Error encontrado:** al activar el cifrado, la descripción cifrada no entraba en `VARCHAR(300)`; se cambió la columna a `TEXT` (migración 009).
 
@@ -1185,7 +1184,8 @@ Las pruebas del backend se hicieron contra la base real (con datos temporales qu
 | P-46 | Validador exigido por la regla | Activo financiero PENDIENTE_VALIDADOR; el otro AUTORIZADA | Correcto | Aprobado |
 | P-47 | El heredero ve su entrega | Descripción descifrada solo en las autorizadas | Correcto | Aprobado |
 | P-48 | Confirmar un proceso terminado | 409 | 409 | Aprobado |
-| P-49 | Tarjeta de crédito sin datos / con últimos 4 inválidos / sin línea ni fechas / día de pago 40 | 400 | 400 con mensaje claro | Aprobado |
+| P-49 | Tarjeta de crédito sin datos / con últimos 4 inválidos / sin fechas / día de pago 40 | 400 | 400 con mensaje claro | Aprobado |
+| P-49b | Tarjeta de crédito sin monto ni línea | 201 (el monto es opcional) | 201 | Aprobado |
 | P-50 | Tarjeta de crédito completa y de débito con 4 dígitos | 201 | 201 | Aprobado |
 | P-51 | Una red social con datos de tarjeta | 400 | 400 | Aprobado |
 | P-52 | La base no guarda número completo, CVV ni clave | Sin columnas para ellos | Verificado en `detalle_tarjeta` | Aprobado |
@@ -1367,7 +1367,7 @@ Abrir `backend/.env` y completar:
 | `DNI_PROVIDER` / `DNI_API_TOKEN` | Opcionales; sin token, los nombres se escriben a mano |
 | `SMTP_*` | Opcionales; sin ellos, los códigos salen en la consola del backend |
 
-Preparar la base de datos (si usa su propio proyecto): ejecutar en **SQL Editor** las migraciones `001` a `016` de `supabase/migrations/`, en orden.
+Preparar la base de datos (si usa su propio proyecto): ejecutar en **SQL Editor** las migraciones `001` a `017` de `supabase/migrations/`, en orden.
 
 Encender el backend y, en otra terminal, el frontend:
 
@@ -1394,7 +1394,7 @@ Cuentas externas necesarias: Supabase (obligatoria); apiperu.dev y una cuenta de
 
 ## 16. Cierre del proyecto
 
-**Resultados obtenidos.** Módulos terminados: login, registro con verificación, recuperación de contraseña, activos (con bancos, montos cifrados e historial), herederos (con verificación y límite de plan), reglas de liberación, procesos con monitoreo automático, checklist de documentos con portal del heredero, suscripción, dashboard, reportes, historial, administración y perfil. Base de datos de **32 tablas** con 16 migraciones documentadas.
+**Resultados obtenidos.** Módulos terminados: login, registro con verificación, recuperación de contraseña, activos (con bancos, montos cifrados e historial), herederos (con verificación y límite de plan), reglas de liberación, procesos con monitoreo automático, checklist de documentos con portal del heredero, suscripción, dashboard, reportes, historial, administración y perfil. Base de datos de **32 tablas** con 17 migraciones documentadas.
 
 | | |
 |---|---|

@@ -35,6 +35,7 @@ Bitácora de lo construido, en orden cronológico.
 | 03/11/2026 | **Documento dinámico** `DOCUMENTACION_SISTEMA.md` siguiendo el esquema del curso (17 secciones). El diccionario de datos se genera solo desde la base con `npm run diccionario`. Faltan las capturas, el despliegue y Culqi. |
 | 03/11/2026 | **Solicitud de liberación del heredero (Figma 06)** y proceso completo: avisos por correo, tres verificaciones (código, DNI y selfie cifrada), confirmar o presentar objeción, espera final automática y liberación con entregas. El propietario resuelve objeciones desde Procesos. |
 | 03/11/2026 | **Rediseño según las pruebas**: los documentos del heredero ahora dependen del tipo de activo que recibe (el administrador los asigna por tipo); al designar un heredero se eligen sus activos; cada activo lleva indicaciones cifradas para el heredero, con una guía por tipo; nuevas **tarjetas de crédito y débito** (solo 4 últimos dígitos, línea, día de pago y cierre); y las confirmaciones mínimas respetan el plan. |
+| 03/11/2026 | **Monto opcional y sin duplicados**: el monto ya no bloquea el botón Guardar; la línea de crédito de las tarjetas pasó a ser el monto del activo (una sola casilla, opcional, con historial) y se quitó la columna duplicada. |
 
 ## Próximos pasos
 
