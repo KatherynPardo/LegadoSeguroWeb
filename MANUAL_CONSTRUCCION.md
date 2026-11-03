@@ -616,6 +616,23 @@ En cualquier momento el propietario puede CANCELAR el proceso.
 - **Qué ve el heredero al liberarse:** el nombre y tipo de cada activo y la descripción que dejó el propietario (que está cifrada en la base y se descifra solo para las entregas autorizadas). El sistema **no guarda contraseñas de las cuentas**, así que la descripción es donde el propietario deja las indicaciones.
 - **Pendiente:** el portal del validador externo, que aprobaría las entregas financieras.
 
+### Paso 8.10e: Documentos según el tipo de activo, indicaciones y tarjetas
+
+**Los documentos que debe reunir un heredero dependen de los activos que recibe.** No se eligen a mano:
+
+- Un requisito **sin tipos** aplica a todos los activos (el DNI y el certificado de defunción).
+- Un requisito **con tipos** (por ejemplo la declaratoria de herederos o la carta poder) solo se le pide al heredero que recibe un activo de esos tipos. Así, una cuenta bancaria o una tarjeta piden más documentos que un correo o una red social.
+- El **administrador** decide a qué tipos aplica cada requisito (tabla `requisito_tipo`). El **propietario** solo ve la lista de cada heredero y anota dónde está cada original. El **heredero** marca lo que ya tiene.
+- Al **designar o editar a un heredero** se eligen los activos que recibirá (la misma asignación de `activo_beneficiario` que se hace desde Mis Activos).
+
+**Indicaciones por activo.** Cada activo tiene un cuadro de indicaciones para el heredero (por ejemplo: correo, contraseña y celular de recuperación). Cada tipo de activo muestra una guía de qué conviene escribir (`tipo_activo.guia_indicaciones`). El texto se guarda **cifrado** (AES-256) y **solo se entrega al heredero cuando el proceso se libera**, nunca antes.
+
+**Tarjetas de crédito y de débito.** Son tipos de activo propios (`es_tarjeta`, `es_credito`). Se registra el banco o emisor, los **4 últimos dígitos** y, en crédito, la línea de crédito (cifrada), el día de pago y el día de cierre de facturación (tabla `detalle_tarjeta`, con restricciones de 1 a 31). En pantalla se muestra enmascarada: `•••• •••• •••• 1234`.
+
+> **Decisión de seguridad:** el sistema **no guarda** el número completo, el **CVV** ni la **clave** de la tarjeta. Son justo los datos que usa un fraude, y las normas de las tarjetas (PCI DSS) prohíben guardar el CVV. La tabla `detalle_tarjeta` ni siquiera tiene columnas para ellos. Si el propietario quiere dejarle una clave a su heredero, puede escribirla en las indicaciones del activo (cifradas y entregadas solo al liberar).
+
+**Reglas alineadas al plan.** Las confirmaciones mínimas no pueden superar los herederos que tiene el propietario ni el límite de su plan (con el Básico, 2). La lista de la pantalla de Reglas ya solo ofrece esos valores y el backend también lo exige.
+
 ### Paso 8.11: Reportes
 
 - **Qué es:** un resumen del propio usuario (`services/reporte.service.ts`): activos por tipo, activos sin heredero, herederos verificados, dinero registrado por moneda y procesos por estado.

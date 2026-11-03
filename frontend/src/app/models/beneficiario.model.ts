@@ -8,6 +8,7 @@ export interface Beneficiario {
     correo: string | null;
     telefono: string | null;
     verificado: boolean;
+    activos: { id: number; nombre: string }[];
 }
 
 // Datos del formulario para registrar o editar un beneficiario
@@ -19,6 +20,7 @@ export interface NuevoBeneficiario {
     telefono: string;
     parentesco: string;
     codigo: string; // código que le llegó al correo del heredero
+    activos: number[]; // activos que recibirá
 }
 
 // Persona devuelta por la consulta de DNI

@@ -3,6 +3,7 @@
 import { Request, Response } from 'express';
 import { DIAS_INACTIVIDAD_MAX, DIAS_INACTIVIDAD_MIN, PERIODOS_ESPERA_VALIDOS } from '../models/regla.model';
 import { contarBeneficiarios, guardarRegla, obtenerRegla } from '../services/regla.service';
+import { limiteDeHerederos } from '../services/suscripcion.service';
 
 export async function verRegla(req: Request, res: Response) {
   try {
@@ -42,6 +43,13 @@ export async function configurarRegla(req: Request, res: Response) {
     }
     if (minConfirmaciones > total) {
       res.status(400).json({ mensaje: `Solo tienes ${total} beneficiario(s): no puedes pedir más confirmaciones` });
+      return;
+    }
+
+    // El plan también marca el máximo: con el plan Básico no se pueden pedir más confirmaciones que sus herederos permitidos
+    const limite = await limiteDeHerederos(res.locals.usuarioId);
+    if (limite !== null && minConfirmaciones > limite) {
+      res.status(400).json({ mensaje: `Tu plan permite hasta ${limite} herederos: no puedes pedir más confirmaciones` });
       return;
     }
 

@@ -4,6 +4,14 @@ export interface HeredAsignado {
     nombre: string;
 }
 
+// Datos de una tarjeta: solo los 4 últimos dígitos (nunca el número completo, el CVV ni la clave)
+export interface DatosTarjeta {
+    ultimos4: string;
+    linea: number | null;
+    diaPago: number | null;
+    diaCierre: number | null;
+}
+
 // Molde de un activo digital: mismas columnas que devuelve /api/activos.
 export interface Activo {
     id: number;
@@ -18,6 +26,8 @@ export interface Activo {
     registrarMonto: boolean;
     moneda: string | null;
     monto: number | null;
+    indicaciones: string | null;
+    tarjeta: DatosTarjeta | null;
     herederos: HeredAsignado[];
 }
 
@@ -30,6 +40,8 @@ export interface DatosActivo {
     registrar_monto: boolean;
     moneda: 'PEN' | 'USD';
     monto: number | null;
+    indicaciones: string;
+    tarjeta: DatosTarjeta | null;
 }
 
 export interface NuevoActivo extends DatosActivo {
@@ -42,6 +54,9 @@ export interface TipoActivo {
     nombre: string;
     sensibilidad: string;
     requiereEntidad: boolean;
+    esTarjeta: boolean;
+    esCredito: boolean;
+    guiaIndicaciones: string | null;
 }
 
 // Banco o entidad financiera

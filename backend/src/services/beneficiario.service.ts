@@ -5,7 +5,6 @@ import { pool } from '../config/database';
 import { Beneficiario, EdicionBeneficiario, NuevoBeneficiario } from '../models/beneficiario.model';
 import { enviarCodigo, validarCodigo } from './verificacion.service';
 import { limiteDeHerederos } from './suscripcion.service';
-import { asignarObligatorios } from './documento.service';
 
 // Envía al correo del heredero el código que el dueño tendrá que escribir para registrarlo
 export async function enviarCodigoHeredero(correo: string, idUsuario: number): Promise<void> {
@@ -44,10 +43,51 @@ async function revisarLimite(idUsuario: number): Promise<void> {
   }
 }
 
+// Comprueba que los activos elegidos existen y son del propietario
+async function validarActivosPropios(ids: number[], idUsuario: number): Promise<void> {
+  const unicos = [...new Set(ids)];
+  if (unicos.length === 0) return;
+
+  const r = await pool.query(
+    "SELECT id_activo FROM activo_digital WHERE id_usuario = $1 AND estado = 'ACTIVO' AND id_activo = ANY($2::int[])",
+    [idUsuario, unicos]
+  );
+  if (r.rows.length !== unicos.length) throw new ReglaHeredero('Alguno de los activos no existe', 400);
+}
+
+// Deja al heredero recibiendo exactamente los activos elegidos (de los activos de este propietario)
+async function asignarActivosAHeredero(idBeneficiario: number, ids: number[], idUsuario: number): Promise<void> {
+  const unicos = [...new Set(ids)];
+  const cliente = await pool.connect();
+  try {
+    await cliente.query('BEGIN');
+    await cliente.query(
+      'DELETE FROM activo_beneficiario WHERE id_beneficiario = $1 AND id_activo IN (SELECT id_activo FROM activo_digital WHERE id_usuario = $2)',
+      [idBeneficiario, idUsuario]
+    );
+    for (const idActivo of unicos) {
+      await cliente.query(
+        `INSERT INTO activo_beneficiario (id_activo, id_beneficiario, prioridad)
+         VALUES ($1, $2, (SELECT COALESCE(MAX(prioridad), 0) + 1 FROM activo_beneficiario WHERE id_activo = $1))`,
+        [idActivo, idBeneficiario]
+      );
+    }
+    await cliente.query('COMMIT');
+  } catch (error) {
+    await cliente.query('ROLLBACK');
+    throw error;
+  } finally {
+    cliente.release();
+  }
+}
+
 export async function listarBeneficiarios(idUsuario: number): Promise<Beneficiario[]> {
   const resultado = await pool.query<Beneficiario>(
     `SELECT id_beneficiario AS id, nombres, apellidos, dni, parentesco, correo, telefono,
-            correo_verificado AS verificado
+            correo_verificado AS verificado,
+            COALESCE((SELECT json_agg(json_build_object('id', a.id_activo, 'nombre', a.nombre) ORDER BY a.nombre)
+                      FROM activo_beneficiario ab JOIN activo_digital a ON a.id_activo = ab.id_activo
+                      WHERE ab.id_beneficiario = beneficiario.id_beneficiario AND ab.estado = 'ACTIVO' AND a.estado = 'ACTIVO'), '[]') AS activos
      FROM beneficiario
      WHERE id_usuario_propietario = $1 AND estado = 'ACTIVO'
      ORDER BY id_beneficiario`,
@@ -65,6 +105,8 @@ export async function crearBeneficiario(datos: NuevoBeneficiario, idUsuario: num
   );
   if (repetido.rows.length > 0) throw new ReglaHeredero('Ya registraste un heredero con ese DNI', 409);
 
+  await validarActivosPropios(datos.activos, idUsuario);
+
   // El heredero tiene que haber recibido el código en su correo: así nadie registra un correo ajeno
   const codigoOk = await validarCodigo('HEREDERO', datos.correo, datos.codigo);
   if (!codigoOk) throw new ReglaHeredero('El código es incorrecto o ya venció', 400);
@@ -76,13 +118,13 @@ export async function crearBeneficiario(datos: NuevoBeneficiario, idUsuario: num
      RETURNING id_beneficiario AS id`,
     [idUsuario, datos.nombres, datos.apellidos, datos.dni, datos.correo, datos.telefono, datos.parentesco]
   );
-  // El heredero nuevo recibe los documentos obligatorios en su checklist
-  await asignarObligatorios(pool, resultado.rows[0].id);
+  await asignarActivosAHeredero(resultado.rows[0].id, datos.activos, idUsuario);
 
   return resultado.rows[0].id;
 }
 
 export async function actualizarBeneficiario(id: number, datos: EdicionBeneficiario, idUsuario: number): Promise<void> {
+  if (datos.activos !== null) await validarActivosPropios(datos.activos, idUsuario);
   const actual = await pool.query(
     "SELECT correo, correo_verificado FROM beneficiario WHERE id_beneficiario = $1 AND id_usuario_propietario = $2 AND estado = 'ACTIVO'",
     [id, idUsuario]
@@ -105,6 +147,8 @@ export async function actualizarBeneficiario(id: number, datos: EdicionBeneficia
     [datos.nombres, datos.apellidos, datos.correo, datos.telefono, datos.parentesco, id, idUsuario]
   );
   if (resultado.rows.length === 0) throw new ReglaHeredero('Heredero no encontrado', 404);
+
+  if (datos.activos !== null) await asignarActivosAHeredero(id, datos.activos, idUsuario);
 }
 
 // Quita al heredero de la lista y de todos los activos. No se puede si tiene una confirmación pendiente

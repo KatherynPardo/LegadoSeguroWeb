@@ -58,8 +58,8 @@ export class PortalService {
         return this.http.post<{ mensaje: string }>(`${this.apiUrl}/solicitudes/${s.idProceso}/${s.idBeneficiario}/objecion`, { motivo });
     }
 
-    marcar(idDocumento: number, entregado: boolean): Observable<{ mensaje: string }> {
-        return this.http.patch<{ mensaje: string }>(`${this.apiUrl}/documentos/${idDocumento}`, { entregado });
+    marcar(idBeneficiario: number, idRequisito: number, entregado: boolean): Observable<{ mensaje: string }> {
+        return this.http.patch<{ mensaje: string }>(`${this.apiUrl}/documentos/${idBeneficiario}/${idRequisito}`, { entregado });
     }
 
     salir(): void {

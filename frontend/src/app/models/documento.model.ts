@@ -5,12 +5,14 @@ export interface Requisito {
     descripcion: string | null;
     obligatorio: boolean;
     estado: string;
+    tipos: number[];
 }
 
 export interface DatosRequisito {
     nombre: string;
     descripcion: string;
     obligatorio: boolean;
+    tipos: number[]; // tipos de activo a los que aplica (vacío = todos)
 }
 
 // ---- Propietario: documentos de un heredero ----
@@ -19,9 +21,9 @@ export interface DocumentoDeHeredero {
     nombre: string;
     descripcion: string | null;
     obligatorio: boolean;
-    asignado: boolean;
-    estado: string | null;
+    estado: string;
     ubicacion: string | null;
+    aplicaA: string[]; // activos que motivan este documento (vacío = aplica a todos)
 }
 
 // ---- Heredero: su checklist en el portal ----
@@ -32,6 +34,7 @@ export interface DocumentoChecklist {
     obligatorio: boolean;
     estado: string; // 'PENDIENTE' | 'ENTREGADO'
     ubicacion: string | null;
+    aplicaA: string[];
 }
 
 export interface ChecklistHeredero {
@@ -46,7 +49,8 @@ export interface EntregaHeredero {
     activo: string;
     tipo: string;
     estado: string; // 'AUTORIZADA' | 'PENDIENTE_VALIDADOR'
-    descripcion: string | null;
+    detalle: string | null;
+    indicaciones: string | null;
 }
 
 export interface Solicitud {

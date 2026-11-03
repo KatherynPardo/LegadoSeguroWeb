@@ -32,6 +32,13 @@ function leerCampos(body: any) {
   return { nombres, apellidos, correo: correo.toLowerCase(), telefono: body.telefono as string, parentesco: body.parentesco as string };
 }
 
+// Lista de ids de activos (opcional). Devuelve null si algo no es un entero positivo.
+function leerActivos(valor: unknown): number[] | null {
+  if (valor === undefined) return [];
+  if (!Array.isArray(valor)) return null;
+  return valor.every(v => Number.isInteger(v) && v > 0) ? (valor as number[]) : null;
+}
+
 export async function obtenerBeneficiarios(req: Request, res: Response) {
   try {
     res.json(await listarBeneficiarios(res.locals.usuarioId));
@@ -62,6 +69,11 @@ export async function registrarBeneficiario(req: Request, res: Response) {
     res.status(400).json({ mensaje: campos });
     return;
   }
+  const activosElegidos = leerActivos(req.body.activos);
+  if (!activosElegidos) {
+    res.status(400).json({ mensaje: 'La lista de activos no es válida' });
+    return;
+  }
   if (!esDni(req.body.dni)) {
     res.status(400).json({ mensaje: 'El DNI debe tener 8 dígitos' });
     return;
@@ -73,7 +85,7 @@ export async function registrarBeneficiario(req: Request, res: Response) {
 
   try {
     const id = await crearBeneficiario(
-      { ...campos, dni: req.body.dni, codigo: req.body.codigo },
+      { ...campos, dni: req.body.dni, codigo: req.body.codigo, activos: activosElegidos },
       res.locals.usuarioId
     );
     res.status(201).json({ id });
@@ -95,10 +107,20 @@ export async function editarBeneficiario(req: Request, res: Response) {
     return;
   }
 
+  const activosEditados = req.body.activos === undefined ? [] : leerActivos(req.body.activos);
+  if (!activosEditados) {
+    res.status(400).json({ mensaje: 'La lista de activos no es válida' });
+    return;
+  }
+
   try {
     await actualizarBeneficiario(
       id,
-      { ...campos, codigo: req.body.codigo ? String(req.body.codigo) : null },
+      {
+        ...campos,
+        codigo: req.body.codigo ? String(req.body.codigo) : null,
+        activos: req.body.activos === undefined ? null : activosEditados
+      },
       res.locals.usuarioId
     );
     res.json({ mensaje: 'Heredero actualizado' });

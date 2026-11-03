@@ -57,7 +57,7 @@ export class Activos implements OnInit {
   }
 
   private vacio(): DatosActivo {
-    return { nombre: '', descripcion: '', id_tipo: 0, id_entidad: null, registrar_monto: false, moneda: 'PEN', monto: null };
+    return { nombre: '', descripcion: '', id_tipo: 0, id_entidad: null, registrar_monto: false, moneda: 'PEN', monto: null, indicaciones: '', tarjeta: null };
   }
 
   // La sensibilidad y la necesidad de banco las define el tipo elegido
@@ -69,8 +69,22 @@ export class Activos implements OnInit {
   alCambiarTipo(): void {
     const tipo = this.tipoSeleccionado();
     if (!tipo) return;
-    if (tipo.sensibilidad === 'FINANCIERA' && this.editandoId === null) this.form.registrar_monto = true;
+    if (tipo.sensibilidad === 'FINANCIERA' && !tipo.esTarjeta && this.editandoId === null) this.form.registrar_monto = true;
     if (!tipo.requiereEntidad) this.form.id_entidad = null;
+
+    // Las tarjetas llevan sus propios datos (solo los 4 últimos dígitos)
+    if (tipo.esTarjeta && !this.form.tarjeta) this.form.tarjeta = { ultimos4: '', linea: null, diaPago: null, diaCierre: null };
+    if (!tipo.esTarjeta) this.form.tarjeta = null;
+  }
+
+  // Texto de ayuda: qué conviene indicarle al heredero en este tipo de activo
+  guia(): string {
+    return this.tipoSeleccionado()?.guiaIndicaciones ?? 'Escribe lo que tu heredero debe saber sobre este activo.';
+  }
+
+  // Lo que se muestra de una tarjeta: nunca el número completo
+  mascara(a: Activo): string {
+    return a.tarjeta ? `•••• •••• •••• ${a.tarjeta.ultimos4}` : '';
   }
 
   simbolo(moneda: string | null): string {
@@ -105,7 +119,9 @@ export class Activos implements OnInit {
       id_entidad: a.idEntidad,
       registrar_monto: a.registrarMonto,
       moneda: a.moneda === 'USD' ? 'USD' : 'PEN',
-      monto: a.monto
+      monto: a.monto,
+      indicaciones: a.indicaciones ?? '',
+      tarjeta: a.tarjeta ? { ...a.tarjeta } : null
     };
     this.cerrarBanco();
     this.error.set('');
@@ -117,7 +133,8 @@ export class Activos implements OnInit {
     const datos: DatosActivo = {
       ...this.form,
       registrar_monto: this.form.registrar_monto,
-      monto: this.form.registrar_monto ? this.form.monto : null
+      monto: this.form.registrar_monto ? this.form.monto : null,
+      tarjeta: this.tipoSeleccionado()?.esTarjeta ? this.form.tarjeta : null
     };
 
     const peticion: Observable<unknown> = this.editandoId === null

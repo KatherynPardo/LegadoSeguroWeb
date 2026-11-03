@@ -15,6 +15,8 @@ export type DatosRegla = Omit<Regla, 'id'>;
 export type ReglaConContexto = {
   regla: Regla | null;
   totalBeneficiarios: number;
+  limiteHerederos: number | null; // límite de herederos del plan (null = sin límite)
+  maxConfirmaciones: number;      // lo máximo que se puede pedir: no más que los herederos ni que el plan permite
 };
 
 // Los días de inactividad son libres, dentro de un rango razonable (de una semana a diez años).

@@ -29,6 +29,9 @@
           <td class="nombre">
             {{ a.nombre }}
             @if (a.entidad) { <span class="banco">{{ a.entidad }}</span> }
+            @if (a.tarjeta) {
+            <span class="banco">{{ mascara(a) }}@if (a.tarjeta.linea !== null) { · Línea {{ simbolo(a.moneda) }} {{ a.tarjeta.linea | number:'1.2-2' }} } @if (a.tarjeta.diaPago) { · Pago día {{ a.tarjeta.diaPago }} · Cierre día {{ a.tarjeta.diaCierre }} }</span>
+            }
           </td>
           <td>{{ a.tipo }}</td>
           <td class="sens" [class.financiera]="a.sensibilidad === 'FINANCIERA'">{{ a.sensibilidad }}</td>
@@ -109,6 +112,40 @@
     }
     }
 
+    @if (tipoSeleccionado()?.esTarjeta && form.tarjeta) {
+    <div class="caja-tarjeta">
+      <label for="ultimos4">Últimos 4 dígitos de la tarjeta</label>
+      <input id="ultimos4" name="ultimos4" class="form-control" required maxlength="4" pattern="[0-9]{4}" inputmode="numeric" autocomplete="off" [(ngModel)]="form.tarjeta.ultimos4" />
+      <p class="nota-sens">Solo guardamos los 4 últimos dígitos. Nunca escribas el número completo, el CVV ni la clave en este formulario.</p>
+
+      @if (tipoSeleccionado()?.esCredito) {
+      <div class="fila-monto">
+        <div>
+          <label for="monedaTarjeta">Moneda de la línea</label>
+          <select id="monedaTarjeta" name="monedaTarjeta" class="form-select" [(ngModel)]="form.moneda">
+            <option value="PEN">Soles (S/)</option>
+            <option value="USD">Dólares (US$)</option>
+          </select>
+        </div>
+        <div>
+          <label for="linea">Línea de crédito</label>
+          <input id="linea" name="linea" type="number" class="form-control" required min="0" step="0.01" [(ngModel)]="form.tarjeta.linea" />
+        </div>
+      </div>
+      <div class="fila-monto">
+        <div>
+          <label for="diaPago">Día de pago (1 a 31)</label>
+          <input id="diaPago" name="diaPago" type="number" class="form-control" required min="1" max="31" [(ngModel)]="form.tarjeta.diaPago" />
+        </div>
+        <div>
+          <label for="diaCierre">Cierre de facturación (día)</label>
+          <input id="diaCierre" name="diaCierre" type="number" class="form-control" required min="1" max="31" [(ngModel)]="form.tarjeta.diaCierre" />
+        </div>
+      </div>
+      }
+    </div>
+    }
+
     <label for="descripcion">Descripción</label>
     <input id="descripcion" name="descripcion" class="form-control" required maxlength="300" [(ngModel)]="form.descripcion" />
 
@@ -133,6 +170,10 @@
       </div>
     </div>
     }
+
+    <label for="indicaciones">Indicaciones para el heredero (opcional)</label>
+    <textarea id="indicaciones" name="indicaciones" class="form-control" rows="3" maxlength="1000" [placeholder]="guia()" [(ngModel)]="form.indicaciones"></textarea>
+    <p class="nota-sens">Se guardan cifradas y solo se entregan a tus herederos cuando se libere el proceso, nunca antes.</p>
 
     @if (editandoId === null) {
     <label>Herederos de este activo</label>

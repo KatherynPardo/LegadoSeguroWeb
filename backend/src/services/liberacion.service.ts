@@ -158,17 +158,22 @@ export async function solicitudesDelHeredero(correo: string) {
     let entregas: any[] = [];
     if (s.estado === 'LIBERADO') {
       const e = await pool.query(
-        `SELECT a.nombre AS activo, t.nombre AS tipo, a.descripcion, en.estado, en.id_entrega
+        `SELECT a.nombre AS activo, t.nombre AS tipo, a.indicaciones_cifradas, en.estado, ef.nombre AS banco, dt.ultimos4
          FROM entrega en
          JOIN activo_digital a ON a.id_activo = en.id_activo
          JOIN tipo_activo t ON t.id_tipo = a.id_tipo
+         LEFT JOIN entidad_financiera ef ON ef.id_entidad = a.id_entidad
+         LEFT JOIN detalle_tarjeta dt ON dt.id_activo = a.id_activo
          WHERE en.id_proceso = $1 AND en.id_beneficiario = $2 ORDER BY a.nombre`,
         [s.idProceso, s.idBeneficiario]
       );
-      // Solo se muestran las indicaciones de los activos ya autorizados; la descripción está cifrada
+      // Solo se muestran las indicaciones de los activos ya autorizados; están cifradas en la base
       entregas = e.rows.map(x => ({
         activo: x.activo, tipo: x.tipo, estado: x.estado,
-        descripcion: x.estado === 'AUTORIZADA' ? descifrar(x.descripcion) : null
+        detalle: x.estado === 'AUTORIZADA'
+          ? [x.banco, x.ultimos4 ? `tarjeta terminada en ${x.ultimos4}` : null].filter(Boolean).join(' · ') || null
+          : null,
+        indicaciones: x.estado === 'AUTORIZADA' && x.indicaciones_cifradas ? descifrar(x.indicaciones_cifradas) : null
       }));
       await pool.query(
         "UPDATE entrega SET fecha_acceso = NOW() WHERE id_proceso = $1 AND id_beneficiario = $2 AND estado = 'AUTORIZADA' AND fecha_acceso IS NULL",

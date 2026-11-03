@@ -14,7 +14,7 @@ router.post('/entrar', limitarPorMinuto(10), entrarPortal);     // POST /api/por
 
 // Con sesión de heredero
 router.get('/checklist', verificarHeredero, verChecklist);      // GET /api/portal/checklist
-router.patch('/documentos/:id', verificarHeredero, marcar);     // PATCH /api/portal/documentos/:id
+router.patch('/documentos/:idBeneficiario/:idRequisito', verificarHeredero, marcar); // PATCH /api/portal/documentos/:idBeneficiario/:idRequisito
 
 // Solicitudes de liberación: los tres pasos y la decisión del heredero
 router.get('/solicitudes', verificarHeredero, verSolicitudes);                                          // GET /api/portal/solicitudes

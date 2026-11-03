@@ -55,14 +55,15 @@ export async function verChecklist(_req: Request, res: Response) {
 }
 
 export async function marcar(req: Request, res: Response) {
-  const id = Number(req.params.id);
-  if (!Number.isInteger(id) || id <= 0 || typeof req.body.entregado !== 'boolean') {
+  const idBeneficiario = Number(req.params.idBeneficiario);
+  const idRequisito = Number(req.params.idRequisito);
+  if (!Number.isInteger(idBeneficiario) || idBeneficiario <= 0 || !Number.isInteger(idRequisito) || idRequisito <= 0 || typeof req.body.entregado !== 'boolean') {
     res.status(400).json({ mensaje: 'Datos no válidos' });
     return;
   }
 
   try {
-    const hecho = await marcarDocumento(id, res.locals.correoHeredero, req.body.entregado);
+    const hecho = await marcarDocumento(idBeneficiario, idRequisito, res.locals.correoHeredero, req.body.entregado);
     if (!hecho) {
       res.status(404).json({ mensaje: 'Documento no encontrado' });
       return;

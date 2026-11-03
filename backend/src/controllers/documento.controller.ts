@@ -44,7 +44,13 @@ function leerRequisito(body: any) {
   if (body.descripcion && !descripcion) return 'La descripción no es válida (máximo 300 caracteres)';
 
   if (typeof body.obligatorio !== 'boolean') return 'Indica si el requisito es obligatorio';
-  return { nombre, descripcion, obligatorio: body.obligatorio as boolean };
+
+  // Tipos de activo a los que aplica (vacío = todos los activos)
+  const tipos = body.tipos === undefined ? [] : body.tipos;
+  if (!Array.isArray(tipos) || tipos.some((t: unknown) => !Number.isInteger(t) || (t as number) <= 0)) {
+    return 'La lista de tipos de activo no es válida';
+  }
+  return { nombre, descripcion, obligatorio: body.obligatorio as boolean, tipos: tipos as number[] };
 }
 
 export async function registrarRequisito(req: Request, res: Response) {
@@ -55,7 +61,7 @@ export async function registrarRequisito(req: Request, res: Response) {
   }
 
   try {
-    const id = await crearRequisito(datos.nombre, datos.descripcion, datos.obligatorio);
+    const id = await crearRequisito(datos.nombre, datos.descripcion, datos.obligatorio, datos.tipos);
     res.status(201).json({ id });
   } catch (error) {
     responderError(error, res, 'crear el requisito');
@@ -77,7 +83,7 @@ export async function modificarRequisito(req: Request, res: Response) {
   }
 
   try {
-    await editarRequisito(id, datos.nombre, datos.descripcion, datos.obligatorio, req.body.estado);
+    await editarRequisito(id, datos.nombre, datos.descripcion, datos.obligatorio, req.body.estado, datos.tipos);
     res.json({ mensaje: 'Requisito actualizado' });
   } catch (error) {
     responderError(error, res, 'actualizar el requisito');

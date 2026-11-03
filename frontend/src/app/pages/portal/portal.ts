@@ -91,9 +91,9 @@ export class Portal implements OnInit {
     return lista.documentos.length === 0 ? 0 : Math.round((this.entregados(lista) / lista.documentos.length) * 100);
   }
 
-  alternar(doc: DocumentoChecklist): void {
+  alternar(lista: ChecklistHeredero, doc: DocumentoChecklist): void {
     const nuevo = doc.estado !== 'ENTREGADO';
-    this.portal.marcar(doc.id, nuevo).subscribe({
+    this.portal.marcar(lista.idBeneficiario, doc.id, nuevo).subscribe({
       next: () => this.cargarChecklist(),
       error: err => this.error.set(err.error?.mensaje ?? 'No se pudo guardar')
     });

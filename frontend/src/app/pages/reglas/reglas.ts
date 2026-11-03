@@ -15,6 +15,8 @@ export class Reglas implements OnInit {
   error = signal('');
 
   totalBeneficiarios = 0;
+  maxConfirmaciones = 1;                  // lo máximo que se puede pedir: herederos y límite del plan
+  limiteHerederos: number | null = null;  // límite del plan (null = sin límite)
 
   // Los días de inactividad son libres entre estos valores (el backend valida lo mismo)
   minDias = 7;
@@ -32,13 +34,15 @@ export class Reglas implements OnInit {
   ngOnInit(): void {
     this.reglaService.getRegla().subscribe(r => {
       this.totalBeneficiarios = r.totalBeneficiarios;
+      this.maxConfirmaciones = Math.max(r.maxConfirmaciones, 1);
+      this.limiteHerederos = r.limiteHerederos;
 
       if (r.regla) {
         const { id, ...datos } = r.regla;
         this.regla = datos;
       }
       // Las confirmaciones mínimas no pueden superar los beneficiarios designados
-      this.regla.minConfirmaciones = Math.min(this.regla.minConfirmaciones, Math.max(this.totalBeneficiarios, 1));
+      this.regla.minConfirmaciones = Math.min(this.regla.minConfirmaciones, this.maxConfirmaciones);
       this.cargado.set(true);
     });
   }
@@ -60,7 +64,7 @@ export class Reglas implements OnInit {
 
   // Lista 1..N para el selector "k de N beneficiarios"
   opcionesConfirmaciones(): number[] {
-    return Array.from({ length: Math.max(this.totalBeneficiarios, 1) }, (_, i) => i + 1);
+    return Array.from({ length: this.maxConfirmaciones }, (_, i) => i + 1);
   }
 
   guardar(): void {

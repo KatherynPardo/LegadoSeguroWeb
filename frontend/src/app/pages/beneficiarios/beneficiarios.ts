@@ -7,6 +7,8 @@ import { SuscripcionService } from '../../services/suscripcion.service';
 import { DocumentoService } from '../../services/documento.service';
 import { DocumentoDeHeredero } from '../../models/documento.model';
 import { Beneficiario, NuevoBeneficiario } from '../../models/beneficiario.model';
+import { ActivoService } from '../../services/activo.service';
+import { Activo } from '../../models/activo.model';
 import { Modal } from '../../components/modal/modal';
 
 @Component({
@@ -17,6 +19,7 @@ import { Modal } from '../../components/modal/modal';
 })
 export class Beneficiarios implements OnInit {
   beneficiarios = signal<Beneficiario[]>([]);
+  misActivos = signal<Activo[]>([]); // para elegir qué activos recibirá el heredero
   mostrarFormulario = signal(false);
   editandoId: number | null = null; // null cuando se crea uno nuevo
   error = signal('');
@@ -48,11 +51,13 @@ export class Beneficiarios implements OnInit {
     private beneficiarioService: BeneficiarioService,
     private suscripcionService: SuscripcionService,
     private documentoService: DocumentoService,
+    private activoService: ActivoService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
     this.cargar();
+    this.activoService.getActivos().subscribe(data => this.misActivos.set(data));
     this.suscripcionService.getSuscripcion().subscribe(s => this.limite.set(s.limiteHerederos));
   }
 
@@ -111,7 +116,8 @@ export class Beneficiarios implements OnInit {
       correo: b.correo ?? '',
       telefono: b.telefono ?? '',
       parentesco: b.parentesco ?? 'Otro',
-      codigo: ''
+      codigo: '',
+      activos: b.activos.map(a => a.id)
     };
     this.correoOriginal = b.correo ?? '';
     this.verificadoOriginal = b.verificado;
@@ -143,6 +149,12 @@ export class Beneficiarios implements OnInit {
         this.avisoDni.set((err.error?.mensaje ?? 'No se pudo consultar el DNI') + '. Puedes escribir los datos a mano.');
       }
     });
+  }
+
+  // Marca o desmarca un activo que recibirá el heredero
+  alternarActivo(id: number): void {
+    const a = this.nuevo.activos;
+    this.nuevo.activos = a.includes(id) ? a.filter(x => x !== id) : [...a, id];
   }
 
   // Hay que pedir código al crear un heredero, o al editar si cambió el correo
@@ -207,12 +219,6 @@ export class Beneficiarios implements OnInit {
     this.documentoService.getDocumentos(b.id).subscribe(lista => this.documentos.set(lista));
   }
 
-  // Marca o desmarca un documento (los obligatorios no se pueden quitar)
-  alternarDocumento(d: DocumentoDeHeredero): void {
-    if (d.obligatorio) return;
-    this.documentos.update(lista => lista.map(x => x.id === d.id ? { ...x, asignado: !x.asignado } : x));
-  }
-
   cambiarUbicacion(d: DocumentoDeHeredero, valor: string): void {
     this.documentos.update(lista => lista.map(x => x.id === d.id ? { ...x, ubicacion: valor } : x));
   }
@@ -221,9 +227,8 @@ export class Beneficiarios implements OnInit {
     const heredero = this.documentosDe();
     if (!heredero) return;
 
-    const elegidos = this.documentos()
-      .filter(d => d.asignado)
-      .map(d => ({ idRequisito: d.id, ubicacion: d.ubicacion?.trim() || null }));
+    // Los documentos que le tocan al heredero salen de sus activos; aquí solo se anota dónde está cada original
+    const elegidos = this.documentos().map(d => ({ idRequisito: d.id, ubicacion: d.ubicacion?.trim() || null }));
 
     this.documentoService.guardarDocumentos(heredero.id, elegidos).subscribe({
       next: () => {
@@ -253,6 +258,6 @@ export class Beneficiarios implements OnInit {
   }
 
   private vacio(): NuevoBeneficiario {
-    return { nombres: '', apellidos: '', dni: '', correo: '', telefono: '', parentesco: 'Hijo/a', codigo: '' };
+    return { nombres: '', apellidos: '', dni: '', correo: '', telefono: '', parentesco: 'Hijo/a', codigo: '', activos: [] };
   }
 }

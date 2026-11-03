@@ -21,12 +21,35 @@ function cifrarMonto(datos: DatosActivo): string | null {
   return datos.registrar_monto && datos.monto !== null ? cifrar(String(datos.monto)) : null;
 }
 
+// Las indicaciones para el heredero (contraseñas, claves, qué hacer con el activo) también van cifradas
+function cifrarIndicaciones(datos: DatosActivo): string | null {
+  return datos.indicaciones ? cifrar(datos.indicaciones) : null;
+}
+
+// Guarda los datos de la tarjeta (o los borra si el activo ya no es una tarjeta)
+async function guardarTarjeta(db: Db, idActivo: number, datos: DatosActivo): Promise<void> {
+  if (!datos.tarjeta) {
+    await db.query('DELETE FROM detalle_tarjeta WHERE id_activo = $1', [idActivo]);
+    return;
+  }
+  const t = datos.tarjeta;
+  await db.query(
+    `INSERT INTO detalle_tarjeta (id_activo, ultimos4, linea_credito_cifrada, dia_pago, dia_cierre)
+     VALUES ($1, $2, $3, $4, $5)
+     ON CONFLICT (id_activo) DO UPDATE
+     SET ultimos4 = EXCLUDED.ultimos4, linea_credito_cifrada = EXCLUDED.linea_credito_cifrada,
+         dia_pago = EXCLUDED.dia_pago, dia_cierre = EXCLUDED.dia_cierre`,
+    [idActivo, t.ultimos4, t.linea !== null ? cifrar(String(t.linea)) : null, t.diaPago, t.diaCierre]
+  );
+}
+
 export async function listarActivos(idUsuario: number): Promise<Activo[]> {
   const resultado = await pool.query(
     `SELECT a.id_activo AS id, a.nombre, a.descripcion,
             a.id_tipo AS "idTipo", t.nombre AS tipo, t.categoria_sensibilidad AS sensibilidad, a.estado,
             a.id_entidad AS "idEntidad", e.nombre AS entidad,
             a.registrar_monto AS "registrarMonto", a.moneda, a.monto::float8 AS monto_plano, a.monto_cifrado,
+            a.indicaciones_cifradas, dt.ultimos4, dt.linea_credito_cifrada, dt.dia_pago AS "diaPago", dt.dia_cierre AS "diaCierre",
             COALESCE((
               SELECT json_agg(json_build_object('id', b.id_beneficiario, 'nombre', b.nombres || ' ' || b.apellidos)
                               ORDER BY ab.prioridad)
@@ -37,6 +60,7 @@ export async function listarActivos(idUsuario: number): Promise<Activo[]> {
      FROM activo_digital a
      JOIN tipo_activo t ON t.id_tipo = a.id_tipo
      LEFT JOIN entidad_financiera e ON e.id_entidad = a.id_entidad
+     LEFT JOIN detalle_tarjeta dt ON dt.id_activo = a.id_activo
      WHERE a.id_usuario = $1 AND a.estado = 'ACTIVO'
      ORDER BY a.id_activo`,
     [idUsuario]
@@ -44,20 +68,35 @@ export async function listarActivos(idUsuario: number): Promise<Activo[]> {
 
   // Descripción y monto están cifrados en la base: aquí se leen en claro
   return resultado.rows.map(fila => {
-    const { monto_plano, monto_cifrado, ...resto } = fila;
+    const { monto_plano, monto_cifrado, indicaciones_cifradas, ultimos4, linea_credito_cifrada, diaPago, diaCierre, ...resto } = fila;
     const montoTexto = monto_cifrado ? descifrar(monto_cifrado) : null;
     return {
       ...resto,
       descripcion: descifrar(fila.descripcion),
-      monto: montoTexto !== null ? Number(montoTexto) : monto_plano
+      monto: montoTexto !== null ? Number(montoTexto) : monto_plano,
+      indicaciones: indicaciones_cifradas ? descifrar(indicaciones_cifradas) : null,
+      tarjeta: ultimos4
+        ? { ultimos4, linea: linea_credito_cifrada ? Number(descifrar(linea_credito_cifrada)) : null, diaPago, diaCierre }
+        : null
     } as Activo;
   });
 }
 
 // Reglas que dependen de la base: el tipo existe, el banco es válido si se pide, el monto va con moneda
 async function validarContraBase(db: Db, datos: DatosActivo, idUsuario: number): Promise<void> {
-  const tipo = await db.query('SELECT requiere_entidad FROM tipo_activo WHERE id_tipo = $1', [datos.id_tipo]);
+  const tipo = await db.query('SELECT requiere_entidad, es_tarjeta, es_credito FROM tipo_activo WHERE id_tipo = $1', [datos.id_tipo]);
   if (tipo.rows.length === 0) throw new ReglaActivo('El tipo de activo no existe', 400);
+
+  // Las tarjetas llevan sus datos; los demás tipos no
+  const t = tipo.rows[0];
+  if (t.es_tarjeta && !datos.tarjeta) throw new ReglaActivo('Indica los datos de la tarjeta', 400);
+  if (!t.es_tarjeta && datos.tarjeta) throw new ReglaActivo('Este tipo de activo no lleva datos de tarjeta', 400);
+  if (t.es_credito && datos.tarjeta) {
+    if (datos.tarjeta.linea === null) throw new ReglaActivo('Indica la línea de crédito', 400);
+    if (datos.tarjeta.diaPago === null) throw new ReglaActivo('Indica el día de pago', 400);
+    if (datos.tarjeta.diaCierre === null) throw new ReglaActivo('Indica el día de cierre de facturación', 400);
+    if (!datos.moneda) throw new ReglaActivo('Elige la moneda de la línea de crédito', 400);
+  }
 
   if (tipo.rows[0].requiere_entidad && datos.id_entidad === null) {
     throw new ReglaActivo('Elige el banco de la cuenta', 400);
@@ -114,14 +153,15 @@ export async function crearActivo(datos: NuevoActivo, idUsuario: number, ip: str
     }
 
     const resultado = await cliente.query(
-      `INSERT INTO activo_digital (id_usuario, id_tipo, nombre, descripcion, id_entidad, registrar_monto, moneda, monto_cifrado)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `INSERT INTO activo_digital (id_usuario, id_tipo, nombre, descripcion, id_entidad, registrar_monto, moneda, monto_cifrado, indicaciones_cifradas)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING id_activo AS id`,
       [idUsuario, datos.id_tipo, datos.nombre, cifrar(datos.descripcion), datos.id_entidad,
-       datos.registrar_monto, datos.moneda, cifrarMonto(datos)]
+       datos.registrar_monto, datos.moneda, cifrarMonto(datos), cifrarIndicaciones(datos)]
     );
     const id = resultado.rows[0].id;
     await guardarAsignacion(cliente, id, ids);
+    await guardarTarjeta(cliente, id, datos);
 
     if (datos.registrar_monto) {
       await anotarMonto(cliente, id, datos.monto!, datos.moneda!, idUsuario, ip);
@@ -156,11 +196,12 @@ export async function actualizarActivo(id: number, datos: DatosActivo, idUsuario
     await cliente.query(
       `UPDATE activo_digital
        SET id_tipo = $1, nombre = $2, descripcion = $3, id_entidad = $4,
-           registrar_monto = $5, moneda = $6, monto = NULL, monto_cifrado = $7
-       WHERE id_activo = $8`,
+           registrar_monto = $5, moneda = $6, monto = NULL, monto_cifrado = $7, indicaciones_cifradas = $8
+       WHERE id_activo = $9`,
       [datos.id_tipo, datos.nombre, cifrar(datos.descripcion), datos.id_entidad,
-       datos.registrar_monto, datos.moneda, cifrarMonto(datos), id]
+       datos.registrar_monto, datos.moneda, cifrarMonto(datos), cifrarIndicaciones(datos), id]
     );
+    await guardarTarjeta(cliente, id, datos);
 
     if (datos.registrar_monto) {
       const previo = actual.rows[0];

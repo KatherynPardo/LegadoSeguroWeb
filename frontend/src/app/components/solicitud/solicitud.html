@@ -22,7 +22,9 @@
       <span class="etiqueta" [class.espera]="e.estado !== 'AUTORIZADA'">{{ etiquetaEntrega(e.estado) }}</span>
     </div>
     <span class="tipo">{{ e.tipo }}</span>
-    @if (e.descripcion) { <p class="indicacion">{{ e.descripcion }}</p> }
+    @if (e.detalle) { <span class="tipo">{{ e.detalle }}</span> }
+    @if (e.indicaciones) { <p class="indicacion">{{ e.indicaciones }}</p> }
+    @else if (e.estado === 'AUTORIZADA') { <p class="nota">{{ solicitud().benefactor }} no dejó indicaciones para este activo.</p> }
   </div>
   } @empty {
   <p class="nota">No tienes activos asignados en este proceso.</p>

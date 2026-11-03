@@ -1,12 +1,14 @@
 // Checklist de documentos de los herederos.
-//   ADMINISTRADOR: mantiene el catálogo de requisitos.
-//   PROPIETARIO:   elige qué requisitos tiene cada uno de sus herederos y dónde está cada original.
+//   ADMINISTRADOR: mantiene el catálogo de requisitos y dice a qué TIPOS de activo aplica cada uno.
+//   PROPIETARIO:   ve la lista de cada heredero y anota dónde está cada original.
 //   HEREDERO:      ve su checklist (por el portal) y marca los documentos que ya tiene.
+//
+// Qué documentos le tocan a un heredero NO se elige a mano: depende de los activos que recibe.
+//   - Un requisito sin tipos asignados aplica a todos los activos (el DNI, el certificado de defunción).
+//   - Un requisito con tipos (por ejemplo la declaratoria de herederos para cuentas bancarias)
+//     solo le toca al heredero que recibe algún activo de esos tipos.
 
-import { PoolClient } from 'pg';
 import { pool } from '../config/database';
-
-type Db = Pick<PoolClient, 'query'>;
 
 // Errores de regla de negocio: el controlador los convierte en 400, 404 o 409
 export class ReglaDocumento extends Error {
@@ -15,27 +17,47 @@ export class ReglaDocumento extends Error {
   }
 }
 
+// Requisitos que le tocan a un heredero ($1 = id del heredero), con su estado y los activos que los motivan
+const REQUISITOS_DEL_HEREDERO = `
+  SELECT r.id_requisito AS id, r.nombre, r.descripcion, r.obligatorio, d.estado, d.ubicacion,
+         COALESCE((SELECT array_agg(DISTINCT a.nombre)
+                   FROM requisito_tipo rt
+                   JOIN activo_digital a ON a.id_tipo = rt.id_tipo
+                   JOIN activo_beneficiario ab ON ab.id_activo = a.id_activo
+                   WHERE rt.id_requisito = r.id_requisito AND ab.id_beneficiario = $1
+                     AND ab.estado = 'ACTIVO' AND a.estado = 'ACTIVO'), '{}') AS "aplicaA"
+  FROM requisito_documental r
+  LEFT JOIN documento_heredero d ON d.id_requisito = r.id_requisito AND d.id_beneficiario = $1
+  WHERE r.estado = 'ACTIVO'
+    AND (
+      NOT EXISTS (SELECT 1 FROM requisito_tipo rt WHERE rt.id_requisito = r.id_requisito)
+      OR EXISTS (SELECT 1 FROM requisito_tipo rt
+                 JOIN activo_digital a ON a.id_tipo = rt.id_tipo
+                 JOIN activo_beneficiario ab ON ab.id_activo = a.id_activo
+                 WHERE rt.id_requisito = r.id_requisito AND ab.id_beneficiario = $1
+                   AND ab.estado = 'ACTIVO' AND a.estado = 'ACTIVO')
+    )
+  ORDER BY r.obligatorio DESC, r.nombre`;
+
+async function requisitosDelHeredero(idBeneficiario: number) {
+  const r = await pool.query(REQUISITOS_DEL_HEREDERO, [idBeneficiario]);
+  return r.rows.map(f => ({ ...f, estado: f.estado ?? 'PENDIENTE' }));
+}
+
 // ---------------------------------------------------------------
 // ADMINISTRADOR: catálogo de requisitos
 // ---------------------------------------------------------------
 
 export async function listarCatalogo() {
   const resultado = await pool.query(
-    `SELECT id_requisito AS id, nombre, descripcion, obligatorio, estado
-     FROM requisito_documental ORDER BY estado, obligatorio DESC, nombre`
+    `SELECT r.id_requisito AS id, r.nombre, r.descripcion, r.obligatorio, r.estado,
+            COALESCE(array_agg(rt.id_tipo ORDER BY rt.id_tipo) FILTER (WHERE rt.id_tipo IS NOT NULL), '{}') AS tipos
+     FROM requisito_documental r
+     LEFT JOIN requisito_tipo rt ON rt.id_requisito = r.id_requisito
+     GROUP BY r.id_requisito
+     ORDER BY r.estado, r.obligatorio DESC, r.nombre`
   );
   return resultado.rows;
-}
-
-// Los obligatorios se agregan solos a todos los herederos vigentes
-async function asignarObligatoriosATodos(db: Db) {
-  await db.query(
-    `INSERT INTO documento_heredero (id_beneficiario, id_requisito)
-     SELECT b.id_beneficiario, r.id_requisito
-     FROM beneficiario b CROSS JOIN requisito_documental r
-     WHERE b.estado = 'ACTIVO' AND r.obligatorio = TRUE AND r.estado = 'ACTIVO'
-     ON CONFLICT (id_beneficiario, id_requisito) DO NOTHING`
-  );
 }
 
 async function nombreRepetido(nombre: string, idExcluido: number | null): Promise<boolean> {
@@ -46,19 +68,35 @@ async function nombreRepetido(nombre: string, idExcluido: number | null): Promis
   return r.rows.length > 0;
 }
 
-export async function crearRequisito(nombre: string, descripcion: string | null, obligatorio: boolean) {
+// Todos los tipos indicados deben existir
+async function validarTipos(tipos: number[]): Promise<void> {
+  if (tipos.length === 0) return;
+  const r = await pool.query('SELECT id_tipo FROM tipo_activo WHERE id_tipo = ANY($1::int[])', [tipos]);
+  if (r.rows.length !== new Set(tipos).size) throw new ReglaDocumento('Alguno de los tipos de activo no existe', 400);
+}
+
+async function guardarTipos(idRequisito: number, tipos: number[]): Promise<void> {
+  await pool.query('DELETE FROM requisito_tipo WHERE id_requisito = $1', [idRequisito]);
+  for (const t of new Set(tipos)) {
+    await pool.query('INSERT INTO requisito_tipo (id_requisito, id_tipo) VALUES ($1, $2)', [idRequisito, t]);
+  }
+}
+
+export async function crearRequisito(nombre: string, descripcion: string | null, obligatorio: boolean, tipos: number[]) {
   if (await nombreRepetido(nombre, null)) throw new ReglaDocumento('Ya existe un requisito con ese nombre', 409);
+  await validarTipos(tipos);
 
   const r = await pool.query(
     'INSERT INTO requisito_documental (nombre, descripcion, obligatorio) VALUES ($1, $2, $3) RETURNING id_requisito AS id',
     [nombre, descripcion, obligatorio]
   );
-  if (obligatorio) await asignarObligatoriosATodos(pool);
+  await guardarTipos(r.rows[0].id, tipos);
   return r.rows[0].id as number;
 }
 
-export async function editarRequisito(id: number, nombre: string, descripcion: string | null, obligatorio: boolean, estado: string) {
+export async function editarRequisito(id: number, nombre: string, descripcion: string | null, obligatorio: boolean, estado: string, tipos: number[]) {
   if (await nombreRepetido(nombre, id)) throw new ReglaDocumento('Ya existe un requisito con ese nombre', 409);
+  await validarTipos(tipos);
 
   const r = await pool.query(
     `UPDATE requisito_documental SET nombre = $1, descripcion = $2, obligatorio = $3, estado = $4
@@ -66,22 +104,12 @@ export async function editarRequisito(id: number, nombre: string, descripcion: s
     [nombre, descripcion, obligatorio, estado, id]
   );
   if (r.rows.length === 0) throw new ReglaDocumento('Requisito no encontrado', 404);
-  if (obligatorio && estado === 'ACTIVO') await asignarObligatoriosATodos(pool);
+  await guardarTipos(id, tipos);
 }
 
 // ---------------------------------------------------------------
-// PROPIETARIO: requisitos de cada heredero
+// PROPIETARIO: documentos de cada heredero
 // ---------------------------------------------------------------
-
-// Se usa al registrar un heredero: recibe los documentos obligatorios
-export async function asignarObligatorios(db: Db, idBeneficiario: number) {
-  await db.query(
-    `INSERT INTO documento_heredero (id_beneficiario, id_requisito)
-     SELECT $1, id_requisito FROM requisito_documental WHERE obligatorio = TRUE AND estado = 'ACTIVO'
-     ON CONFLICT (id_beneficiario, id_requisito) DO NOTHING`,
-    [idBeneficiario]
-  );
-}
 
 async function esDelPropietario(idBeneficiario: number, idUsuario: number): Promise<boolean> {
   const r = await pool.query(
@@ -91,67 +119,33 @@ async function esDelPropietario(idBeneficiario: number, idUsuario: number): Prom
   return r.rows.length > 0;
 }
 
-// Todo el catálogo vigente, marcando cuáles tiene asignados este heredero
 export async function documentosDeHeredero(idBeneficiario: number, idUsuario: number) {
   if (!(await esDelPropietario(idBeneficiario, idUsuario))) throw new ReglaDocumento('Heredero no encontrado', 404);
-
-  const r = await pool.query(
-    `SELECT r.id_requisito AS id, r.nombre, r.descripcion, r.obligatorio,
-            (d.id_documento IS NOT NULL) AS asignado, d.estado, d.ubicacion
-     FROM requisito_documental r
-     LEFT JOIN documento_heredero d ON d.id_requisito = r.id_requisito AND d.id_beneficiario = $1
-     WHERE r.estado = 'ACTIVO'
-     ORDER BY r.obligatorio DESC, r.nombre`,
-    [idBeneficiario]
-  );
-  return r.rows;
+  return requisitosDelHeredero(idBeneficiario);
 }
 
 export type ItemDocumento = { idRequisito: number; ubicacion: string | null };
 
-// Reemplaza los requisitos del heredero. Los obligatorios no se pueden quitar.
+// El propietario solo anota DÓNDE está cada original; los documentos que le tocan al heredero se deducen de sus activos
 export async function guardarDocumentosDeHeredero(idBeneficiario: number, idUsuario: number, items: ItemDocumento[]) {
   if (!(await esDelPropietario(idBeneficiario, idUsuario))) throw new ReglaDocumento('Heredero no encontrado', 404);
 
-  const vigentes = await pool.query("SELECT id_requisito, obligatorio FROM requisito_documental WHERE estado = 'ACTIVO'");
-  const idsVigentes = new Set(vigentes.rows.map(r => r.id_requisito));
-  if (items.some(i => !idsVigentes.has(i.idRequisito))) throw new ReglaDocumento('Alguno de los documentos no existe', 400);
+  const aplicables = new Set((await requisitosDelHeredero(idBeneficiario)).map(r => r.id));
+  if (items.some(i => !aplicables.has(i.idRequisito))) throw new ReglaDocumento('Alguno de los documentos no le corresponde a este heredero', 400);
 
-  // Se agregan los obligatorios aunque no vengan marcados
-  const elegidos = new Map<number, string | null>(items.map(i => [i.idRequisito, i.ubicacion]));
-  for (const r of vigentes.rows) {
-    if (r.obligatorio && !elegidos.has(r.id_requisito)) elegidos.set(r.id_requisito, null);
+  for (const i of items) {
+    await pool.query(
+      `INSERT INTO documento_heredero (id_beneficiario, id_requisito, ubicacion) VALUES ($1, $2, $3)
+       ON CONFLICT (id_beneficiario, id_requisito) DO UPDATE SET ubicacion = EXCLUDED.ubicacion`,
+      [idBeneficiario, i.idRequisito, i.ubicacion]
+    );
   }
 
-  const cliente = await pool.connect();
-  try {
-    await cliente.query('BEGIN');
-
-    await cliente.query(
-      'DELETE FROM documento_heredero WHERE id_beneficiario = $1 AND NOT (id_requisito = ANY($2::int[]))',
-      [idBeneficiario, [...elegidos.keys()]]
-    );
-    for (const [idRequisito, ubicacion] of elegidos) {
-      await cliente.query(
-        `INSERT INTO documento_heredero (id_beneficiario, id_requisito, ubicacion) VALUES ($1, $2, $3)
-         ON CONFLICT (id_beneficiario, id_requisito) DO UPDATE SET ubicacion = EXCLUDED.ubicacion`,
-        [idBeneficiario, idRequisito, ubicacion]
-      );
-    }
-
-    await cliente.query(
-      `INSERT INTO auditoria (id_usuario, accion, entidad, id_entidad, descripcion)
-       VALUES ($1, 'EDITAR_DOCUMENTOS_HEREDERO', 'beneficiario', $2, $3)`,
-      [idUsuario, idBeneficiario, `Documentos del heredero actualizados: ${elegidos.size}`]
-    );
-
-    await cliente.query('COMMIT');
-  } catch (error) {
-    await cliente.query('ROLLBACK');
-    throw error;
-  } finally {
-    cliente.release();
-  }
+  await pool.query(
+    `INSERT INTO auditoria (id_usuario, accion, entidad, id_entidad, descripcion)
+     VALUES ($1, 'EDITAR_DOCUMENTOS_HEREDERO', 'beneficiario', $2, 'Ubicación de los documentos del heredero actualizada')`,
+    [idUsuario, idBeneficiario]
+  );
 }
 
 // ---------------------------------------------------------------
@@ -160,55 +154,49 @@ export async function guardarDocumentosDeHeredero(idBeneficiario: number, idUsua
 
 // El heredero se identifica por su correo (ya verificado). Si es heredero de varias personas, ve todas sus listas.
 export async function checklistDelHeredero(correo: string) {
-  const r = await pool.query(
-    `SELECT b.id_beneficiario AS "idBeneficiario", b.nombres, b.apellidos,
-            u.nombres || ' ' || u.apellidos AS benefactor,
-            d.id_documento AS id, q.nombre, q.descripcion, q.obligatorio, d.estado, d.ubicacion
-     FROM beneficiario b
-     JOIN usuario u ON u.id_usuario = b.id_usuario_propietario
-     JOIN documento_heredero d ON d.id_beneficiario = b.id_beneficiario
-     JOIN requisito_documental q ON q.id_requisito = d.id_requisito AND q.estado = 'ACTIVO'
+  const herederos = await pool.query(
+    `SELECT b.id_beneficiario AS "idBeneficiario", b.nombres, b.apellidos, u.nombres || ' ' || u.apellidos AS benefactor
+     FROM beneficiario b JOIN usuario u ON u.id_usuario = b.id_usuario_propietario
      WHERE LOWER(b.correo) = $1 AND b.estado = 'ACTIVO' AND b.correo_verificado = TRUE
-     ORDER BY b.id_beneficiario, q.obligatorio DESC, q.nombre`,
+     ORDER BY b.id_beneficiario`,
     [correo]
   );
 
-  // Se agrupa por benefactor: una tarjeta por persona que lo designó
-  const grupos = new Map<number, any>();
-  for (const f of r.rows) {
-    if (!grupos.has(f.idBeneficiario)) {
-      grupos.set(f.idBeneficiario, {
-        idBeneficiario: f.idBeneficiario,
-        heredero: `${f.nombres} ${f.apellidos}`,
-        benefactor: f.benefactor,
-        documentos: []
-      });
-    }
-    grupos.get(f.idBeneficiario).documentos.push({
-      id: f.id, nombre: f.nombre, descripcion: f.descripcion,
-      obligatorio: f.obligatorio, estado: f.estado, ubicacion: f.ubicacion
+  const listas = [];
+  for (const h of herederos.rows) {
+    listas.push({
+      idBeneficiario: h.idBeneficiario,
+      heredero: `${h.nombres} ${h.apellidos}`,
+      benefactor: h.benefactor,
+      documentos: await requisitosDelHeredero(h.idBeneficiario)
     });
   }
-  return [...grupos.values()];
+  return listas;
 }
 
 // El heredero marca (o desmarca) que ya tiene un documento. Solo puede tocar los suyos.
-export async function marcarDocumento(idDocumento: number, correo: string, entregado: boolean): Promise<boolean> {
-  const r = await pool.query(
-    `UPDATE documento_heredero d
-     SET estado = $3::varchar, fecha_entrega = CASE WHEN $3::varchar = 'ENTREGADO' THEN NOW() ELSE NULL END
-     FROM beneficiario b
-     WHERE d.id_documento = $1 AND b.id_beneficiario = d.id_beneficiario
-       AND LOWER(b.correo) = $2 AND b.estado = 'ACTIVO' AND b.correo_verificado = TRUE
-     RETURNING d.id_documento, d.id_beneficiario`,
-    [idDocumento, correo, entregado ? 'ENTREGADO' : 'PENDIENTE']
+export async function marcarDocumento(idBeneficiario: number, idRequisito: number, correo: string, entregado: boolean): Promise<boolean> {
+  const heredero = await pool.query(
+    "SELECT 1 FROM beneficiario WHERE id_beneficiario = $1 AND LOWER(correo) = $2 AND estado = 'ACTIVO' AND correo_verificado = TRUE",
+    [idBeneficiario, correo]
   );
-  if (r.rows.length === 0) return false;
+  if (heredero.rows.length === 0) return false;
+
+  const aplicables = (await requisitosDelHeredero(idBeneficiario)).map(r => r.id);
+  if (!aplicables.includes(idRequisito)) return false;
+
+  await pool.query(
+    `INSERT INTO documento_heredero (id_beneficiario, id_requisito, estado, fecha_entrega)
+     VALUES ($1, $2, $3::varchar, CASE WHEN $3::varchar = 'ENTREGADO' THEN NOW() ELSE NULL END)
+     ON CONFLICT (id_beneficiario, id_requisito)
+     DO UPDATE SET estado = EXCLUDED.estado, fecha_entrega = EXCLUDED.fecha_entrega`,
+    [idBeneficiario, idRequisito, entregado ? 'ENTREGADO' : 'PENDIENTE']
+  );
 
   await pool.query(
     `INSERT INTO auditoria (id_usuario, accion, entidad, id_entidad, descripcion)
-     VALUES (NULL, 'MARCAR_DOCUMENTO_HEREDERO', 'documento_heredero', $1, $2)`,
-    [idDocumento, `El heredero ${correo} marcó un documento como ${entregado ? 'entregado' : 'pendiente'}`]
+     VALUES (NULL, 'MARCAR_DOCUMENTO_HEREDERO', 'beneficiario', $1, $2)`,
+    [idBeneficiario, `El heredero ${correo} marcó un documento como ${entregado ? 'entregado' : 'pendiente'}`]
   );
   return true;
 }

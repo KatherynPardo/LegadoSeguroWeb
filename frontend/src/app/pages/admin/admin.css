@@ -19,3 +19,9 @@
 .titulo-con-boton .subtitulo {
   margin: 0;
 }
+
+.nota-tipos {
+  margin: 0 0 8px;
+  color: #6B7280;
+  font-size: 14px;
+}

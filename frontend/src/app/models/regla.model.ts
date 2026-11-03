@@ -13,4 +13,6 @@ export type DatosRegla = Omit<Regla, 'id'>;
 export interface ReglaConContexto {
     regla: Regla | null;
     totalBeneficiarios: number;
+    limiteHerederos: number | null; // límite del plan (null = sin límite)
+    maxConfirmaciones: number;      // lo máximo que se puede pedir
 }

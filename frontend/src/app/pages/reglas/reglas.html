@@ -34,7 +34,7 @@
           <p class="ayuda">Beneficiarios que deben confirmar.</p>
           <select id="confirmaciones" name="confirmaciones" class="form-select" [(ngModel)]="regla.minConfirmaciones">
             @for (n of opcionesConfirmaciones(); track n) {
-            <option [ngValue]="n">{{ n }} de {{ totalBeneficiarios || 1 }} beneficiarios</option>
+            <option [ngValue]="n">{{ n }} de {{ maxConfirmaciones }} {{ maxConfirmaciones === 1 ? 'beneficiario' : 'beneficiarios' }}</option>
             }
           </select>
         </div>
@@ -87,7 +87,7 @@
         </li>
         <li>
           <span class="num">4</span>
-          <div><strong>{{ regla.minConfirmaciones }} de {{ totalBeneficiarios || 1 }} deben confirmar</strong><span>Con DNI y verificación facial.</span></div>
+          <div><strong>{{ regla.minConfirmaciones }} de {{ maxConfirmaciones }} deben confirmar</strong><span>Con DNI y verificación facial.</span></div>
         </li>
         <li>
           <span class="num naranja">5</span>

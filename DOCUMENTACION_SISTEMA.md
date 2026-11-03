@@ -113,17 +113,17 @@
 
 ### 2.1 Modelo entidad-relación
 
-El modelo tiene **30 tablas** organizadas en módulos:
+El modelo tiene **32 tablas** organizadas en módulos:
 
 | Módulo | Tablas |
 |---|---|
 | Usuarios y seguridad | `rol`, `usuario`, `token_recuperacion`, `actividad_usuario`, `auditoria`, `codigo_verificacion` |
-| Activos y herederos | `tipo_activo`, `activo_digital`, `beneficiario`, `activo_beneficiario`, `validador_externo`, `entidad_financiera`, `historial_monto`, `requisito_documental`, `documento_heredero` |
+| Activos y herederos | `tipo_activo`, `activo_digital`, `beneficiario`, `activo_beneficiario`, `validador_externo`, `entidad_financiera`, `historial_monto`, `requisito_documental`, `requisito_tipo`, `documento_heredero`, `detalle_tarjeta` |
 | Regla y proceso de liberación | `verificacion_beneficiario`, `regla_liberacion`, `reporte_fallecimiento`, `proceso_liberacion`, `proceso_activo`, `confirmacion_beneficiario`, `validacion_externa`, `objecion`, `entrega` |
 | Orientación legal y notificaciones | `guia_legal`, `orientacion_legal_generada`, `notificacion` |
 | Suscripciones y pagos | `plan`, `suscripcion`, `pago` |
 
-Las 24 tablas originales se crearon en la primera migración; las otras 6 se agregaron al construir cada función nueva (`entidad_financiera`, `historial_monto`, `codigo_verificacion`, `requisito_documental`, `documento_heredero`, `verificacion_beneficiario`). Cada cambio quedó como una migración numerada en `supabase/migrations/`.
+Las 24 tablas originales se crearon en la primera migración; las otras 8 se agregaron al construir cada función nueva (`entidad_financiera`, `historial_monto`, `codigo_verificacion`, `requisito_documental`, `documento_heredero`, `verificacion_beneficiario`, `requisito_tipo`, `detalle_tarjeta`). Cada cambio quedó como una migración numerada en `supabase/migrations/`.
 
 El diagrama entidad-relación por módulos está en Lucidchart (ver el enlace en la presentación del proyecto). Las relaciones, con sus cardinalidades, se listan al final del diccionario de datos (2.2), generadas desde la base real.
 
@@ -135,7 +135,7 @@ Se genera automáticamente. Si cambia la base de datos, se ejecuta `npm run dicc
 
 <!-- DICCIONARIO:INICIO -->
 
-**Generado automáticamente desde la base de datos el 3/11/2026** · 30 tablas.
+**Generado automáticamente desde la base de datos el 3/11/2026** · 32 tablas.
 
 #### actividad_usuario
 
@@ -179,6 +179,7 @@ Cada activo digital del propietario: cuenta, correo, red social, cuenta bancaria
 | monto | NUMERIC(14,2) | — | Puede ser vacío; CHECK ((monto >= (0))) | Monto sin cifrar (queda vacío: el monto va en monto_cifrado). |
 | registrar_monto | BOOLEAN | — | NOT NULL; Por defecto false | Si el usuario decidió registrar el monto del activo. |
 | monto_cifrado | TEXT | — | Puede ser vacío | Monto cifrado con AES-256. |
+| indicaciones_cifradas | TEXT | — | Puede ser vacío | — |
 
 #### auditoria
 
@@ -241,6 +242,18 @@ Respuesta de cada heredero a la solicitud de confirmación de un proceso.
 | id_beneficiario | INT | FK → beneficiario | NOT NULL | Referencia a beneficiario. |
 | resultado | VARCHAR(20) | — | NOT NULL; Por defecto 'PENDIENTE' | Resultado de la acción. |
 | fecha | TIMESTAMPTZ | — | Puede ser vacío | Fecha y hora del hecho. |
+
+#### detalle_tarjeta
+
+
+
+| Campo | Tipo | PK/FK | Restricción | Descripción |
+|---|---|---|---|---|
+| id_activo | INT | PK, FK → activo_digital | NOT NULL | Referencia a activo_digital. |
+| ultimos4 | VARCHAR(4) | — | NOT NULL; CHECK (((ultimos4)~ '^[0-9]{4}$')) | — |
+| linea_credito_cifrada | TEXT | — | Puede ser vacío | — |
+| dia_pago | INT2 | — | Puede ser vacío; CHECK (((dia_pago >= 1) AND (dia_pago <= 31))) | — |
+| dia_cierre | INT2 | — | Puede ser vacío; CHECK (((dia_cierre >= 1) AND (dia_cierre <= 31))) | — |
 
 #### documento_heredero
 
@@ -451,6 +464,15 @@ Catálogo de documentos que debe reunir un heredero (lo mantiene el administrado
 
 Valores únicos adicionales: (lower((nombre)::text)).
 
+#### requisito_tipo
+
+
+
+| Campo | Tipo | PK/FK | Restricción | Descripción |
+|---|---|---|---|---|
+| id_requisito | INT | PK, FK → requisito_documental | NOT NULL | Referencia a requisito_documental. |
+| id_tipo | INT | PK, FK → tipo_activo | NOT NULL | Referencia a tipo_activo. |
+
 #### rol
 
 Perfiles del sistema: administrador, propietario y beneficiario.
@@ -485,6 +507,9 @@ Tipos de activo digital y su sensibilidad (BAJA o FINANCIERA).
 | nombre | VARCHAR(80) | — | NOT NULL | Nombre. |
 | categoria_sensibilidad | VARCHAR(20) | — | NOT NULL | BAJA o FINANCIERA. |
 | requiere_entidad | BOOLEAN | — | NOT NULL; Por defecto false | Si el tipo de activo exige elegir un banco. |
+| es_tarjeta | BOOLEAN | — | NOT NULL; Por defecto false | — |
+| es_credito | BOOLEAN | — | NOT NULL; Por defecto false | — |
+| guia_indicaciones | VARCHAR(300) | — | Puede ser vacío | — |
 
 #### token_recuperacion
 
@@ -574,6 +599,7 @@ Cada fila es una llave foránea. La cardinalidad se lee de la tabla padre (1) a 
 | activo_digital | confirmacion_beneficiario | id_activo | 1 : N |
 | beneficiario | confirmacion_beneficiario | id_beneficiario | 1 : N |
 | proceso_liberacion | confirmacion_beneficiario | id_proceso | 1 : N |
+| activo_digital | detalle_tarjeta | id_activo | 1 : 1 |
 | beneficiario | documento_heredero | id_beneficiario | 1 : N |
 | requisito_documental | documento_heredero | id_requisito | 1 : N |
 | usuario | entidad_financiera | id_usuario_creador | 1 : N |
@@ -600,6 +626,8 @@ Cada fila es una llave foránea. La cardinalidad se lee de la tabla padre (1) a 
 | usuario | regla_liberacion | id_usuario | 1 : N |
 | beneficiario | reporte_fallecimiento | id_beneficiario_reportante | 1 : N |
 | usuario | reporte_fallecimiento | id_usuario_revisor | 1 : N |
+| requisito_documental | requisito_tipo | id_requisito | 1 : N |
+| tipo_activo | requisito_tipo | id_tipo | 1 : N |
 | plan | suscripcion | id_plan | 1 : N |
 | usuario | suscripcion | id_usuario | 1 : N |
 | usuario | token_recuperacion | id_usuario | 1 : N |
@@ -910,6 +938,8 @@ return `enc:${iv}:${etiqueta}:${cifrado}`;   // así se guarda en la base
   - No se puede eliminar un activo que está en un proceso de liberación abierto.
 - **Validaciones:** nombre y descripción obligatorios (con máximo de largo); tipo válido; banco válido; monto de 0 en adelante con moneda; herederos que existan y sean del propietario.
 - **Prueba:** casos P-11 a P-16.
+- **Tarjetas:** hay tipos de activo para tarjeta de crédito y de débito. Se guardan solo los **4 últimos dígitos**, el emisor (el mismo combo de bancos) y, en crédito, la línea, el día de pago y el cierre de facturación. **No se guardan el número completo, el CVV ni la clave** (ver Paso 8.10e del manual).
+- **Indicaciones para el heredero:** cada activo tiene un cuadro cifrado, con una guía distinta según el tipo, que se entrega al heredero solo cuando se libera el proceso.
 - **Error encontrado:** al activar el cifrado, la descripción cifrada no entraba en `VARCHAR(300)`; se cambió la columna a `TEXT` (migración 009).
 
 ### 7.5 Módulo: Herederos
@@ -979,8 +1009,8 @@ WHERE r.estado = 'ACTIVA' AND u.estado = 'ACTIVO'
 
 | Rol | Qué hace |
 |---|---|
-| Administrador | Mantiene el catálogo de documentos (DNI, certificado de defunción, partida de nacimiento o matrimonio, carta poder, declaratoria de herederos). Los obligatorios se asignan solos a todos los herederos. |
-| Propietario | En **Mis Herederos → Documentos** elige los documentos de cada heredero y anota dónde está cada original. |
+| Administrador | Mantiene el catálogo de documentos y decide **a qué tipos de activo aplica cada uno** (DNI y certificado de defunción para todos; declaratoria, carta poder y estado de cuenta para activos financieros). |
+| Propietario | Al designar a un heredero elige los **activos que recibirá**; la lista de documentos del heredero **se deduce de esos activos** y en **Documentos** solo anota dónde está cada original. |
 | Heredero | Entra al portal con su correo y un código (sin contraseña), ve una barra de avance y marca cada documento que ya tiene. |
 
 - **Código principal (el token del heredero no sirve para el propietario):**
@@ -1155,6 +1185,15 @@ Las pruebas del backend se hicieron contra la base real (con datos temporales qu
 | P-46 | Validador exigido por la regla | Activo financiero PENDIENTE_VALIDADOR; el otro AUTORIZADA | Correcto | Aprobado |
 | P-47 | El heredero ve su entrega | Descripción descifrada solo en las autorizadas | Correcto | Aprobado |
 | P-48 | Confirmar un proceso terminado | 409 | 409 | Aprobado |
+| P-49 | Tarjeta de crédito sin datos / con últimos 4 inválidos / sin línea ni fechas / día de pago 40 | 400 | 400 con mensaje claro | Aprobado |
+| P-50 | Tarjeta de crédito completa y de débito con 4 dígitos | 201 | 201 | Aprobado |
+| P-51 | Una red social con datos de tarjeta | 400 | 400 | Aprobado |
+| P-52 | La base no guarda número completo, CVV ni clave | Sin columnas para ellos | Verificado en `detalle_tarjeta` | Aprobado |
+| P-53 | Indicaciones y línea de crédito en la base | Valores `enc:...` | `enc:...` | Aprobado |
+| P-54 | Heredero con tarjetas vs. heredero con un correo | 5 documentos vs. 2 | 5 y 2 | Aprobado |
+| P-55 | Reasignar activos al editar un heredero | Cambian sus documentos | De 2 a 5 | Aprobado |
+| P-56 | El administrador crea un requisito para tarjetas de crédito | Solo les aparece a quienes las reciben | Correcto | Aprobado |
+| P-57 | Pedir 3 confirmaciones con 2 herederos o con plan Básico | 400 | 400 | Aprobado |
 
 ### 10.2 Pruebas de integración (Frontend → Backend → Supabase)
 
@@ -1328,7 +1367,7 @@ Abrir `backend/.env` y completar:
 | `DNI_PROVIDER` / `DNI_API_TOKEN` | Opcionales; sin token, los nombres se escriben a mano |
 | `SMTP_*` | Opcionales; sin ellos, los códigos salen en la consola del backend |
 
-Preparar la base de datos (si usa su propio proyecto): ejecutar en **SQL Editor** las migraciones `001` a `014` de `supabase/migrations/`, en orden.
+Preparar la base de datos (si usa su propio proyecto): ejecutar en **SQL Editor** las migraciones `001` a `016` de `supabase/migrations/`, en orden.
 
 Encender el backend y, en otra terminal, el frontend:
 
@@ -1355,7 +1394,7 @@ Cuentas externas necesarias: Supabase (obligatoria); apiperu.dev y una cuenta de
 
 ## 16. Cierre del proyecto
 
-**Resultados obtenidos.** Módulos terminados: login, registro con verificación, recuperación de contraseña, activos (con bancos, montos cifrados e historial), herederos (con verificación y límite de plan), reglas de liberación, procesos con monitoreo automático, checklist de documentos con portal del heredero, suscripción, dashboard, reportes, historial, administración y perfil. Base de datos de **29 tablas** con 14 migraciones documentadas.
+**Resultados obtenidos.** Módulos terminados: login, registro con verificación, recuperación de contraseña, activos (con bancos, montos cifrados e historial), herederos (con verificación y límite de plan), reglas de liberación, procesos con monitoreo automático, checklist de documentos con portal del heredero, suscripción, dashboard, reportes, historial, administración y perfil. Base de datos de **32 tablas** con 16 migraciones documentadas.
 
 | | |
 |---|---|

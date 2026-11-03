@@ -3,6 +3,7 @@
 
 import { pool } from '../config/database';
 import { DatosRegla, Regla, ReglaConContexto } from '../models/regla.model';
+import { limiteDeHerederos } from './suscripcion.service';
 
 const COLUMNAS = `id_regla AS id,
                   dias_inactividad AS "diasInactividad",
@@ -12,7 +13,7 @@ const COLUMNAS = `id_regla AS id,
 
 export async function contarBeneficiarios(idUsuario: number): Promise<number> {
   const r = await pool.query(
-    'SELECT COUNT(*)::int AS n FROM beneficiario WHERE id_usuario_propietario = $1',
+    "SELECT COUNT(*)::int AS n FROM beneficiario WHERE id_usuario_propietario = $1 AND estado = 'ACTIVO'",
     [idUsuario]
   );
   return r.rows[0].n;
@@ -28,9 +29,14 @@ export async function obtenerRegla(idUsuario: number): Promise<ReglaConContexto>
     [idUsuario]
   );
 
+  const total = await contarBeneficiarios(idUsuario);
+  const limite = await limiteDeHerederos(idUsuario);
+
   return {
     regla: r.rows[0] ?? null,
-    totalBeneficiarios: await contarBeneficiarios(idUsuario)
+    totalBeneficiarios: total,
+    limiteHerederos: limite,
+    maxConfirmaciones: limite === null ? total : Math.min(total, limite)
   };
 }
 

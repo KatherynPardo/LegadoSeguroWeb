@@ -4,6 +4,8 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../services/admin.service';
 import { DocumentoService } from '../../services/documento.service';
+import { ActivoService } from '../../services/activo.service';
+import { TipoActivo } from '../../models/activo.model';
 import { DatosRequisito, Requisito } from '../../models/documento.model';
 import { Modal } from '../../components/modal/modal';
 import { AuthService } from '../../services/auth.service';
@@ -23,20 +25,23 @@ export class Admin implements OnInit {
 
   // Catálogo de documentos que se les pide a los herederos
   requisitos = signal<Requisito[]>([]);
+  tiposActivo = signal<TipoActivo[]>([]);
   mostrarRequisito = signal(false);
   editandoRequisito: Requisito | null = null;
-  formRequisito: DatosRequisito = { nombre: '', descripcion: '', obligatorio: false };
+  formRequisito: DatosRequisito = { nombre: '', descripcion: '', obligatorio: false, tipos: [] };
   errorRequisito = signal('');
 
   constructor(
     private adminService: AdminService,
     private auth: AuthService,
-    private documentoService: DocumentoService
+    private documentoService: DocumentoService,
+    private activoService: ActivoService
   ) {}
 
   ngOnInit(): void {
     this.cargar();
     this.cargarRequisitos();
+    this.activoService.getTipos().subscribe(data => this.tiposActivo.set(data));
   }
 
   cargar(): void {
@@ -54,20 +59,32 @@ export class Admin implements OnInit {
     });
   }
 
+  // Marca o desmarca un tipo de activo en el formulario del requisito
+  alternarTipo(id: number): void {
+    const t = this.formRequisito.tipos;
+    this.formRequisito.tipos = t.includes(id) ? t.filter(x => x !== id) : [...t, id];
+  }
+
+  // "Cuenta bancaria, Tarjeta de crédito" o "Todos los activos"
+  nombresTipos(ids: number[]): string {
+    if (ids.length === 0) return 'Todos los activos';
+    return this.tiposActivo().filter(t => ids.includes(t.id)).map(t => t.nombre).join(', ');
+  }
+
   cargarRequisitos(): void {
     this.documentoService.getRequisitos().subscribe(lista => this.requisitos.set(lista));
   }
 
   nuevoRequisito(): void {
     this.editandoRequisito = null;
-    this.formRequisito = { nombre: '', descripcion: '', obligatorio: false };
+    this.formRequisito = { nombre: '', descripcion: '', obligatorio: false, tipos: [] };
     this.errorRequisito.set('');
     this.mostrarRequisito.set(true);
   }
 
   editarRequisito(r: Requisito): void {
     this.editandoRequisito = r;
-    this.formRequisito = { nombre: r.nombre, descripcion: r.descripcion ?? '', obligatorio: r.obligatorio };
+    this.formRequisito = { nombre: r.nombre, descripcion: r.descripcion ?? '', obligatorio: r.obligatorio, tipos: [...r.tipos] };
     this.errorRequisito.set('');
     this.mostrarRequisito.set(true);
   }
@@ -92,7 +109,7 @@ export class Admin implements OnInit {
   // Activa o desactiva un requisito (uno inactivo deja de aparecer en los checklists)
   alternarRequisito(r: Requisito): void {
     const nuevo = r.estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
-    this.documentoService.editarRequisito(r.id, { nombre: r.nombre, descripcion: r.descripcion ?? '', obligatorio: r.obligatorio }, nuevo)
+    this.documentoService.editarRequisito(r.id, { nombre: r.nombre, descripcion: r.descripcion ?? '', obligatorio: r.obligatorio, tipos: r.tipos }, nuevo)
       .subscribe({
         next: () => this.cargarRequisitos(),
         error: err => this.error.set(err.error?.mensaje ?? 'No se pudo actualizar el requisito')

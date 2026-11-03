@@ -4,7 +4,7 @@ import { Request, Response } from 'express';
 import {
   listarActivos, crearActivo, actualizarActivo, eliminarActivo, asignarHerederos, historialDeMontos, ReglaActivo
 } from '../services/activo.service';
-import { DatosActivo } from '../models/activo.model';
+import { DatosActivo, DatosTarjeta } from '../models/activo.model';
 import { obtenerIp } from '../utils/ip';
 import { texto } from '../utils/validar';
 
@@ -43,7 +43,30 @@ function leerDatos(body: any): DatosActivo | string {
     monto = Math.round(body.monto * 100) / 100;
   }
 
-  return { nombre, descripcion, id_tipo: body.id_tipo, id_entidad: idEntidad, registrar_monto: registrarMonto, moneda, monto };
+  // Datos de la tarjeta (solo si el tipo es tarjeta; el servicio lo comprueba contra la base)
+  let tarjeta: DatosTarjeta | null = null;
+  if (body.tarjeta) {
+    const t = body.tarjeta;
+    if (typeof t.ultimos4 !== 'string' || !/^[0-9]{4}$/.test(t.ultimos4)) return 'Escribe los 4 últimos dígitos de la tarjeta';
+
+    const linea = t.linea ?? null;
+    if (linea !== null && (typeof linea !== 'number' || !Number.isFinite(linea) || linea < 0 || linea > MONTO_MAXIMO)) {
+      return 'La línea de crédito no es válida';
+    }
+    for (const dia of [t.diaPago ?? null, t.diaCierre ?? null]) {
+      if (dia !== null && (!Number.isInteger(dia) || dia < 1 || dia > 31)) return 'Los días de pago y de cierre deben estar entre 1 y 31';
+    }
+
+    tarjeta = { ultimos4: t.ultimos4, linea: linea === null ? null : Math.round(linea * 100) / 100, diaPago: t.diaPago ?? null, diaCierre: t.diaCierre ?? null };
+    // La línea de crédito necesita su moneda aunque no se registre un monto
+    if (!moneda && (body.moneda === 'PEN' || body.moneda === 'USD')) moneda = body.moneda;
+  }
+
+  // Indicaciones para el heredero: qué hacer con el activo y los datos de acceso (se guardan cifradas)
+  const indicaciones = body.indicaciones ? texto(body.indicaciones, 1000) : null;
+  if (body.indicaciones && !indicaciones) return 'Las indicaciones no son válidas (máximo 1000 caracteres)';
+
+  return { nombre, descripcion, id_tipo: body.id_tipo, id_entidad: idEntidad, registrar_monto: registrarMonto, moneda, monto, indicaciones, tarjeta };
 }
 
 function responderError(error: unknown, res: Response, accion: string) {

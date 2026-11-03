@@ -31,6 +31,7 @@
       <p class="dato">DNI: {{ b.dni }}</p>
       <p class="dato">{{ b.correo ?? '—' }}</p>
       <p class="dato">Tel. {{ b.telefono ?? '—' }}</p>
+      <p class="dato recibe">@if (b.activos.length) { Recibe: {{ b.activos.map(a => a.nombre).join(', ') }} } @else { Todavía no recibe ningún activo }</p>
       <div class="pie-persona">
         @if (b.verificado) { <span class="insignia ok">Identidad verificada</span> }
         @else { <span class="insignia pendiente">Pendiente de verificar</span> }
@@ -101,6 +102,17 @@
       }
     </select>
 
+    <label>Activos que recibirá</label>
+    @for (a of misActivos(); track a.id) {
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" [id]="'act' + a.id" [name]="'act' + a.id"
+             [checked]="nuevo.activos.includes(a.id)" (change)="alternarActivo(a.id)" />
+      <label class="form-check-label" [for]="'act' + a.id">{{ a.nombre }} <small class="text-muted">({{ a.tipo }})</small></label>
+    </div>
+    } @empty {
+    <p class="aviso-dni">Todavía no tienes activos. Regístralos en "Mis Activos".</p>
+    }
+
     @if (error()) {
     <p class="error-form">{{ error() }}</p>
     }
@@ -131,21 +143,20 @@
 
 <app-modal titulo="Documentos del heredero" [abierto]="documentosDe() !== null" [ancho]="true" (cerrar)="documentosDe.set(null)">
   @if (documentosDe(); as h) {
-  <p class="aviso-dni">Marca los documentos que <strong>{{ h.nombres }} {{ h.apellidos }}</strong> deberá reunir cuando se le entregue el legado. Cuando entre a su espacio, verá esta lista. Los obligatorios no se pueden quitar.</p>
+  <p class="aviso-dni">Estos son los documentos que <strong>{{ h.nombres }} {{ h.apellidos }}</strong> deberá reunir. La lista cambia según los <strong>activos que recibe</strong>: los activos financieros piden más documentos que un correo o una red social. Aquí solo anotas dónde está cada original.</p>
 
   @for (d of documentos(); track d.id) {
   <div class="doc-fila">
-    <label class="doc-check">
-      <input type="checkbox" [checked]="d.asignado" [disabled]="d.obligatorio" (change)="alternarDocumento(d)" />
+    <div class="doc-check">
+      <span class="doc-punto"></span>
       <span>
         <strong>{{ d.nombre }} @if (d.obligatorio) { <small class="oblig">Obligatorio</small> }</strong>
         @if (d.descripcion) { <span class="doc-desc">{{ d.descripcion }}</span> }
+        <span class="doc-desc motivo">@if (d.aplicaA.length) { Por: {{ d.aplicaA.join(', ') }} } @else { Aplica a todos tus activos }</span>
       </span>
-    </label>
-    @if (d.asignado) {
+    </div>
     <input class="form-control form-control-sm" placeholder="¿Dónde está el original? (opcional)" maxlength="200"
            [value]="d.ubicacion ?? ''" (input)="cambiarUbicacion(d, $any($event.target).value)" />
-    }
   </div>
   } @empty {
   <p class="vacio">Cargando documentos...</p>

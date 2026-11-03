@@ -77,10 +77,11 @@
 
         @for (d of l.documentos; track d.id) {
         <label class="documento" [class.listo]="d.estado === 'ENTREGADO'">
-          <input type="checkbox" [checked]="d.estado === 'ENTREGADO'" (change)="alternar(d)" />
+          <input type="checkbox" [checked]="d.estado === 'ENTREGADO'" (change)="alternar(l, d)" />
           <span class="doc-texto">
             <strong>{{ d.nombre }} @if (d.obligatorio) { <small class="oblig">Obligatorio</small> }</strong>
             @if (d.descripcion) { <span>{{ d.descripcion }}</span> }
+            @if (d.aplicaA.length) { <span class="donde">Por tus activos: {{ d.aplicaA.join(', ') }}</span> }
             @if (d.ubicacion) { <span class="donde">Dónde está el original: {{ d.ubicacion }}</span> }
           </span>
         </label>

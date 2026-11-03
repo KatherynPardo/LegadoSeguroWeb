@@ -34,6 +34,7 @@ Bitácora de lo construido, en orden cronológico.
 | 03/11/2026 | **Checklist de documentos por roles**: el administrador mantiene el catálogo, el propietario elige los documentos de cada heredero y el heredero entra a su portal (código por correo) para ver y marcar lo que le falta. Sesiones separadas por rol. |
 | 03/11/2026 | **Documento dinámico** `DOCUMENTACION_SISTEMA.md` siguiendo el esquema del curso (17 secciones). El diccionario de datos se genera solo desde la base con `npm run diccionario`. Faltan las capturas, el despliegue y Culqi. |
 | 03/11/2026 | **Solicitud de liberación del heredero (Figma 06)** y proceso completo: avisos por correo, tres verificaciones (código, DNI y selfie cifrada), confirmar o presentar objeción, espera final automática y liberación con entregas. El propietario resuelve objeciones desde Procesos. |
+| 03/11/2026 | **Rediseño según las pruebas**: los documentos del heredero ahora dependen del tipo de activo que recibe (el administrador los asigna por tipo); al designar un heredero se eligen sus activos; cada activo lleva indicaciones cifradas para el heredero, con una guía por tipo; nuevas **tarjetas de crédito y débito** (solo 4 últimos dígitos, línea, día de pago y cierre); y las confirmaciones mínimas respetan el plan. |
 
 ## Próximos pasos
 

@@ -47,13 +47,14 @@
   </div>
   <div class="tarjeta">
     <table class="tabla">
-      <thead><tr><th>Documento</th><th>Descripción</th><th>Tipo</th><th>Estado</th><th></th></tr></thead>
+      <thead><tr><th>Documento</th><th>Descripción</th><th>Aplica a</th><th>Tipo</th><th>Estado</th><th></th></tr></thead>
       <tbody>
         @for (r of requisitos(); track r.id) {
         <tr>
           <td class="nombre">{{ r.nombre }}</td>
           <td>{{ r.descripcion ?? '—' }}</td>
-          <td>{{ r.obligatorio ? 'Obligatorio' : 'Opcional' }}</td>
+          <td>{{ nombresTipos(r.tipos) }}</td>
+          <td>{{ r.obligatorio ? 'Obligatorio' : 'Recomendado' }}</td>
           <td [class.inactivo]="r.estado !== 'ACTIVO'">{{ r.estado }}</td>
           <td class="botones-fila">
             <button type="button" class="btn btn-sm btn-outline-secondary" (click)="editarRequisito(r)">Editar</button>
@@ -63,7 +64,7 @@
           </td>
         </tr>
         } @empty {
-        <tr><td colspan="5" class="vacio">No hay requisitos.</td></tr>
+        <tr><td colspan="6" class="vacio">No hay requisitos.</td></tr>
         }
       </tbody>
     </table>
@@ -103,8 +104,18 @@
 
     <div class="form-check mt-3">
       <input class="form-check-input" type="checkbox" id="oblReq" name="oblReq" [(ngModel)]="formRequisito.obligatorio" />
-      <label class="form-check-label" for="oblReq">Obligatorio (se asigna a todos los herederos)</label>
+      <label class="form-check-label" for="oblReq">Obligatorio (si no, se muestra como recomendado)</label>
     </div>
+
+    <label class="mt-3">Aplica a estos tipos de activo</label>
+    <p class="nota-tipos">Si no marcas ninguno, se le pide al heredero por cualquier activo (como el DNI). Si marcas tipos, solo se pide a quien recibe un activo de esos tipos.</p>
+    @for (t of tiposActivo(); track t.id) {
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" [id]="'tipo' + t.id" [name]="'tipo' + t.id"
+             [checked]="formRequisito.tipos.includes(t.id)" (change)="alternarTipo(t.id)" />
+      <label class="form-check-label" [for]="'tipo' + t.id">{{ t.nombre }}</label>
+    </div>
+    }
 
     @if (errorRequisito()) { <p class="error-form">{{ errorRequisito() }}</p> }
 
