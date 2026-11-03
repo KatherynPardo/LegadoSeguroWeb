@@ -13,6 +13,7 @@ import { Historial } from './pages/historial/historial';
 import { Suscripcion } from './pages/suscripcion/suscripcion';
 import { Reportes } from './pages/reportes/reportes';
 import { Recuperar } from './pages/recuperar/recuperar';
+import { Portal } from './pages/portal/portal';
 import { adminGuard } from './core/admin.guard';
 
 export const routes: Routes = [
@@ -20,6 +21,7 @@ export const routes: Routes = [
   { path: 'login', component: Login },
   { path: 'registro', component: Registro },
   { path: 'recuperar', component: Recuperar },
+  { path: 'portal', component: Portal }, // portal del heredero (tiene su propia sesión)
   // Pantallas protegidas: exigen haber iniciado sesión
   { path: 'dashboard', component: Dashboard, canActivate: [authGuard] },
   { path: 'beneficiarios', component: Beneficiarios, canActivate: [authGuard] },

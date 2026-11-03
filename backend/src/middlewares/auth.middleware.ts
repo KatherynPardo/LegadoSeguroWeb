@@ -14,7 +14,11 @@ export function verificarToken(req: Request, res: Response, next: NextFunction) 
   }
 
   try {
-    const datos = jwt.verify(cabecera.slice(7), JWT_SECRET) as { id: number };
+    const datos = jwt.verify(cabecera.slice(7), JWT_SECRET) as { id: number; tipo?: string };
+    if (datos.tipo === 'HEREDERO') {
+      res.status(401).json({ mensaje: 'Esta sesión es de un heredero' });
+      return;
+    }
     res.locals.usuarioId = datos.id;
     next();
   } catch {

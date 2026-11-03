@@ -1,0 +1,92 @@
+<div class="portal">
+  <header class="cabecera-portal">
+    <app-logo [tamano]="32" />
+    <span class="marca">LegadoSeguro</span>
+    @if (portal.ingresado()) {
+    <span class="espacio"></span>
+    <span class="quien">{{ portal.heredero()?.nombres }}</span>
+    <button type="button" class="salir" (click)="portal.salir()">Salir</button>
+    }
+  </header>
+
+  <main class="centro">
+    @if (!portal.ingresado()) {
+    <!-- ===== Ingreso del heredero ===== -->
+    <div class="caja">
+      @if (paso() === 1) {
+      <form (ngSubmit)="pedirCodigo()" autocomplete="off">
+        <h1>Espacio del heredero</h1>
+        <p class="sub">Escribe el correo con el que te designaron. Te enviaremos un código para entrar.</p>
+
+        <label for="correo">Correo electrónico</label>
+        <input id="correo" name="correo" type="email" required autocomplete="off" [(ngModel)]="correo" />
+
+        @if (error()) { <p class="error">{{ error() }}</p> }
+
+        <button type="submit" class="boton" [disabled]="cargando() || !correo">
+          {{ cargando() ? 'Enviando...' : 'Enviar código' }}
+        </button>
+        <p class="enlace"><a routerLink="/login">Soy propietario: ir al inicio de sesión</a></p>
+      </form>
+      } @else {
+      <form (ngSubmit)="entrar()" autocomplete="off">
+        <h1>Ingresa tu código</h1>
+        <p class="sub">{{ aviso() }}</p>
+
+        <label for="codigo">Código de 6 dígitos</label>
+        <input id="codigo" name="codigo" required maxlength="6" inputmode="numeric" autocomplete="one-time-code" [(ngModel)]="codigo" />
+
+        @if (error()) { <p class="error">{{ error() }}</p> }
+
+        <button type="submit" class="boton" [disabled]="cargando() || codigo.length !== 6">
+          {{ cargando() ? 'Verificando...' : 'Entrar' }}
+        </button>
+        <p class="enlace"><a href="javascript:void(0)" (click)="paso.set(1)">Usar otro correo o pedir otro código</a></p>
+      </form>
+      }
+    </div>
+    } @else {
+    <!-- ===== Checklist ===== -->
+    <div class="ancho">
+      <div class="aviso-naranja">
+        <strong>Documentos que debes reunir</strong>
+        <span>Estos son los documentos que necesitarás cuando se te entregue el legado. Marca cada uno cuando ya lo tengas.</span>
+      </div>
+
+      @if (error()) { <p class="error">{{ error() }}</p> }
+
+      @if (!cargado()) {
+      <p class="vacio">Cargando tu lista...</p>
+      }
+
+      @for (l of listas(); track l.idBeneficiario) {
+      <section class="lista">
+        <div class="lista-cabecera">
+          <div>
+            <h2>Designado por {{ l.benefactor }}</h2>
+            <p class="sub">{{ entregados(l) }} de {{ l.documentos.length }} documentos listos</p>
+          </div>
+          <span class="porcentaje">{{ porcentaje(l) }}%</span>
+        </div>
+        <div class="riel"><div class="avance" [style.width.%]="porcentaje(l)"></div></div>
+
+        @for (d of l.documentos; track d.id) {
+        <label class="documento" [class.listo]="d.estado === 'ENTREGADO'">
+          <input type="checkbox" [checked]="d.estado === 'ENTREGADO'" (change)="alternar(d)" />
+          <span class="doc-texto">
+            <strong>{{ d.nombre }} @if (d.obligatorio) { <small class="oblig">Obligatorio</small> }</strong>
+            @if (d.descripcion) { <span>{{ d.descripcion }}</span> }
+            @if (d.ubicacion) { <span class="donde">Dónde está el original: {{ d.ubicacion }}</span> }
+          </span>
+        </label>
+        } @empty {
+        <p class="vacio">No tienes documentos pendientes.</p>
+        }
+      </section>
+      } @empty {
+      @if (cargado()) { <p class="vacio">Todavía no tienes documentos asignados.</p> }
+      }
+    </div>
+    }
+  </main>
+</div>

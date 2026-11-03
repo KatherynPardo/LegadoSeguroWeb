@@ -1,0 +1,240 @@
+.portal {
+  min-height: 100vh;
+  background: #F7F8FA;
+}
+
+.cabecera-portal {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 40px;
+  background: #1A4E8A;
+  color: #fff;
+}
+
+.marca {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.espacio {
+  flex: 1;
+}
+
+.quien {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.salir {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  color: #fff;
+  padding: 6px 14px;
+  cursor: pointer;
+}
+
+.salir:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.centro {
+  display: flex;
+  justify-content: center;
+  padding: 48px 16px;
+}
+
+/* Ingreso */
+.caja {
+  width: 100%;
+  max-width: 440px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 6px 24px rgba(15, 35, 80, 0.12);
+  padding: 36px;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.sub {
+  margin: 0;
+  color: #6B7280;
+}
+
+label {
+  display: block;
+  margin: 24px 0 8px;
+  font-weight: 600;
+}
+
+input[type='email'],
+input[name='codigo'] {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  background: #F7F8FA;
+  border: 1px solid #D9D9D9;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+input:focus {
+  outline: 2px solid #1A4E8A;
+  background: #fff;
+}
+
+.boton {
+  width: 100%;
+  height: 52px;
+  margin-top: 24px;
+  background: #1A4E8A;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.boton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.enlace {
+  margin: 20px 0 0;
+  text-align: center;
+  font-size: 14px;
+}
+
+.enlace a {
+  color: #1A4E8A;
+}
+
+.error {
+  margin: 16px 0 0;
+  color: var(--lg-error);
+  font-weight: 600;
+}
+
+/* Checklist */
+.ancho {
+  width: 100%;
+  max-width: 820px;
+}
+
+.aviso-naranja {
+  background: #FFF4E8;
+  border: 1px solid #F0D3A0;
+  border-radius: 12px;
+  padding: 18px 22px;
+  margin-bottom: 24px;
+  color: #8A5A12;
+}
+
+.aviso-naranja strong,
+.aviso-naranja span {
+  display: block;
+}
+
+.lista {
+  background: #fff;
+  border: 1px solid #E3E7ED;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(15, 35, 80, 0.06);
+  padding: 24px 28px;
+  margin-bottom: 20px;
+}
+
+.lista-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.lista-cabecera h2 {
+  margin: 0 0 4px;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.porcentaje {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1A4E8A;
+}
+
+.riel {
+  height: 8px;
+  margin: 14px 0 8px;
+  background: #EEF1F5;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.avance {
+  height: 100%;
+  background: var(--lg-exito);
+  border-radius: 999px;
+  transition: width 0.4s;
+}
+
+.documento {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin: 0;
+  padding: 16px 0;
+  border-top: 1px solid #F0F2F5;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.documento input {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  accent-color: #1E6B36;
+}
+
+.doc-texto strong,
+.doc-texto span {
+  display: block;
+}
+
+.doc-texto span {
+  color: #6B7280;
+  font-size: 14px;
+}
+
+.doc-texto .donde {
+  margin-top: 4px;
+  color: #1A4E8A;
+}
+
+.documento.listo .doc-texto strong {
+  color: #9CA3AF;
+  text-decoration: line-through;
+}
+
+.oblig {
+  display: inline;
+  margin-left: 8px;
+  padding: 2px 8px;
+  background: #FDF1DE;
+  border-radius: 999px;
+  color: #8A5A12;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.vacio {
+  color: #6B7280;
+  text-align: center;
+}

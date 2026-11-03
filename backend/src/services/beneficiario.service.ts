@@ -5,6 +5,7 @@ import { pool } from '../config/database';
 import { Beneficiario, EdicionBeneficiario, NuevoBeneficiario } from '../models/beneficiario.model';
 import { enviarCodigo, validarCodigo } from './verificacion.service';
 import { limiteDeHerederos } from './suscripcion.service';
+import { asignarObligatorios } from './documento.service';
 
 // Envía al correo del heredero el código que el dueño tendrá que escribir para registrarlo
 export async function enviarCodigoHeredero(correo: string, idUsuario: number): Promise<void> {
@@ -75,6 +76,9 @@ export async function crearBeneficiario(datos: NuevoBeneficiario, idUsuario: num
      RETURNING id_beneficiario AS id`,
     [idUsuario, datos.nombres, datos.apellidos, datos.dni, datos.correo, datos.telefono, datos.parentesco]
   );
+  // El heredero nuevo recibe los documentos obligatorios en su checklist
+  await asignarObligatorios(pool, resultado.rows[0].id);
+
   return resultado.rows[0].id;
 }
 

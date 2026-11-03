@@ -41,6 +41,34 @@
     </table>
   </div>
 
+  <div class="titulo-con-boton">
+    <h2 class="subtitulo">Documentos que se piden a los herederos</h2>
+    <button type="button" class="btn btn-primary btn-sm" (click)="nuevoRequisito()">+ Nuevo requisito</button>
+  </div>
+  <div class="tarjeta">
+    <table class="tabla">
+      <thead><tr><th>Documento</th><th>Descripción</th><th>Tipo</th><th>Estado</th><th></th></tr></thead>
+      <tbody>
+        @for (r of requisitos(); track r.id) {
+        <tr>
+          <td class="nombre">{{ r.nombre }}</td>
+          <td>{{ r.descripcion ?? '—' }}</td>
+          <td>{{ r.obligatorio ? 'Obligatorio' : 'Opcional' }}</td>
+          <td [class.inactivo]="r.estado !== 'ACTIVO'">{{ r.estado }}</td>
+          <td class="botones-fila">
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="editarRequisito(r)">Editar</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="alternarRequisito(r)">
+              {{ r.estado === 'ACTIVO' ? 'Desactivar' : 'Activar' }}
+            </button>
+          </td>
+        </tr>
+        } @empty {
+        <tr><td colspan="5" class="vacio">No hay requisitos.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
   <h2 class="subtitulo">Auditoría</h2>
   <div class="tarjeta">
     <table class="tabla">
@@ -64,3 +92,25 @@
   </div>
   }
 </section>
+
+<app-modal [titulo]="editandoRequisito ? 'Editar requisito' : 'Nuevo requisito'" [abierto]="mostrarRequisito()" (cerrar)="mostrarRequisito.set(false)">
+  <form class="campos" #f="ngForm" (ngSubmit)="guardarRequisito()">
+    <label for="nombreReq">Nombre del documento</label>
+    <input id="nombreReq" name="nombreReq" class="form-control" required maxlength="150" [(ngModel)]="formRequisito.nombre" />
+
+    <label for="descReq">Descripción (opcional)</label>
+    <input id="descReq" name="descReq" class="form-control" maxlength="300" [(ngModel)]="formRequisito.descripcion" />
+
+    <div class="form-check mt-3">
+      <input class="form-check-input" type="checkbox" id="oblReq" name="oblReq" [(ngModel)]="formRequisito.obligatorio" />
+      <label class="form-check-label" for="oblReq">Obligatorio (se asigna a todos los herederos)</label>
+    </div>
+
+    @if (errorRequisito()) { <p class="error-form">{{ errorRequisito() }}</p> }
+
+    <div class="botones-form">
+      <button type="button" class="btn btn-outline-secondary" (click)="mostrarRequisito.set(false)">Cancelar</button>
+      <button type="submit" class="btn btn-primary" [disabled]="f.invalid">Guardar</button>
+    </div>
+  </form>
+</app-modal>

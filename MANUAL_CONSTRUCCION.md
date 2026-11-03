@@ -348,6 +348,12 @@ Son datos ficticios, solo para desarrollo.
 | GET | `/api/suscripcion` | Sí | Plan actual, planes disponibles, uso y pagos |
 | POST | `/api/suscripcion/plan` | Sí | Cambiar de plan (por ahora solo al gratuito) |
 | GET | `/api/reportes` | Sí | Datos del reporte del usuario |
+| POST | `/api/portal/codigo` | No | El heredero pide su código de ingreso |
+| POST | `/api/portal/entrar` | No | Con el código correcto, abre la sesión del heredero |
+| GET | `/api/portal/checklist` | Heredero | Su checklist de documentos |
+| PATCH | `/api/portal/documentos/:id` | Heredero | Marca un documento como entregado o pendiente |
+| GET / PUT | `/api/beneficiarios/:id/documentos` | Propietario | Documentos de un heredero |
+| GET / POST / PUT | `/api/admin/requisitos` | Admin | Catálogo de documentos |
 | GET | `/api/historial` | Sí | Acciones e ingresos del propio usuario |
 | POST | `/api/auth/registro` | No | Paso 1 del registro: crea la cuenta pendiente y envía el código |
 | GET | `/api/admin/usuarios` | Admin | Listar todos los usuarios |
@@ -565,6 +571,21 @@ El Dashboard no repite los Reportes: muestra **cómo está tu legado hoy y qué 
 - **Tu regla en acción:** una barra que compara los días desde el ingreso anterior con los días de inactividad de la regla (verde, naranja o rojo según qué tan cerca esté del límite).
 - **Alerta:** si hay un proceso de liberación en curso, aparece un aviso arriba con un botón para verlo.
 - **Animación:** el círculo se dibuja y los números suben al abrir la pantalla.
+
+### Paso 8.10c: Checklist de documentos y portal del heredero (tres roles)
+
+El sistema maneja tres roles, guardados en la tabla `rol`: **ADMINISTRADOR**, **PROPIETARIO** (el benefactor) y **BENEFICIARIO** (el heredero).
+
+| Rol | Qué hace con el checklist |
+|---|---|
+| Administrador | Mantiene el catálogo de documentos (`requisito_documental`) desde **Administración**: crea, edita, activa o desactiva. Los marcados como obligatorios se asignan solos a todos los herederos. |
+| Propietario | En **Mis Herederos → Documentos** elige qué documentos debe reunir cada heredero y anota dónde está cada original. Los obligatorios (DNI y certificado de defunción) no se pueden quitar. |
+| Heredero | Entra al **portal** (`/portal`) con su correo y un código de 6 dígitos (sin contraseña), ve su checklist con una barra de avance y marca cada documento cuando ya lo tiene. |
+
+- **Datos:** la tabla `documento_heredero` guarda, por cada heredero, cada documento con su estado (`PENDIENTE` o `ENTREGADO`) y la nota de ubicación.
+- **Sesiones separadas:** el heredero tiene su propia sesión. Su token lleva `tipo: HEREDERO` y el backend lo rechaza en las pantallas del propietario (`middlewares/auth.middleware.ts`); y el token del propietario se rechaza en el portal (`middlewares/portal.middleware.ts`).
+- **Quién puede entrar al portal:** solo herederos con el correo verificado. Si el correo no es de un heredero, la respuesta es igual de neutra y no se envía ningún código.
+- **Qué no hace:** no se adjuntan archivos; es una lista de control.
 
 ### Paso 8.11: Reportes
 

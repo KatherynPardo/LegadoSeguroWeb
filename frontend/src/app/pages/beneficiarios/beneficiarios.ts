@@ -4,6 +4,8 @@ import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
 import { BeneficiarioService } from '../../services/beneficiario.service';
 import { SuscripcionService } from '../../services/suscripcion.service';
+import { DocumentoService } from '../../services/documento.service';
+import { DocumentoDeHeredero } from '../../models/documento.model';
 import { Beneficiario, NuevoBeneficiario } from '../../models/beneficiario.model';
 import { Modal } from '../../components/modal/modal';
 
@@ -23,6 +25,11 @@ export class Beneficiarios implements OnInit {
   buscandoDni = signal(false);
   porEliminar = signal<Beneficiario | null>(null);
 
+  // Checklist de documentos del heredero elegido
+  documentosDe = signal<Beneficiario | null>(null);
+  documentos = signal<DocumentoDeHeredero[]>([]);
+  errorDocumentos = signal('');
+
   // Límite de herederos del plan (null = sin límite) y aviso para mejorar el plan
   limite = signal<number | null>(null);
   avisoPlan = signal(false);
@@ -40,6 +47,7 @@ export class Beneficiarios implements OnInit {
   constructor(
     private beneficiarioService: BeneficiarioService,
     private suscripcionService: SuscripcionService,
+    private documentoService: DocumentoService,
     private router: Router
   ) {}
 
@@ -188,6 +196,41 @@ export class Beneficiarios implements OnInit {
         }
         this.error.set(err.error?.mensaje ?? 'No se pudo guardar el heredero');
       }
+    });
+  }
+
+  // ---- Documentos que debe reunir el heredero ----
+  abrirDocumentos(b: Beneficiario): void {
+    this.errorDocumentos.set('');
+    this.documentos.set([]);
+    this.documentosDe.set(b);
+    this.documentoService.getDocumentos(b.id).subscribe(lista => this.documentos.set(lista));
+  }
+
+  // Marca o desmarca un documento (los obligatorios no se pueden quitar)
+  alternarDocumento(d: DocumentoDeHeredero): void {
+    if (d.obligatorio) return;
+    this.documentos.update(lista => lista.map(x => x.id === d.id ? { ...x, asignado: !x.asignado } : x));
+  }
+
+  cambiarUbicacion(d: DocumentoDeHeredero, valor: string): void {
+    this.documentos.update(lista => lista.map(x => x.id === d.id ? { ...x, ubicacion: valor } : x));
+  }
+
+  guardarDocumentos(): void {
+    const heredero = this.documentosDe();
+    if (!heredero) return;
+
+    const elegidos = this.documentos()
+      .filter(d => d.asignado)
+      .map(d => ({ idRequisito: d.id, ubicacion: d.ubicacion?.trim() || null }));
+
+    this.documentoService.guardarDocumentos(heredero.id, elegidos).subscribe({
+      next: () => {
+        this.mensaje.set('Documentos del heredero actualizados');
+        this.documentosDe.set(null);
+      },
+      error: err => this.errorDocumentos.set(err.error?.mensaje ?? 'No se pudieron guardar los documentos')
     });
   }
 

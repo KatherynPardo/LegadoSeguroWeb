@@ -17,6 +17,7 @@ import entidadRoutes from './entidad.routes';
 import historialRoutes from './historial.routes';
 import suscripcionRoutes from './suscripcion.routes';
 import reporteRoutes from './reporte.routes';
+import portalRoutes from './portal.routes';
 import { soloAdmin } from '../middlewares/admin.middleware';
 
 const router = Router();
@@ -24,6 +25,7 @@ const router = Router();
 // Rutas públicas
 router.use('/salud', saludRoutes);
 router.use('/auth', authRoutes);
+router.use('/portal', portalRoutes); // portal del heredero (tiene su propia sesión)
 
 // Rutas protegidas: hace falta haber iniciado sesión
 router.use('/beneficiarios', verificarToken, beneficiarioRoutes);

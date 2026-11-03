@@ -35,6 +35,7 @@
         @if (b.verificado) { <span class="insignia ok">Identidad verificada</span> }
         @else { <span class="insignia pendiente">Pendiente de verificar</span> }
         <span class="acciones-persona">
+          <button type="button" class="enlace" (click)="abrirDocumentos(b)">Documentos</button>
           <button type="button" class="enlace" (click)="abrirEditar(b)">Editar</button>
           <button type="button" class="accion peligro" title="Eliminar" aria-label="Eliminar" (click)="porEliminar.set(b)"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
         </span>
@@ -126,6 +127,37 @@
     <button type="button" class="btn btn-outline-secondary" (click)="avisoPlan.set(false)">Ahora no</button>
     <button type="button" class="btn btn-primary" (click)="irAPlanes()">Ver planes</button>
   </div>
+</app-modal>
+
+<app-modal titulo="Documentos del heredero" [abierto]="documentosDe() !== null" [ancho]="true" (cerrar)="documentosDe.set(null)">
+  @if (documentosDe(); as h) {
+  <p class="aviso-dni">Marca los documentos que <strong>{{ h.nombres }} {{ h.apellidos }}</strong> deberá reunir cuando se le entregue el legado. Cuando entre a su espacio, verá esta lista. Los obligatorios no se pueden quitar.</p>
+
+  @for (d of documentos(); track d.id) {
+  <div class="doc-fila">
+    <label class="doc-check">
+      <input type="checkbox" [checked]="d.asignado" [disabled]="d.obligatorio" (change)="alternarDocumento(d)" />
+      <span>
+        <strong>{{ d.nombre }} @if (d.obligatorio) { <small class="oblig">Obligatorio</small> }</strong>
+        @if (d.descripcion) { <span class="doc-desc">{{ d.descripcion }}</span> }
+      </span>
+    </label>
+    @if (d.asignado) {
+    <input class="form-control form-control-sm" placeholder="¿Dónde está el original? (opcional)" maxlength="200"
+           [value]="d.ubicacion ?? ''" (input)="cambiarUbicacion(d, $any($event.target).value)" />
+    }
+  </div>
+  } @empty {
+  <p class="vacio">Cargando documentos...</p>
+  }
+
+  @if (errorDocumentos()) { <p class="error-form">{{ errorDocumentos() }}</p> }
+
+  <div class="botones-form">
+    <button type="button" class="btn btn-outline-secondary" (click)="documentosDe.set(null)">Cancelar</button>
+    <button type="button" class="btn btn-primary" (click)="guardarDocumentos()">Guardar</button>
+  </div>
+  }
 </app-modal>
 
 <app-modal titulo="Eliminar heredero" [abierto]="porEliminar() !== null" (cerrar)="porEliminar.set(null)">
