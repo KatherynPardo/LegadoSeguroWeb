@@ -4,15 +4,6 @@ export type HeredAsignado = {
   nombre: string;
 };
 
-// Método de ahorro del usuario y el rango de dinero que espera ahorrar con ese método
-export const METODOS_AHORRO = ['LIBRE', 'MENSUAL_FIJO', 'QUINCENAL_FIJO', 'PORCENTAJE_SUELDO', 'META'];
-
-export type Ahorro = {
-  metodo: string;
-  min: number | null;
-  max: number | null;
-};
-
 // Molde de un activo digital: lo que devuelve la API (incluye tipo, banco, monto y herederos).
 export type Activo = {
   id: number;
@@ -27,7 +18,6 @@ export type Activo = {
   registrarMonto: boolean;
   moneda: string | null;
   monto: number | null;
-  ahorro: Ahorro | null;
   herederos: HeredAsignado[];
 };
 
@@ -40,7 +30,6 @@ export type DatosActivo = {
   registrar_monto: boolean;
   moneda: 'PEN' | 'USD' | null;
   monto: number | null;
-  ahorro: Ahorro | null;
 };
 
 export type NuevoActivo = DatosActivo & { beneficiarios: number[] };

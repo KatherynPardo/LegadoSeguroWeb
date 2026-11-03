@@ -25,7 +25,7 @@ Bitácora de lo construido, en orden cronológico.
 | 30/10/2026 | **Auditoría con IP**: se guarda la IP de registro e inicio de sesión; la pantalla Usuarios muestra fecha de creación, IP de registro y último acceso, y una tabla de auditoría con las acciones del administrador. |
 | 02/11/2026 | **Herederos por activo**: en Mis Activos se elige qué herederos recibe cada activo (tabla `activo_beneficiario`, el orden marca la prioridad). Al iniciarse un proceso, las confirmaciones se generan a partir de esa asignación. |
 | 03/11/2026 | **Validaciones obligatorias** en activos, herederos, registro y perfil (teléfono de 9 dígitos, correo válido, textos con máximo). **Editar y eliminar** activos y herederos (eliminar = marcar INACTIVO para conservar el historial). **Bancos** (catálogo con botón "Nuevo banco"), **monto opcional** en cualquier activo con moneda soles o dólares e **historial de montos**. |
-| 03/11/2026 | **Seguridad**: código de verificación por correo al registrarse y al registrar un heredero (contra suplantación), cifrado AES-256 de descripciones, montos y datos de ahorro, método y rango de ahorro editables, y pantalla **Mi Historial**. El manual se reordena paso a paso (Fase 8). |
+| 03/11/2026 | **Seguridad**: código de verificación por correo al registrarse y al registrar un heredero (contra suplantación), cifrado AES-256 de descripciones y montos, y pantalla **Mi Historial**. El heredero ya no tiene clave guardada (se verifica con códigos por correo) y se quitó el rango de ahorro, porque el monto exacto con historial ya cubre esa necesidad. El manual se reordena paso a paso (Fase 8). |
 
 ## Próximos pasos
 

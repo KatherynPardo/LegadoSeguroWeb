@@ -12,14 +12,15 @@ Esta carpeta contiene **toda la información de la base de datos**: el esquema, 
 | `migrations/006_usuario_admin.sql` | Crea el usuario administrador de prueba (rol ADMINISTRADOR) |
 | `migrations/007_auditoria_ip.sql` | Agrega la columna de IP a `usuario`, `actividad_usuario` y `auditoria` |
 | `migrations/008_bancos_y_montos.sql` | Crea `entidad_financiera` (bancos) e `historial_monto`, y agrega banco, moneda y monto a `activo_digital` |
-| `migrations/009_cifrado_y_codigos.sql` | Agrega las columnas cifradas (monto, ahorro) y la tabla `codigo_verificacion` |
+| `migrations/009_cifrado_y_codigos.sql` | Agrega las columnas cifradas (monto) y la tabla `codigo_verificacion` |
+| `migrations/010_sin_clave_heredero.sql` | El heredero ya no guarda clave (usa códigos por correo) y se quita la columna del rango de ahorro |
 
 ## Cómo ejecutarlas
 
 1. Entra a tu proyecto en [supabase.com](https://supabase.com).
 2. Abre **SQL Editor** y pulsa **New query**.
 3. Pega el contenido de `001_esquema_inicial.sql` y pulsa **Run**.
-4. Repite con `002` a `009`, **en ese orden**: cada una depende de la anterior.
+4. Repite con `002` a `010`, **en ese orden**: cada una depende de la anterior.
 5. En **Table Editor** debes ver 27 tablas: las 24 del modelo original más `entidad_financiera`, `historial_monto` y `codigo_verificacion`.
 
 > Cada archivo se ejecuta **una sola vez**. Si lo corres de nuevo dará error de "ya existe".

@@ -61,7 +61,6 @@ export class Beneficiarios implements OnInit {
       correo: b.correo ?? '',
       telefono: b.telefono ?? '',
       parentesco: b.parentesco ?? 'Otro',
-      claveAcceso: '', // vacía = no se cambia la clave
       codigo: ''
     };
     this.correoOriginal = b.correo ?? '';
@@ -155,6 +154,6 @@ export class Beneficiarios implements OnInit {
   }
 
   private vacio(): NuevoBeneficiario {
-    return { nombres: '', apellidos: '', dni: '', correo: '', telefono: '', parentesco: 'Hijo/a', claveAcceso: '', codigo: '' };
+    return { nombres: '', apellidos: '', dni: '', correo: '', telefono: '', parentesco: 'Hijo/a', codigo: '' };
   }
 }

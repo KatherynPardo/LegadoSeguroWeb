@@ -34,9 +34,6 @@
           <td>
             @if (a.registrarMonto && a.monto !== null) {
             {{ simbolo(a.moneda) }} {{ a.monto | number:'1.2-2' }}
-            @if (a.ahorro) {
-            <span class="banco">{{ nombreMetodo(a.ahorro) }}@if (a.ahorro.min !== null || a.ahorro.max !== null) { · {{ a.ahorro.min ?? 0 }} a {{ a.ahorro.max ?? '—' }} }</span>
-            }
             } @else { <span class="sin-dato">—</span> }
           </td>
           <td>
@@ -131,30 +128,6 @@
         <input id="monto" name="monto" type="number" class="form-control" required min="0" step="0.01" [(ngModel)]="form.monto" />
       </div>
     </div>
-    <div class="fila-monto">
-      <div>
-        <label for="metodo">Método de ahorro (opcional)</label>
-        <select id="metodo" name="metodo" class="form-select" [(ngModel)]="ahorro.metodo">
-          <option value="">Sin método</option>
-          @for (m of metodos; track m.valor) {
-          <option [value]="m.valor">{{ m.nombre }}</option>
-          }
-        </select>
-      </div>
-    </div>
-    @if (ahorro.metodo) {
-    <div class="fila-monto">
-      <div>
-        <label for="rangoMin">Rango mínimo</label>
-        <input id="rangoMin" name="rangoMin" type="number" class="form-control" min="0" step="0.01" [(ngModel)]="ahorro.min" />
-      </div>
-      <div>
-        <label for="rangoMax">Rango máximo</label>
-        <input id="rangoMax" name="rangoMax" type="number" class="form-control" min="0" step="0.01" [(ngModel)]="ahorro.max" />
-      </div>
-    </div>
-    <p class="nota-sens">Puedes cambiar el método y el rango cuando quieras, editando el activo.</p>
-    }
     }
 
     @if (editandoId === null) {

@@ -4,7 +4,7 @@ import { Request, Response } from 'express';
 import {
   listarActivos, crearActivo, actualizarActivo, eliminarActivo, asignarHerederos, historialDeMontos, ReglaActivo
 } from '../services/activo.service';
-import { Ahorro, DatosActivo, METODOS_AHORRO } from '../models/activo.model';
+import { DatosActivo } from '../models/activo.model';
 import { obtenerIp } from '../utils/ip';
 import { texto } from '../utils/validar';
 
@@ -43,23 +43,7 @@ function leerDatos(body: any): DatosActivo | string {
     monto = Math.round(body.monto * 100) / 100;
   }
 
-  // El método de ahorro y su rango son opcionales; si vienen, se revisan
-  let ahorro: Ahorro | null = null;
-  if (registrarMonto && body.ahorro) {
-    const a = body.ahorro;
-    if (!METODOS_AHORRO.includes(a.metodo)) return 'Elige un método de ahorro válido';
-    const min = a.min ?? null;
-    const max = a.max ?? null;
-    for (const valor of [min, max]) {
-      if (valor !== null && (typeof valor !== 'number' || !Number.isFinite(valor) || valor < 0 || valor > MONTO_MAXIMO)) {
-        return 'El rango de ahorro no es válido';
-      }
-    }
-    if (min !== null && max !== null && min > max) return 'El mínimo del rango no puede ser mayor que el máximo';
-    ahorro = { metodo: a.metodo, min, max };
-  }
-
-  return { nombre, descripcion, id_tipo: body.id_tipo, id_entidad: idEntidad, registrar_monto: registrarMonto, moneda, monto, ahorro };
+  return { nombre, descripcion, id_tipo: body.id_tipo, id_entidad: idEntidad, registrar_monto: registrarMonto, moneda, monto };
 }
 
 function responderError(error: unknown, res: Response, accion: string) {

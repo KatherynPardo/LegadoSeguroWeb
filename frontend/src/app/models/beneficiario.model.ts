@@ -17,7 +17,6 @@ export interface NuevoBeneficiario {
     correo: string;
     telefono: string;
     parentesco: string;
-    claveAcceso: string;
     codigo: string; // código que le llegó al correo del heredero
 }
 

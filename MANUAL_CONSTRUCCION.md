@@ -489,12 +489,13 @@ SMTP_FROM=LegadoSeguro <tucorreo@gmail.com>
 
 - **Qué es:** al registrar un heredero, el sistema envía un código al **correo del heredero**. El dueño tiene que pedírselo al heredero y escribirlo para poder guardar.
 - **Para qué sirve:** evitar la **suplantación de identidad**. Si alguien pone un correo ajeno, no recibirá el código y no podrá registrarlo.
+- **Sin clave guardada:** el heredero no tiene contraseña en el sistema. Cuando exista el portal del heredero, entrará con códigos que le lleguen a su correo, igual que en este paso.
 - **Dónde está:** `POST /api/beneficiarios/codigo` envía el código, y `POST /api/beneficiarios` lo exige (`services/beneficiario.service.ts`). Al **editar** un heredero, el código solo se pide si cambia su correo.
 - **Cómo comprobarlo:** en **Mis Herederos → Nuevo Heredero**, pulsa "Enviar código al correo del heredero", copia el código de la consola del backend y pégalo.
 
 ### Paso 8.5: Cifrado de datos sensibles
 
-- **Qué es:** la descripción, el monto, el historial de montos y los datos de ahorro se guardan **cifrados** con **AES-256-GCM** (viene incluido en Node, archivo `utils/cifrado.ts`).
+- **Qué es:** la descripción, el monto y el historial de montos se guardan **cifrados** con **AES-256-GCM** (viene incluido en Node, archivo `utils/cifrado.ts`).
 - **Para qué sirve:** si alguien lograra copiar la base de datos, vería texto ilegible como `enc:D8yf...`, no tus montos.
 - **La llave:** `ENCRYPTION_KEY` en el `.env`. **No la cambies después de guardar datos**, porque lo cifrado con una llave solo se lee con esa misma llave.
 - **Contraseñas:** siguen guardándose con **bcrypt**, que no se puede descifrar (solo comparar).
@@ -507,12 +508,12 @@ npm run cifrar
 
 - **Cómo comprobarlo:** en Supabase → Table Editor → `activo_digital`, las columnas `descripcion` y `monto_cifrado` empiezan con `enc:`; en la aplicación se ven normales.
 
-### Paso 8.6: Bancos, montos y método de ahorro
+### Paso 8.6: Bancos y montos
 
 - **Bancos:** catálogo `entidad_financiera` (BCP, BBVA, Interbank, Scotiabank, Caja Cusco...). El botón **Nuevo banco** agrega uno; los que crea un usuario solo los ve él. El banco es obligatorio solo si el tipo lo pide (`tipo_activo.requiere_entidad`, hoy "Cuenta bancaria").
 - **Monto:** el check "Registrar el monto de este activo" sirve en **cualquier** activo (por ejemplo, una cuenta monetizada). En los financieros viene marcado. Se elige moneda (soles o dólares) y monto exacto.
 - **Historial de montos:** cada cambio de monto o moneda guarda una fila en `historial_monto` con fecha, usuario e IP (botón del reloj en la tabla). Si se desmarca el check, se borran el monto y su historial.
-- **Método de ahorro (opcional):** ahorro libre, aporte mensual fijo, aporte quincenal fijo, porcentaje del sueldo o meta. Cada método lleva un **rango mínimo y máximo** que se puede cambiar cuando se quiera, editando el activo.
+- **Monto exacto:** el monto se puede editar cuando se quiera (por ejemplo de 2000 a 2500); cada cambio queda en el historial. No se usa un rango, porque el monto exacto y su historial ya muestran cómo cambia el ahorro.
 
 ### Paso 8.7: Validaciones y eliminación
 

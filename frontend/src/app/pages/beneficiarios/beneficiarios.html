@@ -94,9 +94,6 @@
       }
     </select>
 
-    <label for="clave">{{ editandoId === null ? 'Clave de acceso del heredero' : 'Nueva clave de acceso (opcional)' }}</label>
-    <input id="clave" name="claveAcceso" type="password" class="form-control" [required]="editandoId === null" minlength="6" autocomplete="new-password" [(ngModel)]="nuevo.claveAcceso" />
-
     @if (error()) {
     <p class="error-form">{{ error() }}</p>
     }

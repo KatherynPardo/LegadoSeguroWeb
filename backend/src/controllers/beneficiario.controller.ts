@@ -66,10 +66,6 @@ export async function registrarBeneficiario(req: Request, res: Response) {
     res.status(400).json({ mensaje: 'El DNI debe tener 8 dígitos' });
     return;
   }
-  if (typeof req.body.claveAcceso !== 'string' || req.body.claveAcceso.length < 6) {
-    res.status(400).json({ mensaje: 'La clave de acceso debe tener al menos 6 caracteres' });
-    return;
-  }
   if (typeof req.body.codigo !== 'string' || !/^\d{6}$/.test(req.body.codigo)) {
     res.status(400).json({ mensaje: 'Ingresa el código de 6 dígitos que recibió el heredero' });
     return;
@@ -77,7 +73,7 @@ export async function registrarBeneficiario(req: Request, res: Response) {
 
   try {
     const id = await crearBeneficiario(
-      { ...campos, dni: req.body.dni, claveAcceso: req.body.claveAcceso, codigo: req.body.codigo },
+      { ...campos, dni: req.body.dni, codigo: req.body.codigo },
       res.locals.usuarioId
     );
     res.status(201).json({ id });
@@ -99,17 +95,10 @@ export async function editarBeneficiario(req: Request, res: Response) {
     return;
   }
 
-  // La clave es opcional al editar: solo se cambia si escriben una nueva
-  const clave = req.body.claveAcceso;
-  if (clave !== undefined && clave !== '' && (typeof clave !== 'string' || clave.length < 6)) {
-    res.status(400).json({ mensaje: 'La clave de acceso debe tener al menos 6 caracteres' });
-    return;
-  }
-
   try {
     await actualizarBeneficiario(
       id,
-      { ...campos, claveAcceso: clave ? clave : null, codigo: req.body.codigo ? String(req.body.codigo) : null },
+      { ...campos, codigo: req.body.codigo ? String(req.body.codigo) : null },
       res.locals.usuarioId
     );
     res.json({ mensaje: 'Heredero actualizado' });

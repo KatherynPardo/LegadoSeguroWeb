@@ -1,7 +1,6 @@
 // Servicio: aquí viven las consultas SQL. No sabe nada de HTTP (req/res).
 // "Eliminar" un heredero lo marca INACTIVO para no romper el historial de los procesos.
 
-import bcrypt from 'bcryptjs';
 import { pool } from '../config/database';
 import { Beneficiario, EdicionBeneficiario, NuevoBeneficiario } from '../models/beneficiario.model';
 import { enviarCodigo, validarCodigo } from './verificacion.service';
@@ -48,15 +47,12 @@ export async function crearBeneficiario(datos: NuevoBeneficiario, idUsuario: num
   const codigoOk = await validarCodigo('HEREDERO', datos.correo, datos.codigo);
   if (!codigoOk) throw new ReglaHeredero('El código es incorrecto o ya venció', 400);
 
-  // La clave de acceso del heredero se cifra antes de guardarla
-  const claveHash = await bcrypt.hash(datos.claveAcceso, 10);
-
   const resultado = await pool.query(
     `INSERT INTO beneficiario
-       (id_usuario_propietario, nombres, apellidos, dni, correo, telefono, parentesco, clave_acceso_hash)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       (id_usuario_propietario, nombres, apellidos, dni, correo, telefono, parentesco)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      RETURNING id_beneficiario AS id`,
-    [idUsuario, datos.nombres, datos.apellidos, datos.dni, datos.correo, datos.telefono, datos.parentesco, claveHash]
+    [idUsuario, datos.nombres, datos.apellidos, datos.dni, datos.correo, datos.telefono, datos.parentesco]
   );
   return resultado.rows[0].id;
 }
@@ -74,15 +70,12 @@ export async function actualizarBeneficiario(id: number, datos: EdicionBeneficia
     if (!codigoOk) throw new ReglaHeredero('Al cambiar el correo debes ingresar el código que le llegó al heredero', 400);
   }
 
-  const claveHash = datos.claveAcceso ? await bcrypt.hash(datos.claveAcceso, 10) : null;
-
   const resultado = await pool.query(
     `UPDATE beneficiario
-     SET nombres = $1, apellidos = $2, correo = $3, telefono = $4, parentesco = $5,
-         clave_acceso_hash = COALESCE($6, clave_acceso_hash)
-     WHERE id_beneficiario = $7 AND id_usuario_propietario = $8 AND estado = 'ACTIVO'
+     SET nombres = $1, apellidos = $2, correo = $3, telefono = $4, parentesco = $5
+     WHERE id_beneficiario = $6 AND id_usuario_propietario = $7 AND estado = 'ACTIVO'
      RETURNING id_beneficiario`,
-    [datos.nombres, datos.apellidos, datos.correo, datos.telefono, datos.parentesco, claveHash, id, idUsuario]
+    [datos.nombres, datos.apellidos, datos.correo, datos.telefono, datos.parentesco, id, idUsuario]
   );
   if (resultado.rows.length === 0) throw new ReglaHeredero('Heredero no encontrado', 404);
 }
