@@ -1,6 +1,7 @@
 // Controlador del perfil: el usuario solo puede ver y editar SU propio perfil (viene del token).
 
 import { Request, Response } from 'express';
+import { esCorreo, esTelefono, texto } from '../utils/validar';
 import { actualizarPerfil, cambiarPassword, obtenerPerfil } from '../services/perfil.service';
 
 export async function verPerfil(req: Request, res: Response) {
@@ -20,12 +21,16 @@ export async function verPerfil(req: Request, res: Response) {
 export async function editarPerfil(req: Request, res: Response) {
   const { nombres, apellidos, correo, telefono } = req.body;
 
-  if (!nombres || !apellidos || !correo) {
+  if (!texto(nombres, 100) || !texto(apellidos, 100) || !texto(correo, 150)) {
     res.status(400).json({ mensaje: 'Nombres, apellidos y correo son obligatorios' });
     return;
   }
-  if (!String(correo).includes('@')) {
+  if (!esCorreo(correo.trim())) {
     res.status(400).json({ mensaje: 'El correo no es válido' });
+    return;
+  }
+  if (!esTelefono(telefono)) {
+    res.status(400).json({ mensaje: 'El teléfono debe tener 9 dígitos' });
     return;
   }
 

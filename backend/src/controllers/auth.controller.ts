@@ -44,6 +44,10 @@ export async function registro(req: Request, res: Response) {
     res.status(400).json({ mensaje: 'Ingresa un correo válido' });
     return;
   }
+  if (!/^\d{9}$/.test(telefono ?? '')) {
+    res.status(400).json({ mensaje: 'El teléfono debe tener 9 dígitos' });
+    return;
+  }
   if (!password || password.length < 6) {
     res.status(400).json({ mensaje: 'La contraseña debe tener al menos 6 caracteres' });
     return;

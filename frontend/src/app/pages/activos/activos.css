@@ -15,6 +15,59 @@
   color: var(--lg-error);
 }
 
+.sin-heredero {
+  color: var(--lg-advertencia);
+  font-weight: 600;
+}
+
+.ok-form {
+  color: var(--lg-exito);
+  font-weight: 600;
+}
+
+.banco {
+  display: block;
+  font-size: 13px;
+  font-weight: 400;
+  color: #6B7280;
+}
+
+.sin-dato {
+  color: #9CA3AF;
+}
+
+.botones-fila {
+  white-space: nowrap;
+  text-align: right;
+}
+
+.botones-fila .btn {
+  margin-left: 4px;
+}
+
+.nuevo-banco {
+  margin-top: 8px;
+}
+
+.opcion-monto {
+  margin-top: 16px;
+}
+
+.fila-monto {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.ayuda {
+  color: #6B7280;
+  font-size: 14px;
+}
+
+.form-check {
+  margin-bottom: 6px;
+}
+
 /* Sensibilidad mostrada dentro del modal */
 .aviso-sens {
   margin: 12px 0 0;

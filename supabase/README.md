@@ -11,23 +11,24 @@ Esta carpeta contiene **toda la información de la base de datos**: el esquema, 
 | `migrations/005_proceso_demo.sql` | Carga un proceso de liberación de prueba (con activos y confirmaciones) para ver la pantalla Procesos |
 | `migrations/006_usuario_admin.sql` | Crea el usuario administrador de prueba (rol ADMINISTRADOR) |
 | `migrations/007_auditoria_ip.sql` | Agrega la columna de IP a `usuario`, `actividad_usuario` y `auditoria` |
+| `migrations/008_bancos_y_montos.sql` | Crea `entidad_financiera` (bancos) e `historial_monto`, y agrega banco, moneda y monto a `activo_digital` |
 
 ## Cómo ejecutarlas
 
 1. Entra a tu proyecto en [supabase.com](https://supabase.com).
 2. Abre **SQL Editor** y pulsa **New query**.
 3. Pega el contenido de `001_esquema_inicial.sql` y pulsa **Run**.
-4. Repite con `002` a `007`, **en ese orden**: cada una depende de la anterior.
-5. En **Table Editor** debes ver las 24 tablas.
+4. Repite con `002` a `008`, **en ese orden**: cada una depende de la anterior.
+5. En **Table Editor** debes ver 26 tablas: las 24 del modelo original más `entidad_financiera` e `historial_monto`.
 
 > Cada archivo se ejecuta **una sola vez**. Si lo corres de nuevo dará error de "ya existe".
 
-## Las 24 tablas, por módulo
+## Las tablas, por módulo (24 originales + 2 de la migración 008)
 
 | Módulo | Tablas |
 |---|---|
 | Usuarios y seguridad | `rol`, `usuario`, `token_recuperacion`, `actividad_usuario`, `auditoria` |
-| Activos y beneficiarios | `tipo_activo`, `activo_digital`, `beneficiario`, `activo_beneficiario`, `validador_externo` |
+| Activos y beneficiarios | `tipo_activo`, `activo_digital`, `beneficiario`, `activo_beneficiario`, `validador_externo`, `entidad_financiera` *(008)*, `historial_monto` *(008)* |
 | Reglas y proceso de liberación | `regla_liberacion`, `reporte_fallecimiento`, `proceso_liberacion`, `proceso_activo`, `confirmacion_beneficiario`, `validacion_externa`, `objecion`, `entrega` |
 | Orientación legal y notificaciones | `guia_legal`, `orientacion_legal_generada`, `notificacion` |
 | Suscripciones y pagos | `plan`, `suscripcion`, `pago` |

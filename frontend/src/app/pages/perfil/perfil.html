@@ -23,7 +23,7 @@
       <input id="correo" name="correo" type="email" class="form-control" required [(ngModel)]="datos.correo" />
 
       <label for="telefono">Teléfono</label>
-      <input id="telefono" name="telefono" class="form-control" [(ngModel)]="datos.telefono" />
+      <input id="telefono" name="telefono" class="form-control" required maxlength="9" pattern="[0-9]{9}" inputmode="numeric" [(ngModel)]="datos.telefono" />
 
       @if (errorPerfil()) { <p class="error-form">{{ errorPerfil() }}</p> }
       @if (mensajePerfil()) { <p class="ok-form">{{ mensajePerfil() }}</p> }

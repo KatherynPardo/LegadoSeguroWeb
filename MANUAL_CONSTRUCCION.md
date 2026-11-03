@@ -327,6 +327,11 @@ Son datos ficticios, solo para desarrollo.
 | GET / PUT | `/api/reglas` | Sí | Ver y guardar la regla de liberación del usuario |
 | GET | `/api/procesos` y `/api/procesos/:id` | Sí | Listar procesos y ver el detalle de uno |
 | GET | `/api/auth/dni/:dni` | No | Nombres desde RENIEC para el registro (máx. 10 por minuto por IP) |
+| PUT / DELETE | `/api/activos/:id` | Sí | Editar un activo / eliminarlo (queda INACTIVO) |
+| GET | `/api/activos/:id/historial` | Sí | Historial de montos del activo |
+| GET / POST | `/api/entidades` | Sí | Catálogo de bancos y alta de uno nuevo |
+| PUT / DELETE | `/api/beneficiarios/:id` | Sí | Editar un heredero / eliminarlo (queda INACTIVO) |
+| PUT | `/api/activos/:id/beneficiarios` | Sí | Reemplaza los herederos de un activo (lista de ids) |
 | POST | `/api/auth/registro` | No | Crear cuenta nueva (rol PROPIETARIO) |
 | GET | `/api/admin/usuarios` | Admin | Listar todos los usuarios |
 | GET | `/api/admin/auditoria` | Admin | Últimas 100 acciones con usuario e IP |
@@ -437,6 +442,14 @@ El `.env` está ignorado por Git, así que las claves no se suben.
 ## Registro con DNI de RENIEC
 
 En `/registro` se escribe el DNI y se pulsa **Buscar**: los nombres y apellidos vienen de RENIEC (apiperu.dev) y quedan de solo lectura. Al crear la cuenta, el backend vuelve a consultar RENIEC y usa esos nombres, no los que mande el navegador; si el DNI no existe, rechaza el registro. Si no hay token configurado, se aceptan los datos escritos a mano. La consulta pública está limitada a 10 por minuto por IP para no gastar el token.
+
+## Bancos, montos e historial
+
+La migración `008_bancos_y_montos.sql` agrega `entidad_financiera` (catálogo; los bancos que crea un usuario solo los ve él) e `historial_monto`, y a `activo_digital` las columnas `id_entidad`, `moneda` (PEN o USD), `monto` y `registrar_monto`. El banco solo es obligatorio si el tipo de activo lo pide (`tipo_activo.requiere_entidad`, hoy "Cuenta bancaria"). El monto se puede activar en cualquier activo (por ejemplo, una cuenta monetizada); en los financieros viene marcado por defecto. Cada cambio de monto o moneda crea una fila en el historial con fecha, usuario e IP. Si se desmarca "registrar monto", se borran el monto y su historial.
+
+## Validaciones y eliminación
+
+Los controladores validan que todos los campos obligatorios lleguen completos y con formato correcto (`utils/validar.ts`). Eliminar un activo o un heredero lo marca `INACTIVO` en lugar de borrarlo, para no romper procesos pasados; no se permite si participa en un proceso de liberación abierto.
 
 ## Auditoría e IP
 

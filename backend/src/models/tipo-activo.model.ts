@@ -3,4 +3,5 @@ export type TipoActivo = {
   id: number;
   nombre: string;
   sensibilidad: string; // 'BAJA' o 'FINANCIERA'
+  requiereEntidad: boolean; // true si hay que indicar el banco (cuenta bancaria)
 };

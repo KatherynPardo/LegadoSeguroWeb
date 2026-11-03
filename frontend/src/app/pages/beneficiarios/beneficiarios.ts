@@ -1,5 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Observable } from 'rxjs';
 import { BeneficiarioService } from '../../services/beneficiario.service';
 import { Beneficiario, NuevoBeneficiario } from '../../models/beneficiario.model';
 import { Modal } from '../../components/modal/modal';
@@ -13,9 +14,12 @@ import { Modal } from '../../components/modal/modal';
 export class Beneficiarios implements OnInit {
   beneficiarios = signal<Beneficiario[]>([]);
   mostrarFormulario = signal(false);
+  editandoId: number | null = null; // null cuando se crea uno nuevo
   error = signal('');
+  mensaje = signal('');
   avisoDni = signal('');
   buscandoDni = signal(false);
+  porEliminar = signal<Beneficiario | null>(null);
 
   parentescos = ['Hijo/a', 'Esposo/a', 'Padre', 'Madre', 'Hermano/a', 'Otro'];
 
@@ -34,7 +38,24 @@ export class Beneficiarios implements OnInit {
   }
 
   abrir(): void {
+    this.editandoId = null;
     this.nuevo = this.vacio();
+    this.error.set('');
+    this.avisoDni.set('');
+    this.mostrarFormulario.set(true);
+  }
+
+  abrirEditar(b: Beneficiario): void {
+    this.editandoId = b.id;
+    this.nuevo = {
+      nombres: b.nombres,
+      apellidos: b.apellidos,
+      dni: b.dni,
+      correo: b.correo ?? '',
+      telefono: b.telefono ?? '',
+      parentesco: b.parentesco ?? 'Otro',
+      claveAcceso: '' // vacía = no se cambia la clave
+    };
     this.error.set('');
     this.avisoDni.set('');
     this.mostrarFormulario.set(true);
@@ -66,17 +87,42 @@ export class Beneficiarios implements OnInit {
 
   guardar(): void {
     this.error.set('');
-    this.beneficiarioService.crearBeneficiario(this.nuevo).subscribe({
+    const editando = this.editandoId !== null;
+
+    const peticion: Observable<unknown> = editando
+      ? this.beneficiarioService.actualizarBeneficiario(this.editandoId!, this.nuevo)
+      : this.beneficiarioService.crearBeneficiario(this.nuevo);
+
+    peticion.subscribe({
       next: () => {
-        this.cargar(); // vuelve a pedir la lista para que aparezca el nuevo
+        this.mensaje.set(editando ? 'Heredero actualizado' : 'Heredero registrado');
+        this.cargar(); // vuelve a pedir la lista para que aparezcan los cambios
         this.mostrarFormulario.set(false);
       },
-      // Si el backend rechaza los datos (por ejemplo, DNI inválido), se muestra su mensaje
-      error: err => this.error.set(err.error?.mensaje ?? 'No se pudo registrar el beneficiario')
+      // Si el backend rechaza los datos (por ejemplo, DNI repetido), se muestra su mensaje
+      error: err => this.error.set(err.error?.mensaje ?? 'No se pudo guardar el heredero')
+    });
+  }
+
+  confirmarEliminar(): void {
+    const heredero = this.porEliminar();
+    if (!heredero) return;
+
+    this.beneficiarioService.eliminarBeneficiario(heredero.id).subscribe({
+      next: () => {
+        this.mensaje.set('Heredero eliminado');
+        this.error.set('');
+        this.porEliminar.set(null);
+        this.cargar();
+      },
+      error: err => {
+        this.porEliminar.set(null);
+        this.error.set(err.error?.mensaje ?? 'No se pudo eliminar el heredero');
+      }
     });
   }
 
   private vacio(): NuevoBeneficiario {
-    return { nombres: '', apellidos: '', dni: '', correo: '', parentesco: 'Hijo/a', claveAcceso: '' };
+    return { nombres: '', apellidos: '', dni: '', correo: '', telefono: '', parentesco: 'Hijo/a', claveAcceso: '' };
   }
 }

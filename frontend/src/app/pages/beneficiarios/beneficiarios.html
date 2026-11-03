@@ -3,6 +3,9 @@
 </header>
 
 <section class="pagina">
+  @if (mensaje()) { <p class="ok-form">{{ mensaje() }}</p> }
+  @if (error() && !mostrarFormulario()) { <p class="error-form">{{ error() }}</p> }
+
   <div class="acciones">
     <button class="btn btn-primary" (click)="abrir()">+ Nuevo Heredero</button>
   </div>
@@ -12,20 +15,29 @@
       <thead>
         <tr>
           <th>Nombre</th>
+          <th>DNI</th>
           <th>Parentesco</th>
           <th>Correo</th>
+          <th>Teléfono</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
         @for (b of beneficiarios(); track b.id) {
         <tr>
           <td class="nombre">{{ b.nombres }} {{ b.apellidos }}</td>
+          <td>{{ b.dni }}</td>
           <td>{{ b.parentesco }}</td>
           <td>{{ b.correo ?? '—' }}</td>
+          <td>{{ b.telefono ?? '—' }}</td>
+          <td class="botones-fila">
+            <button class="btn btn-sm btn-outline-secondary" (click)="abrirEditar(b)">Editar</button>
+            <button class="btn btn-sm btn-outline-danger" (click)="porEliminar.set(b)">Eliminar</button>
+          </td>
         </tr>
         } @empty {
         <tr>
-          <td colspan="3" class="vacio">No hay beneficiarios. ¿Está encendido el backend?</td>
+          <td colspan="6" class="vacio">No hay beneficiarios. ¿Está encendido el backend?</td>
         </tr>
         }
       </tbody>
@@ -33,11 +45,12 @@
   </div>
 </section>
 
-<app-modal titulo="Nuevo heredero" [abierto]="mostrarFormulario()" (cerrar)="mostrarFormulario.set(false)">
-  <form class="campos" (ngSubmit)="guardar()">
+<app-modal [titulo]="editandoId === null ? 'Nuevo heredero' : 'Editar heredero'" [abierto]="mostrarFormulario()" (cerrar)="mostrarFormulario.set(false)">
+  <form class="campos" #f="ngForm" (ngSubmit)="guardar()">
     <label for="dni">DNI</label>
+    @if (editandoId === null) {
     <div class="input-group">
-      <input id="dni" name="dni" class="form-control" required maxlength="8" inputmode="numeric" [(ngModel)]="nuevo.dni" />
+      <input id="dni" name="dni" class="form-control" required maxlength="8" pattern="[0-9]{8}" inputmode="numeric" [(ngModel)]="nuevo.dni" />
       <button type="button" class="btn btn-outline-primary" [disabled]="buscandoDni()" (click)="buscarDni()">
         {{ buscandoDni() ? 'Buscando...' : 'Buscar' }}
       </button>
@@ -45,25 +58,31 @@
     @if (avisoDni()) {
     <p class="aviso-dni">{{ avisoDni() }}</p>
     }
+    } @else {
+    <input id="dni" name="dni" class="form-control" [value]="nuevo.dni" disabled />
+    }
 
     <label for="nombres">Nombres</label>
-    <input id="nombres" name="nombres" class="form-control" required [(ngModel)]="nuevo.nombres" />
+    <input id="nombres" name="nombres" class="form-control" required maxlength="100" [(ngModel)]="nuevo.nombres" />
 
     <label for="apellidos">Apellidos</label>
-    <input id="apellidos" name="apellidos" class="form-control" required [(ngModel)]="nuevo.apellidos" />
+    <input id="apellidos" name="apellidos" class="form-control" required maxlength="100" [(ngModel)]="nuevo.apellidos" />
 
     <label for="correo">Correo electrónico</label>
     <input id="correo" name="correo" type="email" class="form-control" required autocomplete="off" [(ngModel)]="nuevo.correo" />
 
+    <label for="telefono">Teléfono</label>
+    <input id="telefono" name="telefono" class="form-control" required maxlength="9" pattern="[0-9]{9}" inputmode="numeric" autocomplete="off" [(ngModel)]="nuevo.telefono" />
+
     <label for="parentesco">Parentesco</label>
-    <select id="parentesco" name="parentesco" class="form-select" [(ngModel)]="nuevo.parentesco">
+    <select id="parentesco" name="parentesco" class="form-select" required [(ngModel)]="nuevo.parentesco">
       @for (p of parentescos; track p) {
       <option [value]="p">{{ p }}</option>
       }
     </select>
 
-    <label for="clave">Clave de acceso del heredero</label>
-    <input id="clave" name="claveAcceso" type="password" class="form-control" required minlength="6" autocomplete="new-password" [(ngModel)]="nuevo.claveAcceso" />
+    <label for="clave">{{ editandoId === null ? 'Clave de acceso del heredero' : 'Nueva clave de acceso (opcional)' }}</label>
+    <input id="clave" name="claveAcceso" type="password" class="form-control" [required]="editandoId === null" minlength="6" autocomplete="new-password" [(ngModel)]="nuevo.claveAcceso" />
 
     @if (error()) {
     <p class="error-form">{{ error() }}</p>
@@ -71,7 +90,17 @@
 
     <div class="botones-form">
       <button type="button" class="btn btn-outline-secondary" (click)="mostrarFormulario.set(false)">Cancelar</button>
-      <button type="submit" class="btn btn-primary">Guardar</button>
+      <button type="submit" class="btn btn-primary" [disabled]="f.invalid">Guardar</button>
     </div>
   </form>
+</app-modal>
+
+<app-modal titulo="Eliminar heredero" [abierto]="porEliminar() !== null" (cerrar)="porEliminar.set(null)">
+  @if (porEliminar(); as b) {
+  <p class="aviso-dni">¿Eliminar a <strong>{{ b.nombres }} {{ b.apellidos }}</strong>? Dejará de aparecer en tu lista y se le quitarán los activos que tenía asignados.</p>
+  <div class="botones-form">
+    <button type="button" class="btn btn-outline-secondary" (click)="porEliminar.set(null)">Volver</button>
+    <button type="button" class="btn btn-danger" (click)="confirmarEliminar()">Sí, eliminar</button>
+  </div>
+  }
 </app-modal>

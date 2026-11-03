@@ -3,16 +3,19 @@ export interface Beneficiario {
     id: number;
     nombres: string;
     apellidos: string;
-    parentesco: string;
+    dni: string;
+    parentesco: string | null;
     correo: string | null;
+    telefono: string | null;
 }
 
-// Datos del formulario para registrar un beneficiario
+// Datos del formulario para registrar o editar un beneficiario
 export interface NuevoBeneficiario {
     nombres: string;
     apellidos: string;
     dni: string;
     correo: string;
+    telefono: string;
     parentesco: string;
     claveAcceso: string;
 }

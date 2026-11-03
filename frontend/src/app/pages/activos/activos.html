@@ -3,6 +3,9 @@
 </header>
 
 <section class="pagina">
+  @if (mensaje()) { <p class="ok-form">{{ mensaje() }}</p> }
+  @if (error() && !mostrarFormulario()) { <p class="error-form">{{ error() }}</p> }
+
   <div class="acciones">
     <button class="btn btn-primary" (click)="abrir()">+ Nuevo Activo</button>
   </div>
@@ -14,20 +17,41 @@
           <th>Activo</th>
           <th>Tipo</th>
           <th>Sensibilidad</th>
-          <th>Estado</th>
+          <th>Monto</th>
+          <th>Herederos</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
         @for (a of activos(); track a.id) {
         <tr>
-          <td class="nombre">{{ a.nombre }}</td>
+          <td class="nombre">
+            {{ a.nombre }}
+            @if (a.entidad) { <span class="banco">{{ a.entidad }}</span> }
+          </td>
           <td>{{ a.tipo }}</td>
           <td class="sens" [class.financiera]="a.sensibilidad === 'FINANCIERA'">{{ a.sensibilidad }}</td>
-          <td class="estado">{{ a.estado }}</td>
+          <td>
+            @if (a.registrarMonto && a.monto !== null) {
+            {{ simbolo(a.moneda) }} {{ a.monto | number:'1.2-2' }}
+            } @else { <span class="sin-dato">—</span> }
+          </td>
+          <td>
+            @if (a.herederos.length) { {{ nombresHerederos(a) }} }
+            @else { <span class="sin-heredero">Sin asignar</span> }
+          </td>
+          <td class="botones-fila">
+            <button class="btn btn-sm btn-outline-primary" (click)="abrirAsignar(a)">Herederos</button>
+            @if (a.registrarMonto) {
+            <button class="btn btn-sm btn-outline-secondary" (click)="verHistorial(a)">Historial</button>
+            }
+            <button class="btn btn-sm btn-outline-secondary" (click)="abrirEditar(a)">Editar</button>
+            <button class="btn btn-sm btn-outline-danger" (click)="porEliminar.set(a)">Eliminar</button>
+          </td>
         </tr>
         } @empty {
         <tr>
-          <td colspan="4" class="vacio">No hay activos. ¿Está encendido el backend?</td>
+          <td colspan="6" class="vacio">No hay activos. ¿Está encendido el backend?</td>
         </tr>
         }
       </tbody>
@@ -35,13 +59,13 @@
   </div>
 </section>
 
-<app-modal titulo="Nuevo activo digital" [abierto]="mostrarFormulario()" (cerrar)="mostrarFormulario.set(false)">
-  <form class="campos" (ngSubmit)="guardar()">
+<app-modal [titulo]="editandoId === null ? 'Nuevo activo digital' : 'Editar activo'" [abierto]="mostrarFormulario()" (cerrar)="mostrarFormulario.set(false)">
+  <form class="campos" #f="ngForm" (ngSubmit)="guardar()">
     <label for="nombre">Nombre</label>
-    <input id="nombre" name="nombre" class="form-control" required [(ngModel)]="nuevo.nombre" />
+    <input id="nombre" name="nombre" class="form-control" required maxlength="150" [(ngModel)]="form.nombre" />
 
     <label for="tipo">Tipo</label>
-    <select id="tipo" name="tipo" class="form-select" [(ngModel)]="nuevo.id_tipo">
+    <select id="tipo" name="tipo" class="form-select" required [(ngModel)]="form.id_tipo" (ngModelChange)="alCambiarTipo()">
       @for (t of tipos(); track t.id) {
       <option [ngValue]="t.id">{{ t.nombre }}</option>
       }
@@ -55,10 +79,70 @@
     @if (tipo.sensibilidad === 'FINANCIERA') {
     <p class="nota-sens">Los activos financieros requieren mayor protección y verificación al liberarse.</p>
     }
+
+    @if (tipo.requiereEntidad) {
+    <label for="banco">Banco</label>
+    <div class="input-group">
+      <select id="banco" name="banco" class="form-select" required [(ngModel)]="form.id_entidad">
+        <option [ngValue]="null" disabled>Elige un banco</option>
+        @for (e of entidades(); track e.id) {
+        <option [ngValue]="e.id">{{ e.nombre }}</option>
+        }
+      </select>
+      <button type="button" class="btn btn-outline-primary" (click)="abrirBanco()">Nuevo banco</button>
+    </div>
+
+    @if (nuevoBancoAbierto()) {
+    <div class="nuevo-banco">
+      <div class="input-group">
+        <input name="nuevoBanco" class="form-control" placeholder="Nombre del banco" maxlength="100" [(ngModel)]="nuevoBanco" />
+        <button type="button" class="btn btn-primary" (click)="guardarBanco()">Agregar</button>
+        <button type="button" class="btn btn-outline-secondary" (click)="cerrarBanco()">Cancelar</button>
+      </div>
+      @if (errorBanco()) { <p class="error-form">{{ errorBanco() }}</p> }
+    </div>
+    }
+    }
     }
 
     <label for="descripcion">Descripción</label>
-    <input id="descripcion" name="descripcion" class="form-control" [(ngModel)]="nuevo.descripcion" />
+    <input id="descripcion" name="descripcion" class="form-control" required maxlength="300" [(ngModel)]="form.descripcion" />
+
+    <div class="form-check opcion-monto">
+      <input class="form-check-input" type="checkbox" id="registrarMonto" name="registrarMonto" [(ngModel)]="form.registrar_monto" />
+      <label class="form-check-label" for="registrarMonto">Registrar el monto de este activo</label>
+    </div>
+    <p class="nota-sens">Sirve para ahorros, ingresos de una cuenta monetizada, etc. Cada cambio queda en el historial. Si lo desmarcas, se borra el monto y su historial.</p>
+
+    @if (form.registrar_monto) {
+    <div class="fila-monto">
+      <div>
+        <label for="moneda">Moneda</label>
+        <select id="moneda" name="moneda" class="form-select" required [(ngModel)]="form.moneda">
+          <option value="PEN">Soles (S/)</option>
+          <option value="USD">Dólares (US$)</option>
+        </select>
+      </div>
+      <div>
+        <label for="monto">Monto</label>
+        <input id="monto" name="monto" type="number" class="form-control" required min="0" step="0.01" [(ngModel)]="form.monto" />
+      </div>
+    </div>
+    }
+
+    @if (editandoId === null) {
+    <label>Herederos de este activo</label>
+    @for (h of herederos(); track h.id) {
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" [id]="'n' + h.id" [name]="'n' + h.id"
+             [checked]="elegidosNuevo().includes(h.id)"
+             (change)="elegidosNuevo.set(alternar(elegidosNuevo(), h.id))" />
+      <label class="form-check-label" [for]="'n' + h.id">{{ h.nombres }} {{ h.apellidos }} ({{ h.parentesco }})</label>
+    </div>
+    } @empty {
+    <p class="nota-sens">Aún no tienes herederos. Agrégalos en "Mis Herederos".</p>
+    }
+    }
 
     @if (error()) {
     <p class="error-form">{{ error() }}</p>
@@ -66,7 +150,63 @@
 
     <div class="botones-form">
       <button type="button" class="btn btn-outline-secondary" (click)="mostrarFormulario.set(false)">Cancelar</button>
-      <button type="submit" class="btn btn-primary">Guardar</button>
+      <button type="submit" class="btn btn-primary" [disabled]="f.invalid">Guardar</button>
     </div>
   </form>
+</app-modal>
+
+<app-modal titulo="Herederos del activo" [abierto]="asignando() !== null" (cerrar)="asignando.set(null)">
+  @if (asignando(); as a) {
+  <p class="ayuda">Elige quién recibirá <strong>{{ a.nombre }}</strong>. Estas personas deberán confirmar si se inicia un proceso de liberación.</p>
+
+  @for (h of herederos(); track h.id) {
+  <div class="form-check">
+    <input class="form-check-input" type="checkbox" [id]="'a' + h.id"
+           [checked]="elegidosAsignar().includes(h.id)"
+           (change)="elegidosAsignar.set(alternar(elegidosAsignar(), h.id))" />
+    <label class="form-check-label" [for]="'a' + h.id">{{ h.nombres }} {{ h.apellidos }} ({{ h.parentesco }})</label>
+  </div>
+  } @empty {
+  <p class="nota-sens">Aún no tienes herederos. Agrégalos en "Mis Herederos".</p>
+  }
+
+  @if (errorAsignar()) {
+  <p class="error-form">{{ errorAsignar() }}</p>
+  }
+
+  <div class="botones-form">
+    <button type="button" class="btn btn-outline-secondary" (click)="asignando.set(null)">Cancelar</button>
+    <button type="button" class="btn btn-primary" (click)="guardarAsignacion()">Guardar</button>
+  </div>
+  }
+</app-modal>
+
+<app-modal titulo="Historial de montos" [abierto]="historialDe() !== null" (cerrar)="historialDe.set(null)">
+  @if (historialDe(); as a) {
+  <p class="ayuda">Cambios de monto de <strong>{{ a.nombre }}</strong>.</p>
+  <table class="tabla">
+    <thead><tr><th>Fecha</th><th>Monto</th><th>Registrado por</th></tr></thead>
+    <tbody>
+      @for (h of historial(); track $index) {
+      <tr>
+        <td>{{ h.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+        <td>{{ simbolo(h.moneda) }} {{ h.monto | number:'1.2-2' }}</td>
+        <td>{{ h.usuario }}</td>
+      </tr>
+      } @empty {
+      <tr><td colspan="3" class="vacio">Sin cambios registrados.</td></tr>
+      }
+    </tbody>
+  </table>
+  }
+</app-modal>
+
+<app-modal titulo="Eliminar activo" [abierto]="porEliminar() !== null" (cerrar)="porEliminar.set(null)">
+  @if (porEliminar(); as a) {
+  <p class="ayuda">¿Eliminar <strong>{{ a.nombre }}</strong>? Dejará de aparecer en tu lista y no se incluirá en futuros procesos de liberación.</p>
+  <div class="botones-form">
+    <button type="button" class="btn btn-outline-secondary" (click)="porEliminar.set(null)">Volver</button>
+    <button type="button" class="btn btn-danger" (click)="confirmarEliminar()">Sí, eliminar</button>
+  </div>
+  }
 </app-modal>

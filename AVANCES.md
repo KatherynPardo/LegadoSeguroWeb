@@ -23,11 +23,11 @@ Bitácora de lo construido, en orden cronológico.
 
 | 30/10/2026 | **Registro de usuarios** (`/registro`, rol PROPIETARIO, contraseña cifrada, sesión iniciada al crear la cuenta) y **usuario administrador** con rol validado en la base: pantalla Usuarios para ver cuentas y activarlas o desactivarlas. |
 | 30/10/2026 | **Auditoría con IP**: se guarda la IP de registro e inicio de sesión; la pantalla Usuarios muestra fecha de creación, IP de registro y último acceso, y una tabla de auditoría con las acciones del administrador. |
+| 02/11/2026 | **Herederos por activo**: en Mis Activos se elige qué herederos recibe cada activo (tabla `activo_beneficiario`, el orden marca la prioridad). Al iniciarse un proceso, las confirmaciones se generan a partir de esa asignación. |
+| 03/11/2026 | **Validaciones obligatorias** en activos, herederos, registro y perfil (teléfono de 9 dígitos, correo válido, textos con máximo). **Editar y eliminar** activos y herederos (eliminar = marcar INACTIVO para conservar el historial). **Bancos** (catálogo con botón "Nuevo banco"), **monto opcional** en cualquier activo con moneda soles o dólares e **historial de montos**. |
 
 ## Próximos pasos
 
-1. Editar y eliminar activos y beneficiarios.
-2. Asignar beneficiarios a cada activo.
-3. Recuperación de contraseña por correo.
-4. Planes, suscripciones y pagos (Culqi).
-5. Portal del heredero (React) y despliegue.
+1. Recuperación de contraseña por correo.
+2. Planes, suscripciones y pagos (Culqi).
+3. Portal del heredero (React) y despliegue.

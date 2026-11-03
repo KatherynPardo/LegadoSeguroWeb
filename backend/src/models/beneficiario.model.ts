@@ -3,8 +3,10 @@ export type Beneficiario = {
   id: number;
   nombres: string;
   apellidos: string;
+  dni: string;
   parentesco: string | null;
   correo: string;
+  telefono: string | null;
 };
 
 // Datos que llegan desde el formulario para registrar un beneficiario.
@@ -13,6 +15,17 @@ export type NuevoBeneficiario = {
   apellidos: string;
   dni: string;
   correo: string;
-  parentesco?: string;
+  telefono: string;
+  parentesco: string;
   claveAcceso: string; // se guarda cifrada (hash), nunca en texto plano
+};
+
+// Datos editables de un beneficiario (el DNI no cambia). La clave solo se cambia si se envía una nueva.
+export type EdicionBeneficiario = {
+  nombres: string;
+  apellidos: string;
+  correo: string;
+  telefono: string;
+  parentesco: string;
+  claveAcceso: string | null;
 };
