@@ -1,0 +1,29 @@
+<header class="barra">
+  <h1>Mi Historial</h1>
+</header>
+
+<section class="pagina">
+  @if (!cargado()) {
+  <p class="vacio">Cargando tu historial...</p>
+  } @else {
+  <div class="tarjeta">
+    <table class="tabla">
+      <thead>
+        <tr><th>Fecha</th><th>Acción</th><th>Detalle</th><th>IP</th></tr>
+      </thead>
+      <tbody>
+        @for (r of registros(); track $index) {
+        <tr>
+          <td>{{ r.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td class="nombre">{{ nombre(r.accion) }}</td>
+          <td>{{ r.descripcion ?? '—' }}</td>
+          <td>{{ r.ipOrigen ?? '—' }}</td>
+        </tr>
+        } @empty {
+        <tr><td colspan="4" class="vacio">Todavía no hay registros.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  }
+</section>

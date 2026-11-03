@@ -34,6 +34,9 @@
           <td>
             @if (a.registrarMonto && a.monto !== null) {
             {{ simbolo(a.moneda) }} {{ a.monto | number:'1.2-2' }}
+            @if (a.ahorro) {
+            <span class="banco">{{ nombreMetodo(a.ahorro) }}@if (a.ahorro.min !== null || a.ahorro.max !== null) { · {{ a.ahorro.min ?? 0 }} a {{ a.ahorro.max ?? '—' }} }</span>
+            }
             } @else { <span class="sin-dato">—</span> }
           </td>
           <td>
@@ -41,12 +44,12 @@
             @else { <span class="sin-heredero">Sin asignar</span> }
           </td>
           <td class="botones-fila">
-            <button class="btn btn-sm btn-outline-primary" (click)="abrirAsignar(a)">Herederos</button>
+            <button type="button" class="accion" title="Herederos" aria-label="Herederos" (click)="abrirAsignar(a)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></button>
             @if (a.registrarMonto) {
-            <button class="btn btn-sm btn-outline-secondary" (click)="verHistorial(a)">Historial</button>
+            <button type="button" class="accion" title="Historial de montos" aria-label="Historial de montos" (click)="verHistorial(a)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></button>
             }
-            <button class="btn btn-sm btn-outline-secondary" (click)="abrirEditar(a)">Editar</button>
-            <button class="btn btn-sm btn-outline-danger" (click)="porEliminar.set(a)">Eliminar</button>
+            <button type="button" class="accion" title="Editar" aria-label="Editar" (click)="abrirEditar(a)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+            <button type="button" class="accion peligro" title="Eliminar" aria-label="Eliminar" (click)="porEliminar.set(a)"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
           </td>
         </tr>
         } @empty {
@@ -128,6 +131,30 @@
         <input id="monto" name="monto" type="number" class="form-control" required min="0" step="0.01" [(ngModel)]="form.monto" />
       </div>
     </div>
+    <div class="fila-monto">
+      <div>
+        <label for="metodo">Método de ahorro (opcional)</label>
+        <select id="metodo" name="metodo" class="form-select" [(ngModel)]="ahorro.metodo">
+          <option value="">Sin método</option>
+          @for (m of metodos; track m.valor) {
+          <option [value]="m.valor">{{ m.nombre }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    @if (ahorro.metodo) {
+    <div class="fila-monto">
+      <div>
+        <label for="rangoMin">Rango mínimo</label>
+        <input id="rangoMin" name="rangoMin" type="number" class="form-control" min="0" step="0.01" [(ngModel)]="ahorro.min" />
+      </div>
+      <div>
+        <label for="rangoMax">Rango máximo</label>
+        <input id="rangoMax" name="rangoMax" type="number" class="form-control" min="0" step="0.01" [(ngModel)]="ahorro.max" />
+      </div>
+    </div>
+    <p class="nota-sens">Puedes cambiar el método y el rango cuando quieras, editando el activo.</p>
+    }
     }
 
     @if (editandoId === null) {

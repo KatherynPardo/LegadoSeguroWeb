@@ -1,7 +1,7 @@
 // Controlador de autenticación.
 
 import { Request, Response } from 'express';
-import { iniciarSesion, registrarUsuario } from '../services/auth.service';
+import { iniciarSesion, registrarUsuario, confirmarCorreo, reenviarCodigoRegistro } from '../services/auth.service';
 import { obtenerIp } from '../utils/ip';
 import { consultarDni, ErrorConsultaDni } from '../services/reniec.service';
 
@@ -70,7 +70,7 @@ export async function registro(req: Request, res: Response) {
       if (!(e instanceof ErrorConsultaDni) || e.estado !== 503) throw e;
     }
 
-    const sesion = await registrarUsuario({
+    const creada = await registrarUsuario({
       nombres: nombresFinal,
       apellidos: apellidosFinal,
       dni,
@@ -79,14 +79,56 @@ export async function registro(req: Request, res: Response) {
       password
     }, obtenerIp(req));
 
-    if (!sesion) {
+    if (!creada) {
       res.status(409).json({ mensaje: 'Ya existe una cuenta con ese correo o DNI' });
       return;
     }
 
-    res.status(201).json(sesion);
+    // Todavía no hay sesión: primero hay que confirmar el correo con el código
+    res.status(201).json({ mensaje: 'Te enviamos un código a tu correo', correo: correo.trim().toLowerCase() });
   } catch (error) {
     console.error('Error al registrar usuario:', error);
     res.status(500).json({ mensaje: 'Error al crear la cuenta' });
+  }
+}
+
+export async function verificarCorreo(req: Request, res: Response) {
+  const { correo, codigo } = req.body;
+
+  if (!correo || !/^\d{6}$/.test(codigo ?? '')) {
+    res.status(400).json({ mensaje: 'Ingresa el código de 6 dígitos' });
+    return;
+  }
+
+  try {
+    const sesion = await confirmarCorreo(correo.trim().toLowerCase(), codigo, obtenerIp(req));
+    if (!sesion) {
+      res.status(400).json({ mensaje: 'El código es incorrecto o ya venció' });
+      return;
+    }
+    res.json(sesion);
+  } catch (error) {
+    console.error('Error al verificar el correo:', error);
+    res.status(500).json({ mensaje: 'Error al verificar el correo' });
+  }
+}
+
+export async function reenviarCodigo(req: Request, res: Response) {
+  const { correo } = req.body;
+  if (!correo) {
+    res.status(400).json({ mensaje: 'Falta el correo' });
+    return;
+  }
+
+  try {
+    const enviado = await reenviarCodigoRegistro(correo.trim().toLowerCase());
+    if (!enviado) {
+      res.status(404).json({ mensaje: 'No hay un registro pendiente con ese correo' });
+      return;
+    }
+    res.json({ mensaje: 'Te enviamos un código nuevo' });
+  } catch (error) {
+    console.error('Error al reenviar el código:', error);
+    res.status(500).json({ mensaje: 'Error al reenviar el código' });
   }
 }

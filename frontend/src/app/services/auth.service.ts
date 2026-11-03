@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { API_URL } from '../core/api.config';
-import { NuevoUsuario, Sesion, UsuarioSesion } from '../models/auth.model';
+import { NuevoUsuario, RegistroPendiente, Sesion, UsuarioSesion } from '../models/auth.model';
 import { PersonaDni } from '../models/beneficiario.model';
 
 const CLAVE_TOKEN = 'lg_token';
@@ -26,11 +26,20 @@ export class AuthService {
         );
     }
 
-    // Crea la cuenta y deja la sesión iniciada
-    registrar(datos: NuevoUsuario): Observable<Sesion> {
-        return this.http.post<Sesion>(`${this.apiUrl}/registro`, datos).pipe(
+    // Paso 1: crea la cuenta pendiente y el backend envía un código al correo
+    registrar(datos: NuevoUsuario): Observable<RegistroPendiente> {
+        return this.http.post<RegistroPendiente>(`${this.apiUrl}/registro`, datos);
+    }
+
+    // Paso 2: con el código correcto la cuenta se activa y queda la sesión iniciada
+    verificarCorreo(correo: string, codigo: string): Observable<Sesion> {
+        return this.http.post<Sesion>(`${this.apiUrl}/verificar-correo`, { correo, codigo }).pipe(
             tap(sesion => this.guardarSesion(sesion))
         );
+    }
+
+    reenviarCodigo(correo: string): Observable<{ mensaje: string }> {
+        return this.http.post<{ mensaje: string }>(`${this.apiUrl}/reenviar-codigo`, { correo });
     }
 
     // Consulta pública de DNI para el registro (los datos vienen de RENIEC)

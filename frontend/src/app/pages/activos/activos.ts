@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { ActivoService } from '../../services/activo.service';
 import { BeneficiarioService } from '../../services/beneficiario.service';
-import { Activo, DatosActivo, Entidad, MontoHistorico, TipoActivo } from '../../models/activo.model';
+import { Activo, Ahorro, DatosActivo, Entidad, MontoHistorico, TipoActivo } from '../../models/activo.model';
 import { Beneficiario } from '../../models/beneficiario.model';
 import { Modal } from '../../components/modal/modal';
 
@@ -27,6 +27,16 @@ export class Activos implements OnInit {
   editandoId: number | null = null;
   form: DatosActivo = this.vacio();
   elegidosNuevo = signal<number[]>([]);
+
+  // Método de ahorro y rango (opcionales). metodo vacío = sin método
+  metodos = [
+    { valor: 'LIBRE', nombre: 'Ahorro libre' },
+    { valor: 'MENSUAL_FIJO', nombre: 'Aporte mensual fijo' },
+    { valor: 'QUINCENAL_FIJO', nombre: 'Aporte quincenal fijo' },
+    { valor: 'PORCENTAJE_SUELDO', nombre: 'Porcentaje del sueldo' },
+    { valor: 'META', nombre: 'Meta de ahorro' }
+  ];
+  ahorro = { metodo: '', min: null as number | null, max: null as number | null };
 
   // Alta rápida de un banco desde el propio formulario
   nuevoBancoAbierto = signal(false);
@@ -57,7 +67,7 @@ export class Activos implements OnInit {
   }
 
   private vacio(): DatosActivo {
-    return { nombre: '', descripcion: '', id_tipo: 0, id_entidad: null, registrar_monto: false, moneda: 'PEN', monto: null };
+    return { nombre: '', descripcion: '', id_tipo: 0, id_entidad: null, registrar_monto: false, moneda: 'PEN', monto: null, ahorro: null };
   }
 
   // La sensibilidad y la necesidad de banco las define el tipo elegido
@@ -71,6 +81,10 @@ export class Activos implements OnInit {
     if (!tipo) return;
     if (tipo.sensibilidad === 'FINANCIERA' && this.editandoId === null) this.form.registrar_monto = true;
     if (!tipo.requiereEntidad) this.form.id_entidad = null;
+  }
+
+  nombreMetodo(a: Ahorro): string {
+    return this.metodos.find(m => m.valor === a.metodo)?.nombre ?? a.metodo;
   }
 
   simbolo(moneda: string | null): string {
@@ -90,6 +104,7 @@ export class Activos implements OnInit {
     this.editandoId = null;
     this.form = this.vacio();
     this.form.id_tipo = this.tipos()[0]?.id ?? 0;
+    this.ahorro = { metodo: '', min: null, max: null };
     this.elegidosNuevo.set([]);
     this.cerrarBanco();
     this.error.set('');
@@ -105,8 +120,10 @@ export class Activos implements OnInit {
       id_entidad: a.idEntidad,
       registrar_monto: a.registrarMonto,
       moneda: a.moneda === 'USD' ? 'USD' : 'PEN',
-      monto: a.monto
+      monto: a.monto,
+      ahorro: a.ahorro
     };
+    this.ahorro = { metodo: a.ahorro?.metodo ?? '', min: a.ahorro?.min ?? null, max: a.ahorro?.max ?? null };
     this.cerrarBanco();
     this.error.set('');
     this.mostrarFormulario.set(true);
@@ -117,7 +134,8 @@ export class Activos implements OnInit {
     const datos: DatosActivo = {
       ...this.form,
       registrar_monto: this.form.registrar_monto,
-      monto: this.form.registrar_monto ? this.form.monto : null
+      monto: this.form.registrar_monto ? this.form.monto : null,
+      ahorro: this.form.registrar_monto && this.ahorro.metodo ? { ...this.ahorro } : null
     };
 
     const peticion: Observable<unknown> = this.editandoId === null

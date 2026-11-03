@@ -18,6 +18,7 @@ export interface NuevoBeneficiario {
     telefono: string;
     parentesco: string;
     claveAcceso: string;
+    codigo: string; // código que le llegó al correo del heredero
 }
 
 // Persona devuelta por la consulta de DNI

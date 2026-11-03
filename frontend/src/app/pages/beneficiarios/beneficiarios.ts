@@ -21,6 +21,11 @@ export class Beneficiarios implements OnInit {
   buscandoDni = signal(false);
   porEliminar = signal<Beneficiario | null>(null);
 
+  // Código de verificación que recibe el heredero en su correo
+  correoOriginal = ''; // al editar, solo se pide código si el correo cambia
+  enviandoCodigo = signal(false);
+  avisoCodigo = signal('');
+
   parentescos = ['Hijo/a', 'Esposo/a', 'Padre', 'Madre', 'Hermano/a', 'Otro'];
 
   nuevo: NuevoBeneficiario = this.vacio();
@@ -39,9 +44,11 @@ export class Beneficiarios implements OnInit {
 
   abrir(): void {
     this.editandoId = null;
+    this.correoOriginal = '';
     this.nuevo = this.vacio();
     this.error.set('');
     this.avisoDni.set('');
+    this.avisoCodigo.set('');
     this.mostrarFormulario.set(true);
   }
 
@@ -54,10 +61,13 @@ export class Beneficiarios implements OnInit {
       correo: b.correo ?? '',
       telefono: b.telefono ?? '',
       parentesco: b.parentesco ?? 'Otro',
-      claveAcceso: '' // vacía = no se cambia la clave
+      claveAcceso: '', // vacía = no se cambia la clave
+      codigo: ''
     };
+    this.correoOriginal = b.correo ?? '';
     this.error.set('');
     this.avisoDni.set('');
+    this.avisoCodigo.set('');
     this.mostrarFormulario.set(true);
   }
 
@@ -81,6 +91,28 @@ export class Beneficiarios implements OnInit {
       error: err => {
         this.buscandoDni.set(false);
         this.avisoDni.set((err.error?.mensaje ?? 'No se pudo consultar el DNI') + '. Puedes escribir los datos a mano.');
+      }
+    });
+  }
+
+  // Hay que pedir código al crear un heredero, o al editar si cambió el correo
+  necesitaCodigo(): boolean {
+    return this.editandoId === null || this.nuevo.correo.trim().toLowerCase() !== this.correoOriginal.toLowerCase();
+  }
+
+  enviarCodigo(): void {
+    this.avisoCodigo.set('');
+    this.error.set('');
+
+    this.enviandoCodigo.set(true);
+    this.beneficiarioService.pedirCodigo(this.nuevo.correo).subscribe({
+      next: r => {
+        this.enviandoCodigo.set(false);
+        this.avisoCodigo.set(r.mensaje + '. Pídele el código de 6 dígitos y escríbelo aquí.');
+      },
+      error: err => {
+        this.enviandoCodigo.set(false);
+        this.avisoCodigo.set(err.error?.mensaje ?? 'No se pudo enviar el código');
       }
     });
   }
@@ -123,6 +155,6 @@ export class Beneficiarios implements OnInit {
   }
 
   private vacio(): NuevoBeneficiario {
-    return { nombres: '', apellidos: '', dni: '', correo: '', telefono: '', parentesco: 'Hijo/a', claveAcceso: '' };
+    return { nombres: '', apellidos: '', dni: '', correo: '', telefono: '', parentesco: 'Hijo/a', claveAcceso: '', codigo: '' };
   }
 }

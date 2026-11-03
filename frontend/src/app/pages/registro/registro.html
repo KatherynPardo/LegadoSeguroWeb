@@ -13,6 +13,7 @@
   </section>
 
   <section class="panel-form">
+    @if (paso() === 1) {
     <form (ngSubmit)="crearCuenta()" autocomplete="off">
       <h2>Crea tu cuenta</h2>
       <p class="subtitulo">Completa tus datos para registrarte</p>
@@ -56,5 +57,30 @@
 
       <p class="enlace gris">¿Ya tienes cuenta? <a routerLink="/login"><strong>Inicia sesión</strong></a></p>
     </form>
+    } @else {
+    <form (ngSubmit)="confirmarCodigo()" autocomplete="off">
+      <h2>Confirma tu correo</h2>
+      <p class="subtitulo">Enviamos un código de 6 dígitos a <strong>{{ datos.correo }}</strong></p>
+
+      <label for="codigo">Código de verificación</label>
+      <input id="codigo" name="codigo" required maxlength="6" inputmode="numeric" autocomplete="one-time-code" [(ngModel)]="codigo" />
+
+      @if (error()) {
+      <p class="error">{{ error() }}</p>
+      }
+      @if (mensajeCodigo()) {
+      <p class="aviso">{{ mensajeCodigo() }}</p>
+      }
+
+      <button type="submit" class="boton" [disabled]="cargando() || codigo.length !== 6">
+        {{ cargando() ? 'Verificando...' : 'Confirmar y entrar' }}
+      </button>
+
+      <hr />
+
+      <p class="enlace gris">¿No te llegó? <a href="javascript:void(0)" (click)="reenviar()"><strong>Reenviar código</strong></a></p>
+      <p class="enlace gris">El código vence en 10 minutos.</p>
+    </form>
+    }
   </section>
 </div>

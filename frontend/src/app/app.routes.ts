@@ -9,6 +9,7 @@ import { Reglas } from './pages/reglas/reglas';
 import { Procesos } from './pages/procesos/procesos';
 import { Registro } from './pages/registro/registro';
 import { Admin } from './pages/admin/admin';
+import { Historial } from './pages/historial/historial';
 import { adminGuard } from './core/admin.guard';
 
 export const routes: Routes = [
@@ -22,6 +23,7 @@ export const routes: Routes = [
   { path: 'reglas', component: Reglas, canActivate: [authGuard] },
   { path: 'procesos', component: Procesos, canActivate: [authGuard] },
   { path: 'usuarios', component: Admin, canActivate: [authGuard, adminGuard] },
+  { path: 'historial', component: Historial, canActivate: [authGuard] },
   { path: 'perfil', component: Perfil, canActivate: [authGuard] },
   { path: '**', redirectTo: 'dashboard' }
 ];

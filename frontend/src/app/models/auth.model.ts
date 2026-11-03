@@ -21,6 +21,12 @@ export interface NuevoUsuario {
     password: string;
 }
 
+// Respuesta del primer paso del registro: se envió un código al correo
+export interface RegistroPendiente {
+    mensaje: string;
+    correo: string;
+}
+
 export interface UsuarioAdmin {
     id: number;
     nombres: string;

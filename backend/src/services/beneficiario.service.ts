@@ -4,6 +4,20 @@
 import bcrypt from 'bcryptjs';
 import { pool } from '../config/database';
 import { Beneficiario, EdicionBeneficiario, NuevoBeneficiario } from '../models/beneficiario.model';
+import { enviarCodigo, validarCodigo } from './verificacion.service';
+
+// Envía al correo del heredero el código que el dueño tendrá que escribir para registrarlo
+export async function enviarCodigoHeredero(correo: string, idUsuario: number): Promise<void> {
+  const dueno = await pool.query('SELECT nombres, apellidos FROM usuario WHERE id_usuario = $1', [idUsuario]);
+  const nombre = `${dueno.rows[0].nombres} ${dueno.rows[0].apellidos}`;
+
+  await enviarCodigo(
+    'HEREDERO',
+    correo,
+    idUsuario,
+    `${nombre} quiere registrarte como heredero en LegadoSeguro. Si estás de acuerdo, entrégale este código.`
+  );
+}
 
 // Errores de regla de negocio: el controlador los convierte en 404 o 409
 export class ReglaHeredero extends Error {
@@ -30,6 +44,10 @@ export async function crearBeneficiario(datos: NuevoBeneficiario, idUsuario: num
   );
   if (repetido.rows.length > 0) throw new ReglaHeredero('Ya registraste un heredero con ese DNI', 409);
 
+  // El heredero tiene que haber recibido el código en su correo: así nadie registra un correo ajeno
+  const codigoOk = await validarCodigo('HEREDERO', datos.correo, datos.codigo);
+  if (!codigoOk) throw new ReglaHeredero('El código es incorrecto o ya venció', 400);
+
   // La clave de acceso del heredero se cifra antes de guardarla
   const claveHash = await bcrypt.hash(datos.claveAcceso, 10);
 
@@ -44,6 +62,18 @@ export async function crearBeneficiario(datos: NuevoBeneficiario, idUsuario: num
 }
 
 export async function actualizarBeneficiario(id: number, datos: EdicionBeneficiario, idUsuario: number): Promise<void> {
+  const actual = await pool.query(
+    "SELECT correo FROM beneficiario WHERE id_beneficiario = $1 AND id_usuario_propietario = $2 AND estado = 'ACTIVO'",
+    [id, idUsuario]
+  );
+  if (actual.rows.length === 0) throw new ReglaHeredero('Heredero no encontrado', 404);
+
+  // Si cambia el correo, el nuevo correo también se tiene que verificar con un código
+  if (actual.rows[0].correo !== datos.correo) {
+    const codigoOk = datos.codigo ? await validarCodigo('HEREDERO', datos.correo, datos.codigo) : false;
+    if (!codigoOk) throw new ReglaHeredero('Al cambiar el correo debes ingresar el código que le llegó al heredero', 400);
+  }
+
   const claveHash = datos.claveAcceso ? await bcrypt.hash(datos.claveAcceso, 10) : null;
 
   const resultado = await pool.query(

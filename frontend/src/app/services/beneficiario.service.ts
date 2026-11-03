@@ -19,6 +19,11 @@ export class BeneficiarioService {
         return this.http.post<{ id: number }>(this.apiUrl, datos);
     }
 
+    // El backend envía un código de 6 dígitos al correo del heredero
+    pedirCodigo(correo: string): Observable<{ mensaje: string }> {
+        return this.http.post<{ mensaje: string }>(`${this.apiUrl}/codigo`, { correo });
+    }
+
     actualizarBeneficiario(id: number, datos: NuevoBeneficiario): Observable<{ mensaje: string }> {
         return this.http.put<{ mensaje: string }>(`${this.apiUrl}/${id}`, datos);
     }

@@ -4,6 +4,13 @@ export interface HeredAsignado {
     nombre: string;
 }
 
+// Método de ahorro del usuario y el rango que espera ahorrar con ese método
+export interface Ahorro {
+    metodo: string;
+    min: number | null;
+    max: number | null;
+}
+
 // Molde de un activo digital: mismas columnas que devuelve /api/activos.
 export interface Activo {
     id: number;
@@ -18,6 +25,7 @@ export interface Activo {
     registrarMonto: boolean;
     moneda: string | null;
     monto: number | null;
+    ahorro: Ahorro | null;
     herederos: HeredAsignado[];
 }
 
@@ -30,6 +38,7 @@ export interface DatosActivo {
     registrar_monto: boolean;
     moneda: 'PEN' | 'USD';
     monto: number | null;
+    ahorro: Ahorro | null;
 }
 
 export interface NuevoActivo extends DatosActivo {

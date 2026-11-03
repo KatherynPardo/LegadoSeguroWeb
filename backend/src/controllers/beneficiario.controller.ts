@@ -2,7 +2,8 @@
 
 import { Request, Response } from 'express';
 import {
-  listarBeneficiarios, crearBeneficiario, actualizarBeneficiario, eliminarBeneficiario, ReglaHeredero
+  listarBeneficiarios, crearBeneficiario, actualizarBeneficiario, eliminarBeneficiario,
+  enviarCodigoHeredero, ReglaHeredero
 } from '../services/beneficiario.service';
 import { esCorreo, esDni, esTelefono, texto } from '../utils/validar';
 
@@ -39,6 +40,22 @@ export async function obtenerBeneficiarios(req: Request, res: Response) {
   }
 }
 
+// Pide que se envíe el código de verificación al correo del heredero
+export async function pedirCodigo(req: Request, res: Response) {
+  const correo = texto(req.body.correo, 150);
+  if (!correo || !esCorreo(correo)) {
+    res.status(400).json({ mensaje: 'Escribe un correo válido para el heredero' });
+    return;
+  }
+
+  try {
+    await enviarCodigoHeredero(correo.toLowerCase(), res.locals.usuarioId);
+    res.json({ mensaje: 'Enviamos el código al correo del heredero' });
+  } catch (error) {
+    responderError(error, res, 'enviar el código');
+  }
+}
+
 export async function registrarBeneficiario(req: Request, res: Response) {
   const campos = leerCampos(req.body);
   if (typeof campos === 'string') {
@@ -53,10 +70,14 @@ export async function registrarBeneficiario(req: Request, res: Response) {
     res.status(400).json({ mensaje: 'La clave de acceso debe tener al menos 6 caracteres' });
     return;
   }
+  if (typeof req.body.codigo !== 'string' || !/^\d{6}$/.test(req.body.codigo)) {
+    res.status(400).json({ mensaje: 'Ingresa el código de 6 dígitos que recibió el heredero' });
+    return;
+  }
 
   try {
     const id = await crearBeneficiario(
-      { ...campos, dni: req.body.dni, claveAcceso: req.body.claveAcceso },
+      { ...campos, dni: req.body.dni, claveAcceso: req.body.claveAcceso, codigo: req.body.codigo },
       res.locals.usuarioId
     );
     res.status(201).json({ id });
@@ -86,7 +107,11 @@ export async function editarBeneficiario(req: Request, res: Response) {
   }
 
   try {
-    await actualizarBeneficiario(id, { ...campos, claveAcceso: clave ? clave : null }, res.locals.usuarioId);
+    await actualizarBeneficiario(
+      id,
+      { ...campos, claveAcceso: clave ? clave : null, codigo: req.body.codigo ? String(req.body.codigo) : null },
+      res.locals.usuarioId
+    );
     res.json({ mensaje: 'Heredero actualizado' });
   } catch (error) {
     responderError(error, res, 'actualizar el heredero');

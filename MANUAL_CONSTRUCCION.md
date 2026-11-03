@@ -172,6 +172,11 @@ PORT=5000
 JWT_SECRET=una-cadena-larga-y-secreta
 DNI_PROVIDER=apiperu
 DNI_API_TOKEN=
+ENCRYPTION_KEY=otra-frase-larga-que-no-cambiaras
+# Opcional, para enviar correos de verdad (ver Paso 8.3):
+# SMTP_HOST=smtp.gmail.com
+# SMTP_USER=tucorreo@gmail.com
+# SMTP_PASS=
 ```
 
 > El `.env` **nunca** se sube a GitHub: está en `backend/.gitignore`.
@@ -312,6 +317,7 @@ Son datos ficticios, solo para desarrollo.
 | Procesos | `/procesos` | Ver los procesos de liberación, su detalle (activos, confirmaciones, objeciones, entregas) y cancelarlos |
 | Registro | `/registro` | Crear una cuenta nueva |
 | Usuarios | `/usuarios` | Solo administrador: ver cuentas y activarlas o desactivarlas |
+| Mi Historial | `/historial` | Ver sus propias acciones e ingresos, con fecha e IP |
 | Mi Perfil | `/perfil` | Editar datos personales y cambiar la contraseña |
 
 ### Endpoints de la API
@@ -332,7 +338,11 @@ Son datos ficticios, solo para desarrollo.
 | GET / POST | `/api/entidades` | Sí | Catálogo de bancos y alta de uno nuevo |
 | PUT / DELETE | `/api/beneficiarios/:id` | Sí | Editar un heredero / eliminarlo (queda INACTIVO) |
 | PUT | `/api/activos/:id/beneficiarios` | Sí | Reemplaza los herederos de un activo (lista de ids) |
-| POST | `/api/auth/registro` | No | Crear cuenta nueva (rol PROPIETARIO) |
+| POST | `/api/auth/verificar-correo` | No | Confirma el correo con el código de 6 dígitos y activa la cuenta |
+| POST | `/api/auth/reenviar-codigo` | No | Reenvía el código a una cuenta pendiente |
+| POST | `/api/beneficiarios/codigo` | Sí | Envía el código al correo de un heredero |
+| GET | `/api/historial` | Sí | Acciones e ingresos del propio usuario |
+| POST | `/api/auth/registro` | No | Paso 1 del registro: crea la cuenta pendiente y envía el código |
 | GET | `/api/admin/usuarios` | Admin | Listar todos los usuarios |
 | GET | `/api/admin/auditoria` | Admin | Últimas 100 acciones con usuario e IP |
 | PATCH | `/api/admin/usuarios/:id/estado` | Admin | Activar o desactivar una cuenta |
@@ -378,6 +388,10 @@ El backend consulta un servicio externo (apiperu.dev). El token vive en el `.env
 ## Fase 6 · Puesta en marcha
 
 Se necesitan **dos terminales abiertas a la vez**.
+
+### Antes de empezar: la base de datos
+
+En Supabase → **SQL Editor**, ejecuta **en orden** los archivos de `supabase/migrations/` del `001` al `009` (ver `supabase/README.md`). Hay 26 tablas más `codigo_verificacion` (27 en total).
 
 ### Terminal 1: backend
 
@@ -425,36 +439,101 @@ El `.env` está ignorado por Git, así que las claves no se suben.
 | `This command is not available when running the Angular CLI outside a workspace` | Estás en la carpeta equivocada | `cd frontend` |
 | La pantalla no muestra los datos | Los datos no están en un signal (Angular sin zone.js) | Guardar los datos en un `signal` |
 | El navegador muestra algo viejo | Caché | `Ctrl+F5` |
+| `tsx` no se reconoce | No se instalaron las dependencias del backend | `npm install` dentro de `backend` |
+| No llega el código al correo | No hay SMTP en el `.env` | El código aparece en la consola del backend (Paso 8.3) |
+| `El código es incorrecto o ya venció` | Pasaron 10 minutos, se usó 5 veces o ya se usó | Pedir un código nuevo |
+| Los montos se ven como `enc:...` | Se cambió `ENCRYPTION_KEY` después de guardar datos | Volver a poner la llave original |
 | `401` al llamar a la API | No hay sesión o expiró | Iniciar sesión de nuevo |
 
 ---
 
-## Pendientes del proyecto
+## Fase 8 · Seguridad y control (paso a paso)
 
-- Editar y eliminar activos y beneficiarios.
-- Asignar beneficiarios a cada activo (`activo_beneficiario`).
-- Registro de usuarios y recuperación de contraseña por correo.
+Esta fase explica, una por una, las piezas que protegen el sistema. Cada paso dice **qué es**, **para qué sirve**, **dónde está el código** y **cómo comprobarlo**.
+
+### Paso 8.1: Registro con el DNI verificado en RENIEC
+
+- **Qué es:** en `/registro` se escribe el DNI y se pulsa **Buscar**. Los nombres salen de RENIEC (servicio apiperu.dev) y no se pueden cambiar.
+- **Para qué sirve:** que nadie se registre con nombres inventados.
+- **Dónde está:** `backend/src/services/reniec.service.ts` y `controllers/auth.controller.ts`. Al crear la cuenta, el backend **vuelve a consultar** RENIEC y usa esos nombres, no los que mande el navegador.
+- **Si no hay token** en el `.env`, se aceptan los datos escritos a mano (la pantalla lo avisa).
+- **Protección:** la consulta pública está limitada a 10 por minuto por IP (`middlewares/limite.middleware.ts`) para no gastar el token.
+- **Cómo comprobarlo:** escribe un DNI real, pulsa **Buscar** y mira que se llenen los nombres.
+
+### Paso 8.2: Confirmar el correo con un código
+
+- **Qué es:** al crear la cuenta, el sistema envía un código de **6 dígitos** al correo. La cuenta queda `PENDIENTE` y no puede iniciar sesión hasta escribir el código.
+- **Para qué sirve:** comprobar que el correo es de verdad de la persona.
+- **Cómo funciona:**
+  1. `POST /api/auth/registro` guarda la cuenta como `PENDIENTE` y envía el código.
+  2. `POST /api/auth/verificar-correo` recibe el código; si es correcto, la cuenta pasa a `ACTIVO` y se inicia la sesión.
+  3. `POST /api/auth/reenviar-codigo` manda uno nuevo si no llegó.
+- **Reglas del código** (`services/verificacion.service.ts`): vale **10 minutos**, se puede intentar **5 veces**, solo sirve **una vez** y se guarda cifrado (bcrypt) en la tabla `codigo_verificacion`.
+- **Cómo comprobarlo:** regístrate y mira la consola del backend (ver Paso 8.3).
+
+### Paso 8.3: Enviar correos (o verlos en la consola)
+
+- **Qué es:** `services/correo.service.ts` envía los correos con la librería `nodemailer`.
+- **Modo prueba (sin configurar nada):** si en el `.env` no está `SMTP_HOST`, el correo **no se envía**: aparece escrito en la consola del backend, con el código. Es lo ideal para probar y exponer.
+- **Modo real (Gmail):** activa la verificación en 2 pasos de tu cuenta, crea una "contraseña de aplicación" y completa en el `.env`:
+
+```
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=tucorreo@gmail.com
+SMTP_PASS=la-contraseña-de-aplicación
+SMTP_FROM=LegadoSeguro <tucorreo@gmail.com>
+```
+
+### Paso 8.4: Código para registrar a un heredero
+
+- **Qué es:** al registrar un heredero, el sistema envía un código al **correo del heredero**. El dueño tiene que pedírselo al heredero y escribirlo para poder guardar.
+- **Para qué sirve:** evitar la **suplantación de identidad**. Si alguien pone un correo ajeno, no recibirá el código y no podrá registrarlo.
+- **Dónde está:** `POST /api/beneficiarios/codigo` envía el código, y `POST /api/beneficiarios` lo exige (`services/beneficiario.service.ts`). Al **editar** un heredero, el código solo se pide si cambia su correo.
+- **Cómo comprobarlo:** en **Mis Herederos → Nuevo Heredero**, pulsa "Enviar código al correo del heredero", copia el código de la consola del backend y pégalo.
+
+### Paso 8.5: Cifrado de datos sensibles
+
+- **Qué es:** la descripción, el monto, el historial de montos y los datos de ahorro se guardan **cifrados** con **AES-256-GCM** (viene incluido en Node, archivo `utils/cifrado.ts`).
+- **Para qué sirve:** si alguien lograra copiar la base de datos, vería texto ilegible como `enc:D8yf...`, no tus montos.
+- **La llave:** `ENCRYPTION_KEY` en el `.env`. **No la cambies después de guardar datos**, porque lo cifrado con una llave solo se lee con esa misma llave.
+- **Contraseñas:** siguen guardándose con **bcrypt**, que no se puede descifrar (solo comparar).
+- **Datos anteriores:** si ya había datos sin cifrar, primero pon `ENCRYPTION_KEY` en el `.env` y luego ejecuta una sola vez:
+
+```powershell
+cd backend
+npm run cifrar
+```
+
+- **Cómo comprobarlo:** en Supabase → Table Editor → `activo_digital`, las columnas `descripcion` y `monto_cifrado` empiezan con `enc:`; en la aplicación se ven normales.
+
+### Paso 8.6: Bancos, montos y método de ahorro
+
+- **Bancos:** catálogo `entidad_financiera` (BCP, BBVA, Interbank, Scotiabank, Caja Cusco...). El botón **Nuevo banco** agrega uno; los que crea un usuario solo los ve él. El banco es obligatorio solo si el tipo lo pide (`tipo_activo.requiere_entidad`, hoy "Cuenta bancaria").
+- **Monto:** el check "Registrar el monto de este activo" sirve en **cualquier** activo (por ejemplo, una cuenta monetizada). En los financieros viene marcado. Se elige moneda (soles o dólares) y monto exacto.
+- **Historial de montos:** cada cambio de monto o moneda guarda una fila en `historial_monto` con fecha, usuario e IP (botón del reloj en la tabla). Si se desmarca el check, se borran el monto y su historial.
+- **Método de ahorro (opcional):** ahorro libre, aporte mensual fijo, aporte quincenal fijo, porcentaje del sueldo o meta. Cada método lleva un **rango mínimo y máximo** que se puede cambiar cuando se quiera, editando el activo.
+
+### Paso 8.7: Validaciones y eliminación
+
+- **Validaciones:** todos los campos obligatorios se revisan en el backend (`utils/validar.ts` y los controladores): textos con máximo de largo, correo válido, teléfono de 9 dígitos, DNI de 8. El frontend además desactiva el botón **Guardar** mientras falte algo.
+- **Eliminar:** un activo o un heredero no se borra de la base: queda `INACTIVO`, para no romper los procesos pasados. No se puede eliminar si participa en un proceso de liberación abierto.
+
+### Paso 8.8: Auditoría, IP e historial
+
+- **IP:** se guarda en `usuario.ip_registro`, `actividad_usuario.ip_origen` y `auditoria.ip_origen`. En local aparece `::1` (la propia computadora).
+- **Mi Historial** (`/historial`): cada usuario ve sus propias acciones e ingresos con fecha e IP.
+- **Auditoría del administrador** (`/usuarios`): el administrador ve todas las acciones del sistema.
+
+### Paso 8.9: Usuario administrador
+
+La migración `006_usuario_admin.sql` crea `admin@legadoseguro.pe` (contraseña de prueba `Admin2026!`) con rol `ADMINISTRADOR`. El backend revisa el rol en la base en cada petición a `/api/admin` (`middlewares/admin.middleware.ts`) y el frontend oculta el menú y bloquea la ruta (`core/admin.guard.ts`). Un usuario desactivado ya no puede iniciar sesión.
+
+---
+
+## Fase 9 · Pendientes del proyecto
+
+- Recuperación de contraseña por correo (ya existe la tabla `token_recuperacion` y el envío de correos).
+- Portal del heredero (React): aquí se usará el mismo código por correo para que cada heredero confirme su identidad dentro del proceso de liberación.
 - Planes, suscripciones y pagos con Culqi (modo de pruebas).
-- Portal del heredero en React.
 - Despliegue.
-
-
-## Registro con DNI de RENIEC
-
-En `/registro` se escribe el DNI y se pulsa **Buscar**: los nombres y apellidos vienen de RENIEC (apiperu.dev) y quedan de solo lectura. Al crear la cuenta, el backend vuelve a consultar RENIEC y usa esos nombres, no los que mande el navegador; si el DNI no existe, rechaza el registro. Si no hay token configurado, se aceptan los datos escritos a mano. La consulta pública está limitada a 10 por minuto por IP para no gastar el token.
-
-## Bancos, montos e historial
-
-La migración `008_bancos_y_montos.sql` agrega `entidad_financiera` (catálogo; los bancos que crea un usuario solo los ve él) e `historial_monto`, y a `activo_digital` las columnas `id_entidad`, `moneda` (PEN o USD), `monto` y `registrar_monto`. El banco solo es obligatorio si el tipo de activo lo pide (`tipo_activo.requiere_entidad`, hoy "Cuenta bancaria"). El monto se puede activar en cualquier activo (por ejemplo, una cuenta monetizada); en los financieros viene marcado por defecto. Cada cambio de monto o moneda crea una fila en el historial con fecha, usuario e IP. Si se desmarca "registrar monto", se borran el monto y su historial.
-
-## Validaciones y eliminación
-
-Los controladores validan que todos los campos obligatorios lleguen completos y con formato correcto (`utils/validar.ts`). Eliminar un activo o un heredero lo marca `INACTIVO` en lugar de borrarlo, para no romper procesos pasados; no se permite si participa en un proceso de liberación abierto.
-
-## Auditoría e IP
-
-La migración `007_auditoria_ip.sql` agrega `ip_registro` (en `usuario`) e `ip_origen` (en `actividad_usuario` y `auditoria`). La IP se toma de `req.ip` (`utils/ip.ts`). Se guarda al registrarse, al iniciar sesión y al activar o desactivar una cuenta. En local aparece `::1` (la propia máquina); detrás de un proxy hay que activar `trust proxy` en `app.ts`. La fecha de creación de cada cuenta es `usuario.fecha_registro`.
-
-## Usuario administrador
-
-La migración `006_usuario_admin.sql` crea la cuenta `admin@legadoseguro.pe` (contraseña de prueba `Admin2026!`) con el rol `ADMINISTRADOR`. El backend valida el rol consultando la base en cada petición a `/api/admin` (middleware `soloAdmin`), y el frontend oculta el menú y bloquea la ruta con `adminGuard`. Un usuario desactivado ya no puede iniciar sesión.

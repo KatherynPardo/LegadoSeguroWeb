@@ -5,6 +5,7 @@
 import { PoolClient } from 'pg';
 import { pool } from '../config/database';
 import { Activo, DatosActivo, MontoHistorico, NuevoActivo } from '../models/activo.model';
+import { cifrar, descifrar } from '../utils/cifrado';
 
 type Db = Pick<PoolClient, 'query'>;
 
@@ -15,12 +16,21 @@ export class ReglaActivo extends Error {
   }
 }
 
+// Lo que se guarda en la base va cifrado. Si el activo no lleva monto (o ahorro), no se guarda nada.
+function cifrarMonto(datos: DatosActivo): string | null {
+  return datos.registrar_monto && datos.monto !== null ? cifrar(String(datos.monto)) : null;
+}
+
+function cifrarAhorro(datos: DatosActivo): string | null {
+  return datos.registrar_monto && datos.ahorro ? cifrar(JSON.stringify(datos.ahorro)) : null;
+}
+
 export async function listarActivos(idUsuario: number): Promise<Activo[]> {
-  const resultado = await pool.query<Activo>(
+  const resultado = await pool.query(
     `SELECT a.id_activo AS id, a.nombre, a.descripcion,
             a.id_tipo AS "idTipo", t.nombre AS tipo, t.categoria_sensibilidad AS sensibilidad, a.estado,
             a.id_entidad AS "idEntidad", e.nombre AS entidad,
-            a.registrar_monto AS "registrarMonto", a.moneda, a.monto::float8 AS monto,
+            a.registrar_monto AS "registrarMonto", a.moneda, a.monto::float8 AS monto_plano, a.monto_cifrado, a.ahorro_cifrado,
             COALESCE((
               SELECT json_agg(json_build_object('id', b.id_beneficiario, 'nombre', b.nombres || ' ' || b.apellidos)
                               ORDER BY ab.prioridad)
@@ -35,7 +45,19 @@ export async function listarActivos(idUsuario: number): Promise<Activo[]> {
      ORDER BY a.id_activo`,
     [idUsuario]
   );
-  return resultado.rows;
+
+  // Descripción, monto y datos de ahorro están cifrados en la base: aquí se leen en claro
+  return resultado.rows.map(fila => {
+    const { monto_plano, monto_cifrado, ahorro_cifrado, ...resto } = fila;
+    const montoTexto = monto_cifrado ? descifrar(monto_cifrado) : null;
+    const ahorroTexto = ahorro_cifrado ? descifrar(ahorro_cifrado) : null;
+    return {
+      ...resto,
+      descripcion: descifrar(fila.descripcion),
+      monto: montoTexto !== null ? Number(montoTexto) : monto_plano,
+      ahorro: ahorroTexto ? JSON.parse(ahorroTexto) : null
+    } as Activo;
+  });
 }
 
 // Reglas que dependen de la base: el tipo existe, el banco es válido si se pide, el monto va con moneda
@@ -81,8 +103,8 @@ async function guardarAsignacion(db: Db, idActivo: number, ids: number[]): Promi
 
 async function anotarMonto(db: Db, idActivo: number, monto: number, moneda: string, idUsuario: number, ip: string | null) {
   await db.query(
-    `INSERT INTO historial_monto (id_activo, monto, moneda, id_usuario, ip_origen) VALUES ($1, $2, $3, $4, $5)`,
-    [idActivo, monto, moneda, idUsuario, ip]
+    `INSERT INTO historial_monto (id_activo, monto_cifrado, moneda, id_usuario, ip_origen) VALUES ($1, $2, $3, $4, $5)`,
+    [idActivo, cifrar(String(monto)), moneda, idUsuario, ip]
   );
 }
 
@@ -98,11 +120,11 @@ export async function crearActivo(datos: NuevoActivo, idUsuario: number, ip: str
     }
 
     const resultado = await cliente.query(
-      `INSERT INTO activo_digital (id_usuario, id_tipo, nombre, descripcion, id_entidad, registrar_monto, moneda, monto)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `INSERT INTO activo_digital (id_usuario, id_tipo, nombre, descripcion, id_entidad, registrar_monto, moneda, monto_cifrado, ahorro_cifrado)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING id_activo AS id`,
-      [idUsuario, datos.id_tipo, datos.nombre, datos.descripcion, datos.id_entidad,
-       datos.registrar_monto, datos.moneda, datos.monto]
+      [idUsuario, datos.id_tipo, datos.nombre, cifrar(datos.descripcion), datos.id_entidad,
+       datos.registrar_monto, datos.moneda, cifrarMonto(datos), cifrarAhorro(datos)]
     );
     const id = resultado.rows[0].id;
     await guardarAsignacion(cliente, id, ids);
@@ -129,7 +151,7 @@ export async function actualizarActivo(id: number, datos: DatosActivo, idUsuario
     await cliente.query('BEGIN');
 
     const actual = await cliente.query(
-      `SELECT registrar_monto, moneda, monto::float8 AS monto FROM activo_digital
+      `SELECT registrar_monto, moneda, monto::float8 AS monto_plano, monto_cifrado FROM activo_digital
        WHERE id_activo = $1 AND id_usuario = $2 AND estado = 'ACTIVO' FOR UPDATE`,
       [id, idUsuario]
     );
@@ -140,15 +162,16 @@ export async function actualizarActivo(id: number, datos: DatosActivo, idUsuario
     await cliente.query(
       `UPDATE activo_digital
        SET id_tipo = $1, nombre = $2, descripcion = $3, id_entidad = $4,
-           registrar_monto = $5, moneda = $6, monto = $7
-       WHERE id_activo = $8`,
-      [datos.id_tipo, datos.nombre, datos.descripcion, datos.id_entidad,
-       datos.registrar_monto, datos.moneda, datos.monto, id]
+           registrar_monto = $5, moneda = $6, monto = NULL, monto_cifrado = $7, ahorro_cifrado = $8
+       WHERE id_activo = $9`,
+      [datos.id_tipo, datos.nombre, cifrar(datos.descripcion), datos.id_entidad,
+       datos.registrar_monto, datos.moneda, cifrarMonto(datos), cifrarAhorro(datos), id]
     );
 
     if (datos.registrar_monto) {
       const previo = actual.rows[0];
-      const cambio = !previo.registrar_monto || previo.monto !== datos.monto || previo.moneda !== datos.moneda;
+      const montoPrevio = previo.monto_cifrado ? Number(descifrar(previo.monto_cifrado)) : previo.monto_plano;
+      const cambio = !previo.registrar_monto || montoPrevio !== datos.monto || previo.moneda !== datos.moneda;
       if (cambio) await anotarMonto(cliente, id, datos.monto!, datos.moneda!, idUsuario, ip);
     } else {
       await cliente.query('DELETE FROM historial_monto WHERE id_activo = $1', [id]);
@@ -242,8 +265,8 @@ export async function historialDeMontos(idActivo: number, idUsuario: number): Pr
   );
   if (activo.rows.length === 0) return null;
 
-  const resultado = await pool.query<MontoHistorico>(
-    `SELECT h.fecha, h.monto::float8 AS monto, h.moneda,
+  const resultado = await pool.query(
+    `SELECT h.fecha, h.monto::float8 AS monto_plano, h.monto_cifrado, h.moneda,
             COALESCE(u.nombres || ' ' || u.apellidos, 'Sistema') AS usuario
      FROM historial_monto h
      LEFT JOIN usuario u ON u.id_usuario = h.id_usuario
@@ -251,5 +274,10 @@ export async function historialDeMontos(idActivo: number, idUsuario: number): Pr
      ORDER BY h.fecha DESC, h.id_historial DESC`,
     [idActivo]
   );
-  return resultado.rows;
+  return resultado.rows.map(fila => ({
+    fecha: fila.fecha,
+    monto: fila.monto_cifrado ? Number(descifrar(fila.monto_cifrado)) : fila.monto_plano,
+    moneda: fila.moneda,
+    usuario: fila.usuario
+  })) as MontoHistorico[];
 }

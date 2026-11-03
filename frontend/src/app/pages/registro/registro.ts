@@ -19,6 +19,11 @@ export class Registro {
   aviso = signal('');
   verificado = signal(false); // true cuando los nombres vinieron de RENIEC
 
+  // Paso 1 = datos, paso 2 = código que llegó al correo
+  paso = signal(1);
+  codigo = '';
+  mensajeCodigo = signal('');
+
   constructor(private auth: AuthService, private router: Router) {}
 
   // Trae nombres y apellidos de RENIEC. Si el servicio no responde, se pueden escribir a mano.
@@ -57,11 +62,37 @@ export class Registro {
 
     this.cargando.set(true);
     this.auth.registrar(this.datos).subscribe({
-      next: () => this.router.navigate(['/dashboard']),
+      next: () => {
+        this.cargando.set(false);
+        this.paso.set(2);
+      },
       error: err => {
         this.cargando.set(false);
         this.error.set(err.error?.mensaje ?? 'No se pudo conectar con el servidor');
       }
+    });
+  }
+
+  // Paso 2: se envía el código; si es correcto, entra al sistema
+  confirmarCodigo(): void {
+    this.error.set('');
+    this.mensajeCodigo.set('');
+    this.cargando.set(true);
+
+    this.auth.verificarCorreo(this.datos.correo.trim().toLowerCase(), this.codigo).subscribe({
+      next: () => this.router.navigate(['/dashboard']),
+      error: err => {
+        this.cargando.set(false);
+        this.error.set(err.error?.mensaje ?? 'No se pudo verificar el código');
+      }
+    });
+  }
+
+  reenviar(): void {
+    this.error.set('');
+    this.auth.reenviarCodigo(this.datos.correo.trim().toLowerCase()).subscribe({
+      next: r => this.mensajeCodigo.set(r.mensaje),
+      error: err => this.error.set(err.error?.mensaje ?? 'No se pudo reenviar el código')
     });
   }
 }

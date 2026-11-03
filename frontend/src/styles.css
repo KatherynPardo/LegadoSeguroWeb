@@ -111,3 +111,51 @@
     padding-right: 16px;
   }
 }
+
+/* ===== Botones de acción en tablas (icono, con la paleta de LegadoSeguro) ===== */
+.botones-fila {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.accion {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #6B7280;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.accion:hover,
+.accion:focus-visible {
+  background: #EEF3FA;
+  border-color: #D5E1F2;
+  color: #1A4E8A;
+  outline: none;
+}
+
+.accion.peligro:hover,
+.accion.peligro:focus-visible {
+  background: #FDECEC;
+  border-color: #F6C9C9;
+  color: var(--lg-error);
+}
+
+.accion svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

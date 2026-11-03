@@ -36,14 +36,6 @@
   color: #9CA3AF;
 }
 
-.botones-fila {
-  white-space: nowrap;
-  text-align: right;
-}
-
-.botones-fila .btn {
-  margin-left: 4px;
-}
 
 .nuevo-banco {
   margin-top: 8px;

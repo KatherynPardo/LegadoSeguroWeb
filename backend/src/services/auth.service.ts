@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { pool } from '../config/database';
 import { JWT_SECRET } from '../config/env';
+import { enviarCodigo, validarCodigo } from './verificacion.service';
 
 export type Sesion = {
   token: string;
@@ -53,22 +54,51 @@ export async function iniciarSesion(correo: string, password: string, ip: string
   return crearSesion(usuario);
 }
 
-// Crea una cuenta nueva con rol PROPIETARIO. Devuelve null si el correo o el DNI ya existen.
-export async function registrarUsuario(datos: NuevoUsuario, ip: string | null): Promise<Sesion | null> {
+// Paso 1 del registro: guarda la cuenta como PENDIENTE y envía un código al correo.
+// Devuelve false si el correo o el DNI ya pertenecen a una cuenta confirmada.
+export async function registrarUsuario(datos: NuevoUsuario, ip: string | null): Promise<boolean> {
   const existe = await pool.query(
-    'SELECT 1 FROM usuario WHERE correo = $1 OR dni = $2',
+    "SELECT 1 FROM usuario WHERE (correo = $1 OR dni = $2) AND estado <> 'PENDIENTE'",
     [datos.correo, datos.dni]
   );
-  if (existe.rows.length > 0) return null;
+  if (existe.rows.length > 0) return false;
+
+  // Si alguien empezó el registro y nunca confirmó, se descarta esa cuenta pendiente y se crea de nuevo
+  await pool.query("DELETE FROM usuario WHERE (correo = $1 OR dni = $2) AND estado = 'PENDIENTE'", [datos.correo, datos.dni]);
 
   const hash = await bcrypt.hash(datos.password, 10);
 
   const resultado = await pool.query(
-    `INSERT INTO usuario (id_rol, nombres, apellidos, dni, correo, password_hash, telefono, ip_registro)
-     VALUES ((SELECT id_rol FROM rol WHERE nombre = 'PROPIETARIO'), $1, $2, $3, $4, $5, $6, $7)
-     RETURNING id_usuario, nombres, apellidos, correo`,
+    `INSERT INTO usuario (id_rol, nombres, apellidos, dni, correo, password_hash, telefono, ip_registro, estado)
+     VALUES ((SELECT id_rol FROM rol WHERE nombre = 'PROPIETARIO'), $1, $2, $3, $4, $5, $6, $7, 'PENDIENTE')
+     RETURNING id_usuario`,
     [datos.nombres, datos.apellidos, datos.dni, datos.correo, hash, datos.telefono, ip]
   );
+
+  await enviarCodigo('REGISTRO', datos.correo, resultado.rows[0].id_usuario, 'Usa este código para confirmar tu correo y activar tu cuenta.');
+  return true;
+}
+
+// Reenvía el código a una cuenta que todavía está PENDIENTE
+export async function reenviarCodigoRegistro(correo: string): Promise<boolean> {
+  const usuario = await pool.query("SELECT id_usuario FROM usuario WHERE correo = $1 AND estado = 'PENDIENTE'", [correo]);
+  if (usuario.rows.length === 0) return false;
+
+  await enviarCodigo('REGISTRO', correo, usuario.rows[0].id_usuario, 'Usa este código para confirmar tu correo y activar tu cuenta.');
+  return true;
+}
+
+// Paso 2 del registro: si el código es correcto, la cuenta pasa a ACTIVO y se inicia la sesión.
+export async function confirmarCorreo(correo: string, codigo: string, ip: string | null): Promise<Sesion | null> {
+  const codigoCorrecto = await validarCodigo('REGISTRO', correo, codigo);
+  if (!codigoCorrecto) return null;
+
+  const resultado = await pool.query(
+    `UPDATE usuario SET estado = 'ACTIVO' WHERE correo = $1 AND estado = 'PENDIENTE'
+     RETURNING id_usuario, nombres, apellidos, correo`,
+    [correo]
+  );
+  if (resultado.rows.length === 0) return null;
   const idUsuario = resultado.rows[0].id_usuario;
 
   await pool.query(
@@ -77,7 +107,7 @@ export async function registrarUsuario(datos: NuevoUsuario, ip: string | null): 
   );
   await pool.query(
     `INSERT INTO auditoria (id_usuario, accion, entidad, id_entidad, descripcion, ip_origen)
-     VALUES ($1, 'REGISTRAR_USUARIO', 'usuario', $1, 'Cuenta creada desde el formulario de registro', $2)`,
+     VALUES ($1, 'REGISTRAR_USUARIO', 'usuario', $1, 'Cuenta creada y correo confirmado con código', $2)`,
     [idUsuario, ip]
   );
 
