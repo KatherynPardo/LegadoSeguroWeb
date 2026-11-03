@@ -66,7 +66,7 @@
   </div>
 </section>
 
-<app-modal [titulo]="editandoId === null ? 'Nuevo activo digital' : 'Editar activo'" [abierto]="mostrarFormulario()" (cerrar)="mostrarFormulario.set(false)">
+<app-modal [titulo]="editandoId === null ? 'Nuevo activo digital' : 'Editar activo'" [abierto]="mostrarFormulario()" [ancho]="true" (cerrar)="mostrarFormulario.set(false)">
   <form class="campos" #f="ngForm" (ngSubmit)="guardar()">
     <label for="nombre">Nombre</label>
     <input id="nombre" name="nombre" class="form-control" required maxlength="150" [(ngModel)]="form.nombre" />
@@ -134,12 +134,13 @@
       </div>
       <div class="fila-monto">
         <div>
-          <label for="diaPago">Día de pago (1 a 31)</label>
-          <input id="diaPago" name="diaPago" type="number" class="form-control" required min="1" max="31" [(ngModel)]="form.tarjeta.diaPago" />
+          <label for="diaPago">Día de pago</label>
+          <input id="diaPago" name="diaPago" type="number" class="form-control" required min="1" max="31" placeholder="1 a 31" [(ngModel)]="form.tarjeta.diaPago" />
         </div>
         <div>
-          <label for="diaCierre">Cierre de facturación (día)</label>
-          <input id="diaCierre" name="diaCierre" type="number" class="form-control" required min="1" max="31" [(ngModel)]="form.tarjeta.diaCierre" />
+          <label for="diaCierre">Día de cierre</label>
+          <input id="diaCierre" name="diaCierre" type="number" class="form-control" required min="1" max="31" placeholder="Fin de facturación" [(ngModel)]="form.tarjeta.diaCierre" />
+          <p class="ayuda-campo">Día del mes en que cierra tu ciclo de facturación.</p>
         </div>
       </div>
       }
