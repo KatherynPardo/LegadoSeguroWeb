@@ -9,7 +9,8 @@ const COLUMNAS = `id_regla AS id,
                   dias_inactividad AS "diasInactividad",
                   min_confirmaciones AS "minConfirmaciones",
                   dias_periodo_espera AS "diasPeriodoEspera",
-                  requiere_validador AS "requiereValidador"`;
+                  requiere_validador AS "requiereValidador",
+                  dias_gracia AS "diasGracia"`;
 
 export async function contarBeneficiarios(idUsuario: number): Promise<number> {
   const r = await pool.query(
@@ -41,14 +42,14 @@ export async function obtenerRegla(idUsuario: number): Promise<ReglaConContexto>
 }
 
 export async function guardarRegla(datos: DatosRegla, idUsuario: number): Promise<Regla> {
-  const valores = [datos.diasInactividad, datos.minConfirmaciones, datos.diasPeriodoEspera, datos.requiereValidador];
+  const valores = [datos.diasInactividad, datos.minConfirmaciones, datos.diasPeriodoEspera, datos.requiereValidador, datos.diasGracia];
   const actual = await obtenerRegla(idUsuario);
 
   if (actual.regla) {
     const r = await pool.query<Regla>(
       `UPDATE regla_liberacion
-       SET dias_inactividad = $1, min_confirmaciones = $2, dias_periodo_espera = $3, requiere_validador = $4
-       WHERE id_regla = $5
+       SET dias_inactividad = $1, min_confirmaciones = $2, dias_periodo_espera = $3, requiere_validador = $4, dias_gracia = $5
+       WHERE id_regla = $6
        RETURNING ${COLUMNAS}`,
       [...valores, actual.regla.id]
     );
@@ -57,8 +58,8 @@ export async function guardarRegla(datos: DatosRegla, idUsuario: number): Promis
 
   const r = await pool.query<Regla>(
     `INSERT INTO regla_liberacion
-       (id_usuario, dias_inactividad, min_confirmaciones, dias_periodo_espera, requiere_validador)
-     VALUES ($5, $1, $2, $3, $4)
+       (id_usuario, dias_inactividad, min_confirmaciones, dias_periodo_espera, requiere_validador, dias_gracia)
+     VALUES ($6, $1, $2, $3, $4, $5)
      RETURNING ${COLUMNAS}`,
     [...valores, idUsuario]
   );

@@ -51,3 +51,33 @@ export async function cambiarEstado(idUsuario: number, estado: 'ACTIVO' | 'INACT
   );
   return true;
 }
+
+// Alertas de inactividad enviadas, de la más reciente a la más antigua
+export async function listarAlertas() {
+  const r = await pool.query(
+    `SELECT al.id_alerta AS id, u.nombres || ' ' || u.apellidos AS usuario, u.correo,
+            rl.dias_inactividad AS "diasInactividad", al.fecha_alerta AS "fechaAlerta",
+            al.fecha_limite AS "fechaLimite", al.estado
+     FROM alerta_inactividad al
+     JOIN usuario u ON u.id_usuario = al.id_usuario
+     JOIN regla_liberacion rl ON rl.id_regla = al.id_regla
+     ORDER BY al.id_alerta DESC LIMIT 50`
+  );
+  return r.rows;
+}
+
+// Solo para pruebas: hace que el plazo de una alerta venza ya, para ver el proceso sin esperar los días
+export async function adelantarAlerta(idAlerta: number, idAdmin: number, ip: string | null): Promise<boolean> {
+  const r = await pool.query(
+    "UPDATE alerta_inactividad SET fecha_limite = NOW() WHERE id_alerta = $1 AND estado = 'ENVIADA' RETURNING id_alerta",
+    [idAlerta]
+  );
+  if (r.rows.length === 0) return false;
+
+  await pool.query(
+    `INSERT INTO auditoria (id_usuario, accion, entidad, id_entidad, descripcion, ip_origen)
+     VALUES ($1, 'ADELANTAR_ALERTA', 'alerta_inactividad', $2, 'El administrador adelantó el vencimiento de una alerta (prueba)', $3)`,
+    [idAdmin, idAlerta, ip]
+  );
+  return true;
+}

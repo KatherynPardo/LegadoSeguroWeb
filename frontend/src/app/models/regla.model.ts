@@ -5,6 +5,7 @@ export interface Regla {
     minConfirmaciones: number;
     diasPeriodoEspera: number;
     requiereValidador: boolean;
+    diasGracia: number; // días para entrar después de la alerta, antes de avisar a los herederos
 }
 
 // Datos que se envían al guardar (sin el id)

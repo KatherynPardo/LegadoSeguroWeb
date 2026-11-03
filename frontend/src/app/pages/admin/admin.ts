@@ -9,7 +9,7 @@ import { TipoActivo } from '../../models/activo.model';
 import { DatosRequisito, Requisito } from '../../models/documento.model';
 import { Modal } from '../../components/modal/modal';
 import { AuthService } from '../../services/auth.service';
-import { RegistroAuditoria, UsuarioAdmin } from '../../models/auth.model';
+import { AlertaInactividad, RegistroAuditoria, ResumenMonitoreo, UsuarioAdmin } from '../../models/auth.model';
 
 @Component({
   selector: 'app-admin',
@@ -22,6 +22,12 @@ export class Admin implements OnInit {
   auditoria = signal<RegistroAuditoria[]>([]);
   cargado = signal(false);
   error = signal('');
+
+  // Monitoreo de inactividad
+  alertas = signal<AlertaInactividad[]>([]);
+  resumen = signal<ResumenMonitoreo | null>(null);
+  ejecutando = signal(false);
+  mensajeMonitoreo = signal('');
 
   // Catálogo de documentos que se les pide a los herederos
   requisitos = signal<Requisito[]>([]);
@@ -41,6 +47,7 @@ export class Admin implements OnInit {
   ngOnInit(): void {
     this.cargar();
     this.cargarRequisitos();
+    this.cargarAlertas();
     this.activoService.getTipos().subscribe(data => this.tiposActivo.set(data));
   }
 
@@ -56,6 +63,41 @@ export class Admin implements OnInit {
     this.adminService.getAuditoria().subscribe({
       next: lista => this.auditoria.set(lista),
       error: err => this.error.set(err.error?.mensaje ?? 'No se pudo cargar la auditoría')
+    });
+  }
+
+  // ---- Monitoreo ----
+  cargarAlertas(): void {
+    this.adminService.getAlertas().subscribe(lista => this.alertas.set(lista));
+  }
+
+  ejecutarMonitoreo(): void {
+    this.error.set('');
+    this.mensajeMonitoreo.set('');
+    this.ejecutando.set(true);
+
+    this.adminService.ejecutarMonitoreo().subscribe({
+      next: r => {
+        this.ejecutando.set(false);
+        this.resumen.set(r);
+        this.cargarAlertas();
+        this.cargar(); // también se actualiza la auditoría
+      },
+      error: err => {
+        this.ejecutando.set(false);
+        this.error.set(err.error?.mensaje ?? 'No se pudo ejecutar el monitoreo');
+      }
+    });
+  }
+
+  adelantarAlerta(a: AlertaInactividad): void {
+    this.error.set('');
+    this.adminService.adelantarAlerta(a.id).subscribe({
+      next: r => {
+        this.mensajeMonitoreo.set(r.mensaje);
+        this.cargarAlertas();
+      },
+      error: err => this.error.set(err.error?.mensaje ?? 'No se pudo adelantar la alerta')
     });
   }
 

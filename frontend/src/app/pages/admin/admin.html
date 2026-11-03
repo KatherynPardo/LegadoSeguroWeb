@@ -42,6 +42,48 @@
   </div>
 
   <div class="titulo-con-boton">
+    <h2 class="subtitulo">Monitoreo de inactividad</h2>
+    <button type="button" class="btn btn-primary btn-sm" [disabled]="ejecutando()" (click)="ejecutarMonitoreo()">
+      {{ ejecutando() ? 'Revisando...' : 'Ejecutar monitoreo ahora' }}
+    </button>
+  </div>
+  <div class="tarjeta">
+    <p class="nota-tipos">El sistema revisa la inactividad solo cada hora. Con este botón se revisa al instante. Al cumplirse los días de inactividad de una regla se envía una <strong>alerta</strong> al propietario; si no entra en el plazo de gracia, se abre el proceso y se avisa a sus herederos.</p>
+
+    @if (resumen(); as r) {
+    <div class="resumen-monitoreo">
+      <div><strong>{{ r.revisados }}</strong><span>Usuarios con regla activa</span></div>
+      <div><strong>{{ r.alertas }}</strong><span>Alertas enviadas</span></div>
+      <div><strong>{{ r.iniciados }}</strong><span>Procesos iniciados</span></div>
+      <div><strong>{{ r.liberados }}</strong><span>Procesos liberados</span></div>
+    </div>
+    }
+    @if (mensajeMonitoreo()) { <p class="ok-form">{{ mensajeMonitoreo() }}</p> }
+
+    <table class="tabla">
+      <thead><tr><th>Propietario</th><th>Días de la regla</th><th>Alerta enviada</th><th>Plazo hasta</th><th>Estado</th><th></th></tr></thead>
+      <tbody>
+        @for (a of alertas(); track a.id) {
+        <tr>
+          <td class="nombre">{{ a.usuario }}<span class="correo-chico">{{ a.correo }}</span></td>
+          <td>{{ a.diasInactividad }}</td>
+          <td>{{ a.fechaAlerta | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td>{{ a.fechaLimite | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td [class.inactivo]="a.estado === 'VENCIDA'">{{ a.estado }}</td>
+          <td class="botones-fila">
+            @if (a.estado === 'ENVIADA') {
+            <button type="button" class="btn btn-sm btn-outline-secondary" title="Solo para pruebas: vence el plazo ahora" (click)="adelantarAlerta(a)">Adelantar plazo (prueba)</button>
+            }
+          </td>
+        </tr>
+        } @empty {
+        <tr><td colspan="6" class="vacio">Todavía no se envió ninguna alerta.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="titulo-con-boton">
     <h2 class="subtitulo">Documentos que se piden a los herederos</h2>
     <button type="button" class="btn btn-primary btn-sm" (click)="nuevoRequisito()">+ Nuevo requisito</button>
   </div>

@@ -16,6 +16,12 @@ export async function verRegla(req: Request, res: Response) {
 
 export async function configurarRegla(req: Request, res: Response) {
   const { diasInactividad, minConfirmaciones, diasPeriodoEspera, requiereValidador } = req.body;
+  const diasGracia = req.body.diasGracia === undefined ? 7 : req.body.diasGracia;
+
+  if (!Number.isInteger(diasGracia) || diasGracia < 1 || diasGracia > 60) {
+    res.status(400).json({ mensaje: 'Los días de gracia deben ser un número entre 1 y 60' });
+    return;
+  }
 
   if (!Number.isInteger(diasInactividad) || diasInactividad < DIAS_INACTIVIDAD_MIN || diasInactividad > DIAS_INACTIVIDAD_MAX) {
     res.status(400).json({ mensaje: `Los días de inactividad deben ser un número entre ${DIAS_INACTIVIDAD_MIN} y ${DIAS_INACTIVIDAD_MAX}` });
@@ -54,7 +60,7 @@ export async function configurarRegla(req: Request, res: Response) {
     }
 
     const regla = await guardarRegla(
-      { diasInactividad, minConfirmaciones, diasPeriodoEspera, requiereValidador },
+      { diasInactividad, minConfirmaciones, diasPeriodoEspera, requiereValidador, diasGracia },
       res.locals.usuarioId
     );
     res.json(regla);

@@ -359,6 +359,9 @@ Son datos ficticios, solo para desarrollo.
 | POST | `/api/portal/solicitudes/:idProceso/:idBeneficiario/selfie` | Heredero | Paso 3: envía la selfie |
 | POST | `/api/portal/solicitudes/:idProceso/:idBeneficiario/confirmar` | Heredero | Confirma su participación |
 | POST | `/api/portal/solicitudes/:idProceso/:idBeneficiario/objecion` | Heredero | Presenta una objeción |
+| GET | `/api/admin/alertas` | Admin | Alertas de inactividad enviadas |
+| POST | `/api/admin/monitoreo/ejecutar` | Admin | Ejecuta el monitoreo ahora y devuelve el resumen |
+| POST | `/api/admin/alertas/:id/adelantar` | Admin | Solo pruebas: vence el plazo de una alerta |
 | POST | `/api/procesos/:id/objeciones/:idObjecion/resolver` | Propietario | Marca una objeción como resuelta |
 | GET | `/api/historial` | Sí | Acciones e ingresos del propio usuario |
 | POST | `/api/auth/registro` | No | Paso 1 del registro: crea la cuenta pendiente y envía el código |
@@ -632,6 +635,27 @@ En cualquier momento el propietario puede CANCELAR el proceso.
 > **Decisión de seguridad:** el sistema **no guarda** el número completo, el **CVV** ni la **clave** de la tarjeta. Son justo los datos que usa un fraude, y las normas de las tarjetas (PCI DSS) prohíben guardar el CVV. La tabla `detalle_tarjeta` ni siquiera tiene columnas para ellos. Si el propietario quiere dejarle una clave a su heredero, puede escribirla en las indicaciones del activo (cifradas y entregadas solo al liberar).
 
 **Reglas alineadas al plan.** Las confirmaciones mínimas no pueden superar los herederos que tiene el propietario ni el límite de su plan (con el Básico, 2). La lista de la pantalla de Reglas ya solo ofrece esos valores y el backend también lo exige.
+
+### Paso 8.10f: Monitoreo de inactividad con alerta previa
+
+El proceso de liberación ya no se abre de golpe. Ahora hay **dos etapas**:
+
+1. **Alerta.** Cuando pasan los días de inactividad de la regla, el sistema envía un correo al propietario ("llevas N días sin entrar; tienes hasta el [fecha] para iniciar sesión") y guarda la alerta en `alerta_inactividad`, con su fecha límite.
+2. **Proceso.** Si el plazo termina y el propietario no entró, recién ahí se abre el proceso y se avisa a los herederos.
+
+- **Plazo de gracia:** lo define cada propietario en **Reglas de Liberación** ("Días de gracia después de la alerta", de 1 a 60; por defecto 7). Está en `regla_liberacion.dias_gracia`, con restricción en la base.
+- **Si el propietario entra durante el plazo**, la alerta pasa a `RESUELTA` y no pasa nada más (se resuelve al iniciar sesión y también en cada revisión del monitoreo).
+- **Cuándo se revisa:** al encender el backend y cada hora, y **a pedido del administrador** con el botón **Ejecutar monitoreo ahora** (Administración → Monitoreo de inactividad). El botón muestra cuántos usuarios se revisaron y cuántas alertas, procesos iniciados y procesos liberados hubo, y queda en la auditoría.
+- **Estados de la alerta:** `ENVIADA` (esperando), `RESUELTA` (entró a tiempo) y `VENCIDA` (se abrió el proceso).
+- **Para pruebas y exposiciones:** en la tabla de alertas, el botón **Adelantar plazo (prueba)** vence el plazo de una alerta al instante, para ver el proceso sin esperar los días. Solo lo puede usar el administrador y queda auditado.
+
+**Cómo hacer la demostración** (con los datos de la migración `020`, todo ficticio):
+1. Reinicia el backend y entra como administrador (`admin@legadoseguro.pe`).
+2. En **Administración → Monitoreo de inactividad** pulsa **Ejecutar monitoreo ahora**: sale una alerta para "Rosa Inactiva Demo" y el correo aparece en la consola del backend.
+3. Pulsa **Adelantar plazo (prueba)** y vuelve a ejecutar el monitoreo: se abre el proceso y se avisa al heredero `heredero.demo@example.com`.
+4. Entra a `/portal` con ese correo (el código sale en la consola) y haz la solicitud de liberación.
+
+> Para repetir la demostración basta con borrar el proceso y la alerta de ese usuario demo, o volver a ejecutar la migración `020` en una base nueva.
 
 ### Paso 8.11: Reportes
 

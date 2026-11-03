@@ -5,7 +5,7 @@ import { enviarCorreo } from './correo.service';
 
 type Destino = { idUsuario?: number; idBeneficiario?: number; correo: string };
 
-export async function notificar(destino: Destino, idProceso: number, asunto: string, mensaje: string): Promise<void> {
+export async function notificar(destino: Destino, idProceso: number | null, asunto: string, mensaje: string): Promise<void> {
   let estado = 'ENVIADA';
   try {
     await enviarCorreo(destino.correo, asunto, mensaje);

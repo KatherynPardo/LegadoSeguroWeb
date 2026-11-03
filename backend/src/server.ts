@@ -4,18 +4,16 @@
 
 import app from './app';
 import { PORT } from './config/env';
-import { detectarInactividad } from './services/monitoreo.service';
-import { liberarProcesosListos } from './services/liberacion.service';
+import { ejecutarMonitoreo } from './services/monitoreo.service';
 
 const CADA_HORA = 60 * 60 * 1000;
 
 async function monitorear() {
   try {
-    const iniciados = await detectarInactividad();
-    if (iniciados > 0) console.log(`Monitoreo: se iniciaron ${iniciados} proceso(s) de liberación`);
-
-    const liberados = await liberarProcesosListos();
-    if (liberados > 0) console.log(`Monitoreo: se liberaron ${liberados} proceso(s)`);
+    const r = await ejecutarMonitoreo();
+    if (r.alertas + r.iniciados + r.liberados > 0) {
+      console.log(`Monitoreo: ${r.alertas} alerta(s), ${r.iniciados} proceso(s) iniciado(s), ${r.liberados} liberado(s)`);
+    }
   } catch (error) {
     console.error('Error en el monitoreo de inactividad:', error);
   }

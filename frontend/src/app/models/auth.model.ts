@@ -27,6 +27,24 @@ export interface RegistroPendiente {
     correo: string;
 }
 
+// Alerta de inactividad enviada a un propietario
+export interface AlertaInactividad {
+    id: number;
+    usuario: string;
+    correo: string;
+    diasInactividad: number;
+    fechaAlerta: string;
+    fechaLimite: string;
+    estado: string; // ENVIADA | RESUELTA | VENCIDA
+}
+
+export interface ResumenMonitoreo {
+    revisados: number;
+    alertas: number;
+    iniciados: number;
+    liberados: number;
+}
+
 export interface UsuarioAdmin {
     id: number;
     nombres: string;

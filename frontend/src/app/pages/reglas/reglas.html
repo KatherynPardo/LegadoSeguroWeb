@@ -50,6 +50,13 @@
         </div>
       </div>
 
+      <label for="gracia">Días de gracia después de la alerta</label>
+      <p class="ayuda">Al cumplirse los días de inactividad te enviamos un correo. Tienes este plazo para entrar; si no entras, se avisa a tus herederos.</p>
+      <div class="input-group">
+        <input id="gracia" name="gracia" type="number" class="form-control" required min="1" max="60" step="1" [(ngModel)]="regla.diasGracia" />
+        <span class="input-group-text">días</span>
+      </div>
+
       <div class="form-check form-switch interruptor">
         <input class="form-check-input" type="checkbox" role="switch" id="validador" name="validador" [(ngModel)]="regla.requiereValidador" />
         <label class="form-check-label" for="validador">
@@ -79,11 +86,11 @@
         </li>
         <li>
           <span class="num">2</span>
-          <div><strong>Alerta de verificación</strong><span>Si pasan {{ regla.diasInactividad }} días sin actividad, te pediremos confirmar que estás bien.</span></div>
+          <div><strong>Alerta de verificación</strong><span>Si pasan {{ regla.diasInactividad }} días sin actividad, te enviamos un correo y tienes {{ regla.diasGracia }} días para entrar.</span></div>
         </li>
         <li>
           <span class="num">3</span>
-          <div><strong>Aviso a beneficiarios</strong><span>Si no respondes, se les notifica.</span></div>
+          <div><strong>Aviso a beneficiarios</strong><span>Si no entras en ese plazo, se abre el proceso y se les avisa.</span></div>
         </li>
         <li>
           <span class="num">4</span>

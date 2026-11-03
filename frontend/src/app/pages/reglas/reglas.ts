@@ -27,7 +27,7 @@ export class Reglas implements OnInit {
   opcionesEspera = [7, 15, 30, 60];
 
   // Valores por defecto: se usan mientras el usuario no haya guardado una regla
-  regla: DatosRegla = { diasInactividad: 180, minConfirmaciones: 1, diasPeriodoEspera: 15, requiereValidador: false };
+  regla: DatosRegla = { diasInactividad: 180, minConfirmaciones: 1, diasPeriodoEspera: 15, requiereValidador: false, diasGracia: 7 };
 
   constructor(private reglaService: ReglaService) {}
 

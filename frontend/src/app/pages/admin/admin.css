@@ -25,3 +25,34 @@
   color: #6B7280;
   font-size: 14px;
 }
+
+/* Monitoreo de inactividad */
+.resumen-monitoreo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  margin: 8px 0 16px;
+}
+
+.resumen-monitoreo strong {
+  display: block;
+  font-size: 26px;
+  color: #1A4E8A;
+}
+
+.resumen-monitoreo span {
+  color: #6B7280;
+  font-size: 14px;
+}
+
+.correo-chico {
+  display: block;
+  font-size: 13px;
+  font-weight: 400;
+  color: #6B7280;
+}
+
+.ok-form {
+  color: var(--lg-exito);
+  font-weight: 600;
+}

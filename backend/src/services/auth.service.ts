@@ -51,6 +51,9 @@ export async function iniciarSesion(correo: string, password: string, ip: string
     [usuario.id_usuario, ip]
   );
 
+  // Si tenía una alerta por inactividad, ya no está en riesgo: entró a tiempo
+  await pool.query("UPDATE alerta_inactividad SET estado = 'RESUELTA' WHERE id_usuario = $1 AND estado = 'ENVIADA'", [usuario.id_usuario]);
+
   return crearSesion(usuario);
 }
 

@@ -113,17 +113,17 @@
 
 ### 2.1 Modelo entidad-relación
 
-El modelo tiene **32 tablas** organizadas en módulos:
+El modelo tiene **33 tablas** organizadas en módulos:
 
 | Módulo | Tablas |
 |---|---|
 | Usuarios y seguridad | `rol`, `usuario`, `token_recuperacion`, `actividad_usuario`, `auditoria`, `codigo_verificacion` |
 | Activos y herederos | `tipo_activo`, `activo_digital`, `beneficiario`, `activo_beneficiario`, `validador_externo`, `entidad_financiera`, `historial_monto`, `requisito_documental`, `requisito_tipo`, `documento_heredero`, `detalle_tarjeta` |
-| Regla y proceso de liberación | `verificacion_beneficiario`, `regla_liberacion`, `reporte_fallecimiento`, `proceso_liberacion`, `proceso_activo`, `confirmacion_beneficiario`, `validacion_externa`, `objecion`, `entrega` |
+| Regla y proceso de liberación | `verificacion_beneficiario`, `alerta_inactividad`, `regla_liberacion`, `reporte_fallecimiento`, `proceso_liberacion`, `proceso_activo`, `confirmacion_beneficiario`, `validacion_externa`, `objecion`, `entrega` |
 | Orientación legal y notificaciones | `guia_legal`, `orientacion_legal_generada`, `notificacion` |
 | Suscripciones y pagos | `plan`, `suscripcion`, `pago` |
 
-Las 24 tablas originales se crearon en la primera migración; las otras 8 se agregaron al construir cada función nueva (`entidad_financiera`, `historial_monto`, `codigo_verificacion`, `requisito_documental`, `documento_heredero`, `verificacion_beneficiario`, `requisito_tipo`, `detalle_tarjeta`). Cada cambio quedó como una migración numerada en `supabase/migrations/`.
+Las 24 tablas originales se crearon en la primera migración; las otras 9 se agregaron al construir cada función nueva (`entidad_financiera`, `historial_monto`, `codigo_verificacion`, `requisito_documental`, `documento_heredero`, `verificacion_beneficiario`, `requisito_tipo`, `detalle_tarjeta`, `alerta_inactividad`). Cada cambio quedó como una migración numerada en `supabase/migrations/`.
 
 El diagrama entidad-relación por módulos está en Lucidchart (ver el enlace en la presentación del proyecto). Las relaciones, con sus cardinalidades, se listan al final del diccionario de datos (2.2), generadas desde la base real.
 
@@ -135,7 +135,7 @@ Se genera automáticamente. Si cambia la base de datos, se ejecuta `npm run dicc
 
 <!-- DICCIONARIO:INICIO -->
 
-**Generado automáticamente desde la base de datos el 3/11/2026** · 32 tablas.
+**Generado automáticamente desde la base de datos el 3/11/2026** · 33 tablas.
 
 #### actividad_usuario
 
@@ -181,6 +181,19 @@ Cada activo digital del propietario: cuenta, correo, red social, cuenta bancaria
 | monto_cifrado | TEXT | — | Puede ser vacío | Monto cifrado con AES-256. |
 | indicaciones_cifradas | TEXT | — | Puede ser vacío | — |
 
+#### alerta_inactividad
+
+
+
+| Campo | Tipo | PK/FK | Restricción | Descripción |
+|---|---|---|---|---|
+| id_alerta | INT | PK | NOT NULL; Autonumérico | Identificador único del registro. |
+| id_usuario | INT | FK → usuario | NOT NULL | Referencia a usuario. |
+| id_regla | INT | FK → regla_liberacion | NOT NULL | Referencia a regla_liberacion. |
+| fecha_alerta | TIMESTAMPTZ | — | NOT NULL; Por defecto now() | — |
+| fecha_limite | TIMESTAMPTZ | — | NOT NULL | — |
+| estado | VARCHAR(20) | — | NOT NULL; Por defecto 'ENVIADA'; CHECK (((estado)= ANY ((ARRAY['ENVIADA', 'RESUELTA', 'VENCIDA'])[]))) | Estado del registro (por ejemplo ACTIVO o INACTIVO). |
+
 #### auditoria
 
 Registro de acciones importantes: quién, qué, cuándo y desde qué IP.
@@ -213,6 +226,8 @@ Herederos designados por cada propietario.
 | clave_acceso_hash | VARCHAR(255) | — | Puede ser vacío | Ya no se usa: el heredero entra con códigos por correo. |
 | estado | VARCHAR(20) | — | NOT NULL; Por defecto 'ACTIVO' | Estado del registro (por ejemplo ACTIVO o INACTIVO). |
 | correo_verificado | BOOLEAN | — | NOT NULL; Por defecto false | Si el heredero confirmó su correo con un código. |
+
+Valores únicos adicionales: (id_usuario_propietario, dni) WHERE ((estado)::text = 'ACTIVO'::text).
 
 #### codigo_verificacion
 
@@ -434,6 +449,7 @@ Cuándo y cómo se libera el legado: días de inactividad, confirmaciones y espe
 | dias_periodo_espera | INT | — | NOT NULL | Días de espera final antes de liberar. |
 | requiere_validador | BOOLEAN | — | NOT NULL; Por defecto false | Si se exige validador externo para activos financieros. |
 | estado | VARCHAR(20) | — | NOT NULL; Por defecto 'ACTIVA' | Estado del registro (por ejemplo ACTIVO o INACTIVO). |
+| dias_gracia | INT | — | NOT NULL; Por defecto 7; CHECK (((dias_gracia >= 1) AND (dias_gracia <= 60))) | — |
 
 #### reporte_fallecimiento
 
@@ -592,6 +608,8 @@ Cada fila es una llave foránea. La cardinalidad se lee de la tabla padre (1) a 
 | entidad_financiera | activo_digital | id_entidad | 1 : N |
 | tipo_activo | activo_digital | id_tipo | 1 : N |
 | usuario | activo_digital | id_usuario | 1 : N |
+| regla_liberacion | alerta_inactividad | id_regla | 1 : N |
+| usuario | alerta_inactividad | id_usuario | 1 : N |
 | usuario | auditoria | id_usuario | 1 : N |
 | usuario | beneficiario | id_usuario_propietario | 1 : N |
 | usuario | codigo_verificacion | id_usuario | 1 : N |
@@ -991,7 +1009,7 @@ WHERE r.estado = 'ACTIVA' AND u.estado = 'ACTIVO'
                u.fecha_registro) < NOW() - make_interval(days => r.dias_inactividad)
 ```
 
-- **Explicación:** al arrancar el backend y luego **cada hora**, se revisa a cada usuario con regla activa. Si su última actividad (cada inicio de sesión se registra en `actividad_usuario`) es más antigua que los días de su regla y no tiene un proceso abierto, se crea un `proceso_liberacion` en estado `DETECTADO`, con sus activos y las confirmaciones pendientes de los herederos asignados (todo en una transacción).
+- **Explicación:** al arrancar el backend, **cada hora** y **a pedido del administrador**, se revisa a cada usuario con regla activa. Si su última actividad (cada inicio de sesión se registra en `actividad_usuario`) es más antigua que los días de su regla y no tiene un proceso abierto, primero se le envía una **alerta por correo con un plazo de gracia** (`alerta_inactividad`); si no entra en ese plazo, se crea un `proceso_liberacion` en estado `DETECTADO`, con sus activos y las confirmaciones pendientes de los herederos asignados (todo en una transacción).
 - **Operaciones:** listar, ver detalle (activos, confirmaciones, objeciones, entregas) y **cancelar** (queda en la auditoría).
 - **Estados:** `DETECTADO`, `EN_CONFIRMACION`, `EN_ESPERA`, `LIBERADO`, `CANCELADO`.
 - **Etapas del heredero:** avisos por correo, tres verificaciones (código, DNI y selfie cifrada), confirmar participación o presentar objeción, espera final y liberación con entregas (pantalla del Figma 06). Detalle en el Paso 8.10d de [MANUAL_CONSTRUCCION.md](MANUAL_CONSTRUCCION.md).
@@ -1194,6 +1212,11 @@ Las pruebas del backend se hicieron contra la base real (con datos temporales qu
 | P-54 | Heredero con tarjetas vs. heredero con un correo | 5 documentos vs. 2 | 5 y 2 | Aprobado |
 | P-55 | Reasignar activos al editar un heredero | Cambian sus documentos | De 2 a 5 | Aprobado |
 | P-56 | El administrador crea un requisito para tarjetas de crédito | Solo les aparece a quienes las reciben | Correcto | Aprobado |
+| P-58 | Un propietario intenta ejecutar el monitoreo | 403 | 403 | Aprobado |
+| P-59 | Monitoreo con un usuario inactivo | 1 alerta, sin proceso; no repite la alerta dentro del plazo | 1 alerta; 2.ª ejecución sin cambios | Aprobado |
+| P-60 | El propietario entra durante el plazo | La alerta pasa a RESUELTA y no se abre proceso | RESUELTA | Aprobado |
+| P-61 | Se adelanta el plazo (administrador) y se vuelve a ejecutar | Se abre el proceso EN_CONFIRMACION y se avisa al heredero | Correcto; la alerta pasa a VENCIDA | Aprobado |
+| P-62 | Días de gracia 0 / 10 | 400 / 200 | 400 / 200 | Aprobado |
 | P-57 | Pedir 3 confirmaciones con 2 herederos o con plan Básico | 400 | 400 | Aprobado |
 
 ### 10.2 Pruebas de integración (Frontend → Backend → Supabase)
@@ -1369,7 +1392,7 @@ Abrir `backend/.env` y completar:
 | `DNI_PROVIDER` / `DNI_API_TOKEN` | Opcionales; sin token, los nombres se escriben a mano |
 | `SMTP_*` | Opcionales; sin ellos, los códigos salen en la consola del backend |
 
-Preparar la base de datos (si usa su propio proyecto): ejecutar en **SQL Editor** las migraciones `001` a `017` de `supabase/migrations/`, en orden.
+Preparar la base de datos (si usa su propio proyecto): ejecutar en **SQL Editor** las migraciones `001` a `020` de `supabase/migrations/`, en orden.
 
 Encender el backend y, en otra terminal, el frontend:
 
@@ -1396,7 +1419,7 @@ Cuentas externas necesarias: Supabase (obligatoria); apiperu.dev y una cuenta de
 
 ## 16. Cierre del proyecto
 
-**Resultados obtenidos.** Módulos terminados: login, registro con verificación, recuperación de contraseña, activos (con bancos, montos cifrados e historial), herederos (con verificación y límite de plan), reglas de liberación, procesos con monitoreo automático, checklist de documentos con portal del heredero, suscripción, dashboard, reportes, historial, administración y perfil. Base de datos de **32 tablas** con 17 migraciones documentadas.
+**Resultados obtenidos.** Módulos terminados: login, registro con verificación, recuperación de contraseña, activos (con bancos, montos cifrados e historial), herederos (con verificación y límite de plan), reglas de liberación, procesos con monitoreo automático, checklist de documentos con portal del heredero, suscripción, dashboard, reportes, historial, administración y perfil. Base de datos de **33 tablas** con 20 migraciones documentadas.
 
 | | |
 |---|---|

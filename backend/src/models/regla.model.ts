@@ -5,6 +5,7 @@ export type Regla = {
   minConfirmaciones: number;
   diasPeriodoEspera: number;
   requiereValidador: boolean;
+  diasGracia: number; // días que tiene el propietario para entrar después de la alerta
 };
 
 // Lo que el usuario configura (sin el id).
