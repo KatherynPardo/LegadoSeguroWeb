@@ -42,6 +42,12 @@ export class Beneficiarios implements OnInit {
   verificadoOriginal = false;
   enviandoCodigo = signal(false);
   avisoCodigo = signal('');
+  errorCodigo = signal('');
+
+  // El botón de enviar el código solo se activa con un correo completo (usuario@dominio.com)
+  correoValido(): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.nuevo.correo.trim());
+  }
 
   parentescos = ['Hijo/a', 'Esposo/a', 'Padre', 'Madre', 'Hermano/a', 'Otro'];
 
@@ -104,6 +110,7 @@ export class Beneficiarios implements OnInit {
     this.error.set('');
     this.avisoDni.set('');
     this.avisoCodigo.set('');
+    this.errorCodigo.set('');
     this.mostrarFormulario.set(true);
   }
 
@@ -124,6 +131,7 @@ export class Beneficiarios implements OnInit {
     this.error.set('');
     this.avisoDni.set('');
     this.avisoCodigo.set('');
+    this.errorCodigo.set('');
     this.mostrarFormulario.set(true);
   }
 
@@ -165,6 +173,7 @@ export class Beneficiarios implements OnInit {
 
   enviarCodigo(): void {
     this.avisoCodigo.set('');
+    this.errorCodigo.set('');
     this.error.set('');
 
     this.enviandoCodigo.set(true);
@@ -180,7 +189,7 @@ export class Beneficiarios implements OnInit {
           this.avisoPlan.set(true);
           return;
         }
-        this.avisoCodigo.set(err.error?.mensaje ?? 'No se pudo enviar el código');
+        this.errorCodigo.set(err.error?.mensaje ?? 'No se pudo enviar el código');
       }
     });
   }

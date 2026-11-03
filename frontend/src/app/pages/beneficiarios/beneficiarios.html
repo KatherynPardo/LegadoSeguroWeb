@@ -82,9 +82,11 @@
     @if (necesitaCodigo()) {
     <div class="caja-codigo">
       <p class="aviso-dni">Para evitar suplantaciones, el heredero debe confirmar su correo: le enviamos un código y tú lo escribes aquí.</p>
-      <button type="button" class="btn btn-outline-primary" [disabled]="enviandoCodigo() || !nuevo.correo" (click)="enviarCodigo()">
+      <button type="button" class="btn btn-outline-primary" [disabled]="enviandoCodigo() || !correoValido()" (click)="enviarCodigo()">
         {{ enviandoCodigo() ? 'Enviando...' : 'Enviar código al correo del heredero' }}
       </button>
+      @if (nuevo.correo && !correoValido()) { <p class="error-form">El correo está incompleto: debe verse como nombre&#64;dominio.com</p> }
+      @if (errorCodigo()) { <p class="error-form">{{ errorCodigo() }}</p> }
       @if (avisoCodigo()) { <p class="aviso-dni">{{ avisoCodigo() }}</p> }
 
       <label for="codigo">Código de verificación</label>
