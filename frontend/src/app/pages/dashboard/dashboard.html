@@ -3,39 +3,121 @@
 </header>
 
 <section class="pagina">
-  <p class="saludo">Hola, {{ auth.usuario()?.nombres }}. Este es el estado actual de tu legado digital.</p>
-
   @if (resumen(); as r) {
+
+  @if (r.procesosEnCurso > 0) {
+  <div class="alerta-proceso">
+    <div>
+      <strong>Hay un proceso de liberación en curso</strong>
+      <span>El sistema detectó inactividad. Si sigues activo, puedes cancelarlo.</span>
+    </div>
+    <a routerLink="/procesos" class="btn btn-light">Ver proceso</a>
+  </div>
+  }
+
+  <!-- Portada: saludo y salud del legado -->
+  <div class="portada">
+    <div class="portada-texto">
+      <p class="hola">Hola, {{ auth.usuario()?.nombres }}</p>
+      <h2>{{ titulo(r.salud.puntaje) }}</h2>
+      <p class="detalle">
+        Tu legado digital tiene {{ r.activos }} {{ r.activos === 1 ? 'activo' : 'activos' }}
+        y {{ r.beneficiarios }} {{ r.beneficiarios === 1 ? 'heredero' : 'herederos' }}.
+        Completa los pasos para dejarlo totalmente protegido.
+      </p>
+    </div>
+
+    <div class="medidor" aria-label="Salud de tu legado">
+      <svg viewBox="0 0 128 128">
+        <circle class="pista" cx="64" cy="64" r="54" />
+        <circle class="valor" cx="64" cy="64" r="54"
+                [attr.stroke-dasharray]="circunferencia"
+                [attr.stroke-dashoffset]="desplazamiento(r.salud.puntaje)" />
+      </svg>
+      <div class="medidor-centro">
+        <strong>{{ contar(r.salud.puntaje) }}</strong>
+        <span>Salud del legado</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cifras -->
   <div class="cifras">
     <div class="cifra">
-      <span class="numero azul">{{ r.activos }}</span>
+      <span class="numero azul">{{ contar(r.activos) }}</span>
       <span class="etiqueta">Activos registrados</span>
     </div>
     <div class="cifra">
-      <span class="numero azul">{{ r.beneficiarios }}</span>
+      <span class="numero azul">{{ contar(r.beneficiarios) }}</span>
       <span class="etiqueta">Beneficiarios designados</span>
     </div>
     <div class="cifra">
-      <span class="numero verde">{{ r.reglasActivas }}</span>
+      <span class="numero verde">{{ contar(r.reglasActivas) }}</span>
       <span class="etiqueta">Regla de liberación activa</span>
     </div>
     <div class="cifra">
-      <span class="numero gris">{{ r.procesosEnCurso }}</span>
+      <span class="numero" [class.naranja]="r.procesosEnCurso > 0" [class.gris]="r.procesosEnCurso === 0">{{ contar(r.procesosEnCurso) }}</span>
       <span class="etiqueta">Procesos en curso</span>
     </div>
   </div>
 
+  <div class="dos-columnas">
+    <!-- Próximos pasos -->
+    <div class="tarjeta">
+      <h2 class="subtitulo">Próximos pasos</h2>
+      <ul class="pasos">
+        @for (p of pasosOrdenados(r); track p.texto) {
+        <li [class.hecho]="p.hecho">
+          <span class="marca">@if (p.hecho) { ✓ }</span>
+          <span class="texto">{{ p.texto }}</span>
+          @if (!p.hecho) { <a [routerLink]="p.ruta" class="ir">Ir →</a> }
+        </li>
+        }
+      </ul>
+    </div>
+
+    <!-- Tu regla en acción -->
+    <div class="tarjeta">
+      <h2 class="subtitulo">Tu regla en acción</h2>
+      @if (r.inactividad.limiteDias !== null) {
+      <p class="regla-texto">
+        @if (r.inactividad.diasDesdeIngresoAnterior === null) {
+        Es tu primer ingreso. Si pasan <strong>{{ r.inactividad.limiteDias }} días</strong> sin que entres, el sistema iniciará el proceso de liberación.
+        } @else {
+        Tu ingreso anterior fue hace <strong>{{ r.inactividad.diasDesdeIngresoAnterior }} {{ r.inactividad.diasDesdeIngresoAnterior === 1 ? 'día' : 'días' }}</strong>.
+        Si pasan <strong>{{ r.inactividad.limiteDias }} días</strong> sin entrar, se iniciará el proceso de liberación.
+        }
+      </p>
+      <div class="riel">
+        <div class="avance" [class]="'avance ' + nivelInactividad(r)" [style.width.%]="porcentajeInactividad(r) * progreso()"></div>
+      </div>
+      <div class="riel-texto">
+        <span>0 días</span>
+        <span>{{ diasRestantes(r) > 0 ? 'Te quedan ' + diasRestantes(r) + ' días de margen' : 'Límite alcanzado' }}</span>
+        <span>{{ r.inactividad.limiteDias }} días</span>
+      </div>
+      <p class="nota">Cada vez que inicias sesión, el contador vuelve a cero.</p>
+      } @else {
+      <p class="regla-texto">Todavía no activaste una regla de liberación, así que tu legado no se entregaría a nadie.</p>
+      <a routerLink="/reglas" class="btn btn-primary">Configurar mi regla</a>
+      }
+    </div>
+  </div>
+
+  <!-- Actividad reciente -->
   <div class="tarjeta">
     <h2 class="subtitulo">Actividad reciente</h2>
     @for (item of r.actividadReciente; track $index) {
     <div class="fila-actividad">
-      <span>{{ item.texto }}</span>
+      <span class="punto" [class]="'punto ' + colorActividad(item.tipo)"></span>
+      <span class="actividad-texto">{{ item.texto }}</span>
       <span class="fecha">{{ hace(item.fecha) }}</span>
     </div>
     } @empty {
     <p class="vacio">Todavía no hay actividad.</p>
     }
   </div>
+
   } @else {
   <p class="vacio">Cargando... ¿Está encendido el backend?</p>
   }

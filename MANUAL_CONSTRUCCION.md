@@ -543,6 +543,20 @@ La migración `006_usuario_admin.sql` crea `admin@legadoseguro.pe` (contraseña 
 - **Aviso para mejorar el plan:** en **Mis Herederos** una barra muestra cuántos herederos se usaron ("2 de 2"). Si el límite ya se alcanzó, al pulsar **+ Designar Beneficiario** aparece una ventana invitando a mejorar el plan, con el botón **Ver planes**. El backend también lo exige: responde 403 con el código `LIMITE_PLAN` (`services/beneficiario.service.ts`), por si alguien salta la pantalla.
 - **Herederos que ya existían:** si alguien tenía más herederos que el límite, se conservan; solo se bloquea designar nuevos.
 
+### Paso 8.10a: Días de inactividad libres
+
+En **Reglas de Liberación** el usuario escribe cuántos días de inactividad esperar (por ejemplo 15, 25 o 180), con atajos de un clic. El valor se valida en tres lugares: la pantalla, el controlador (`regla.controller.ts`) y la base de datos (restricción `ck_regla_dias_inactividad` de la migración 013, entre 7 y 3650 días). El monitoreo usa ese número tal cual para decidir cuándo iniciar el proceso.
+
+### Paso 8.10b: Dashboard (el centro de mando)
+
+El Dashboard no repite los Reportes: muestra **cómo está tu legado hoy y qué hacer a continuación**.
+
+- **Salud del legado (0 a 100):** cinco pasos de 20 puntos cada uno: tener un activo, que todos tengan heredero, tener herederos, que estén verificados y tener la regla activa. Se calcula en `services/dashboard.service.ts` con datos reales.
+- **Próximos pasos:** la lista de esos cinco pasos, con los pendientes primero y un enlace "Ir" a la pantalla donde se resuelven.
+- **Tu regla en acción:** una barra que compara los días desde el ingreso anterior con los días de inactividad de la regla (verde, naranja o rojo según qué tan cerca esté del límite).
+- **Alerta:** si hay un proceso de liberación en curso, aparece un aviso arriba con un botón para verlo.
+- **Animación:** el círculo se dibuja y los números suben al abrir la pantalla.
+
 ### Paso 8.11: Reportes
 
 - **Qué es:** un resumen del propio usuario (`services/reporte.service.ts`): activos por tipo, activos sin heredero, herederos verificados, dinero registrado por moneda y procesos por estado.

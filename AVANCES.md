@@ -28,6 +28,8 @@ Bitácora de lo construido, en orden cronológico.
 | 03/11/2026 | **Seguridad**: código de verificación por correo al registrarse y al registrar un heredero (contra suplantación), cifrado AES-256 de descripciones y montos, y pantalla **Mi Historial**. El heredero ya no tiene clave guardada (se verifica con códigos por correo) y se quitó el rango de ahorro, porque el monto exacto con historial ya cubre esa necesidad. El manual se reordena paso a paso (Fase 8). |
 | 03/11/2026 | **Diseño según Figma**: escudo y menú lateral, saludo y actividad real en el Dashboard, columna Estado en Activos, tarjetas de herederos con insignia de identidad verificada. Nuevas pantallas **Suscripción** y **Reportes**, y menú en el orden del diseño (Dashboard, Activos, Herederos, Reglas, Procesos, Suscripción, Reportes, Administración). |
 | 03/11/2026 | **Plan Básico gratuito con 2 herederos**: al llegar al límite, una ventana invita a mejorar el plan (backend y pantalla lo validan). El dinero registrado en Reportes se puede ocultar o mostrar con un ojito. |
+| 03/11/2026 | **Dashboard renovado**: portada con "Salud del legado" (círculo animado de 0 a 100), próximos pasos accionables, "Tu regla en acción" con barra de inactividad, alerta de proceso en curso y actividad con colores. |
+| 03/11/2026 | **Días de inactividad libres**: el usuario escribe los días que quiera (entre 7 y 3650) con atajos de 15, 30, 90, 180 y 365; el backend lo valida y la base lo controla con una restricción. |
 
 ## Próximos pasos
 

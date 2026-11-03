@@ -1,7 +1,7 @@
 // Controlador de reglas de liberación.
 
 import { Request, Response } from 'express';
-import { DIAS_INACTIVIDAD_VALIDOS, PERIODOS_ESPERA_VALIDOS } from '../models/regla.model';
+import { DIAS_INACTIVIDAD_MAX, DIAS_INACTIVIDAD_MIN, PERIODOS_ESPERA_VALIDOS } from '../models/regla.model';
 import { contarBeneficiarios, guardarRegla, obtenerRegla } from '../services/regla.service';
 
 export async function verRegla(req: Request, res: Response) {
@@ -16,8 +16,8 @@ export async function verRegla(req: Request, res: Response) {
 export async function configurarRegla(req: Request, res: Response) {
   const { diasInactividad, minConfirmaciones, diasPeriodoEspera, requiereValidador } = req.body;
 
-  if (!DIAS_INACTIVIDAD_VALIDOS.includes(diasInactividad)) {
-    res.status(400).json({ mensaje: 'Los días de inactividad no son válidos' });
+  if (!Number.isInteger(diasInactividad) || diasInactividad < DIAS_INACTIVIDAD_MIN || diasInactividad > DIAS_INACTIVIDAD_MAX) {
+    res.status(400).json({ mensaje: `Los días de inactividad deben ser un número entre ${DIAS_INACTIVIDAD_MIN} y ${DIAS_INACTIVIDAD_MAX}` });
     return;
   }
   if (!PERIODOS_ESPERA_VALIDOS.includes(diasPeriodoEspera)) {

@@ -16,13 +16,12 @@ export class Reglas implements OnInit {
 
   totalBeneficiarios = 0;
 
-  // Opciones que ofrece la pantalla (el backend valida las mismas)
-  opcionesInactividad = [
-    { dias: 90, texto: '90 días (3 meses)' },
-    { dias: 180, texto: '180 días (6 meses)' },
-    { dias: 270, texto: '270 días (9 meses)' },
-    { dias: 365, texto: '365 días (1 año)' }
-  ];
+  // Los días de inactividad son libres entre estos valores (el backend valida lo mismo)
+  minDias = 7;
+  maxDias = 3650;
+
+  // Atajos para elegir con un clic los plazos más comunes
+  atajos = [15, 30, 90, 180, 365];
   opcionesEspera = [7, 15, 30, 60];
 
   // Valores por defecto: se usan mientras el usuario no haya guardado una regla
@@ -42,6 +41,21 @@ export class Reglas implements OnInit {
       this.regla.minConfirmaciones = Math.min(this.regla.minConfirmaciones, Math.max(this.totalBeneficiarios, 1));
       this.cargado.set(true);
     });
+  }
+
+  // Convierte los días a una frase fácil de leer: "≈ 6 meses"
+  equivalencia(): string {
+    const dias = this.regla.diasInactividad;
+    if (!Number.isInteger(dias) || dias < this.minDias) return '';
+    if (dias < 60) return '';
+    if (dias < 365) return `≈ ${Math.round(dias / 30)} meses`;
+    const anios = Math.round((dias / 365) * 10) / 10;
+    return `≈ ${anios} ${anios === 1 ? 'año' : 'años'}`;
+  }
+
+  diasValidos(): boolean {
+    const dias = this.regla.diasInactividad;
+    return Number.isInteger(dias) && dias >= this.minDias && dias <= this.maxDias;
   }
 
   // Lista 1..N para el selector "k de N beneficiarios"

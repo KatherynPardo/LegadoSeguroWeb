@@ -129,3 +129,39 @@ label {
     grid-template-columns: 1fr;
   }
 }
+
+/* Atajos para los días de inactividad */
+.atajos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.atajo {
+  padding: 4px 12px;
+  background: #fff;
+  border: 1px solid #D9D9D9;
+  border-radius: 999px;
+  font-size: 13px;
+  color: #374151;
+  cursor: pointer;
+}
+
+.atajo:hover {
+  border-color: #1A4E8A;
+  color: #1A4E8A;
+}
+
+.atajo.activo {
+  background: #1A4E8A;
+  border-color: #1A4E8A;
+  color: #fff;
+}
+
+.equivalencia {
+  margin-left: auto;
+  color: #6B7280;
+  font-size: 14px;
+}

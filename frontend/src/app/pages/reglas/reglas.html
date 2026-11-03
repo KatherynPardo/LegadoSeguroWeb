@@ -13,11 +13,20 @@
 
       <label for="inactividad">Días de inactividad antes de iniciar el proceso</label>
       <p class="ayuda">Tiempo sin actividad tras el cual el sistema te enviará una alerta de verificación.</p>
-      <select id="inactividad" name="inactividad" class="form-select" [(ngModel)]="regla.diasInactividad">
-        @for (o of opcionesInactividad; track o.dias) {
-        <option [ngValue]="o.dias">{{ o.texto }}</option>
+      <div class="input-group">
+        <input id="inactividad" name="inactividad" type="number" class="form-control" required
+               [min]="minDias" [max]="maxDias" step="1" [(ngModel)]="regla.diasInactividad" />
+        <span class="input-group-text">días</span>
+      </div>
+      <div class="atajos">
+        @for (a of atajos; track a) {
+        <button type="button" class="atajo" [class.activo]="regla.diasInactividad === a" (click)="regla.diasInactividad = a">{{ a }} días</button>
         }
-      </select>
+        @if (equivalencia()) { <span class="equivalencia">{{ equivalencia() }}</span> }
+      </div>
+      @if (!diasValidos()) {
+      <p class="error-form">Escribe un número entero de días entre {{ minDias }} y {{ maxDias }}.</p>
+      }
 
       <div class="dos-columnas">
         <div>

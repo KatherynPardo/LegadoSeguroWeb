@@ -17,6 +17,9 @@ export type ReglaConContexto = {
   totalBeneficiarios: number;
 };
 
-// Opciones permitidas (las mismas que ofrece la pantalla).
-export const DIAS_INACTIVIDAD_VALIDOS = [90, 180, 270, 365];
+// Los días de inactividad son libres, dentro de un rango razonable (de una semana a diez años).
+export const DIAS_INACTIVIDAD_MIN = 7;
+export const DIAS_INACTIVIDAD_MAX = 3650;
+
+// Opciones permitidas para el período de espera final.
 export const PERIODOS_ESPERA_VALIDOS = [7, 15, 30, 60];
