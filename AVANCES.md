@@ -32,6 +32,7 @@ Bitácora de lo construido, en orden cronológico.
 | 03/11/2026 | **Días de inactividad libres**: el usuario escribe los días que quiera (entre 7 y 3650) con atajos de 15, 30, 90, 180 y 365; el backend lo valida y la base lo controla con una restricción. |
 | 03/11/2026 | **Recuperar contraseña**: pantalla `/recuperar` con código por correo y contraseña nueva; queda en la auditoría. |
 | 03/11/2026 | **Checklist de documentos por roles**: el administrador mantiene el catálogo, el propietario elige los documentos de cada heredero y el heredero entra a su portal (código por correo) para ver y marcar lo que le falta. Sesiones separadas por rol. |
+| 03/11/2026 | **Documento dinámico** `DOCUMENTACION_SISTEMA.md` siguiendo el esquema del curso (17 secciones). El diccionario de datos se genera solo desde la base con `npm run diccionario`. Faltan las capturas, el despliegue y Culqi. |
 
 ## Próximos pasos
 

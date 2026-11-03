@@ -27,7 +27,9 @@ LegadoSeguroWeb/
 ├── supabase/migrations/   Base de datos: esquema, seguridad y datos (ver supabase/README.md)
 ├── backend/               API Express por capas: routes, controllers, services, models, config
 ├── frontend/              Aplicación Angular: pages, components, services, models, core
-├── MANUAL_CONSTRUCCION.md Manual paso a paso, del paso 0 a la puesta en marcha
+├── DOCUMENTACION_SISTEMA.md Documento principal (esquema del curso), con el diccionario de datos generado desde la base
+├── docs/capturas/         Capturas de pantalla del documento (lista en LEEME.md)
+├── MANUAL_CONSTRUCCION.md Referencia técnica paso a paso
 └── AVANCES.md             Registro de avances
 ```
 
