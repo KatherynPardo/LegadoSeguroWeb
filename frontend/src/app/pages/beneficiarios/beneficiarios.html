@@ -7,41 +7,39 @@
   @if (error() && !mostrarFormulario()) { <p class="error-form">{{ error() }}</p> }
 
   <div class="acciones">
-    <button class="btn btn-primary" (click)="abrir()">+ Nuevo Heredero</button>
+    <button class="btn btn-primary" (click)="abrir()">+ Designar Beneficiario</button>
   </div>
 
-  <div class="tarjeta">
-    <table class="tabla">
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>DNI</th>
-          <th>Parentesco</th>
-          <th>Correo</th>
-          <th>Teléfono</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (b of beneficiarios(); track b.id) {
-        <tr>
-          <td class="nombre">{{ b.nombres }} {{ b.apellidos }}</td>
-          <td>{{ b.dni }}</td>
-          <td>{{ b.parentesco }}</td>
-          <td>{{ b.correo ?? '—' }}</td>
-          <td>{{ b.telefono ?? '—' }}</td>
-          <td class="botones-fila">
-            <button type="button" class="accion" title="Editar" aria-label="Editar" (click)="abrirEditar(b)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
-            <button type="button" class="accion peligro" title="Eliminar" aria-label="Eliminar" (click)="porEliminar.set(b)"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
-          </td>
-        </tr>
-        } @empty {
-        <tr>
-          <td colspan="6" class="vacio">No hay beneficiarios. ¿Está encendido el backend?</td>
-        </tr>
-        }
-      </tbody>
-    </table>
+  <div class="tarjetas">
+    @for (b of beneficiarios(); track b.id) {
+    <article class="persona">
+      <div class="encabezado">
+        <div class="avatar" [class.gris]="!b.verificado">{{ iniciales(b) }}</div>
+        <div>
+          <h2 class="nombre-persona">{{ b.nombres }} {{ b.apellidos }}</h2>
+          <p class="parentesco">{{ b.parentesco }}</p>
+        </div>
+      </div>
+      <p class="dato">DNI: {{ b.dni }}</p>
+      <p class="dato">{{ b.correo ?? '—' }}</p>
+      <p class="dato">Tel. {{ b.telefono ?? '—' }}</p>
+      <div class="pie-persona">
+        @if (b.verificado) { <span class="insignia ok">Identidad verificada</span> }
+        @else { <span class="insignia pendiente">Pendiente de verificar</span> }
+        <span class="acciones-persona">
+          <button type="button" class="enlace" (click)="abrirEditar(b)">Editar</button>
+          <button type="button" class="accion peligro" title="Eliminar" aria-label="Eliminar" (click)="porEliminar.set(b)"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+        </span>
+      </div>
+    </article>
+    } @empty {
+    <p class="vacio">No hay beneficiarios. ¿Está encendido el backend?</p>
+    }
+  </div>
+
+  <div class="aviso-info">
+    <strong>Verificación de identidad de cada beneficiario</strong>
+    <p>Cada beneficiario debe confirmar su correo con un código que le enviamos antes de quedar registrado. Así nadie puede suplantarlo. Un beneficiario "pendiente de verificar" no podrá confirmar ninguna solicitud de liberación.</p>
   </div>
 </section>
 

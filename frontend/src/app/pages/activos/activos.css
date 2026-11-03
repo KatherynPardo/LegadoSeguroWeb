@@ -70,3 +70,16 @@
   font-size: 14px;
   color: #6B7280;
 }
+
+/* Estado como en el diseño: verde si ya tiene heredero, naranja si está pendiente */
+.sin-asignar {
+  color: #9CA3AF;
+}
+
+.estado-activo {
+  color: var(--lg-exito);
+}
+
+.estado-activo.estado-pendiente {
+  color: var(--lg-advertencia);
+}

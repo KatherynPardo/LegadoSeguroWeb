@@ -7,6 +7,7 @@ export type Beneficiario = {
   parentesco: string | null;
   correo: string;
   telefono: string | null;
+  verificado: boolean; // true si el heredero confirmó su correo con un código
 };
 
 // Datos que llegan desde el formulario para registrar un beneficiario.

@@ -3,10 +3,11 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { NuevoUsuario } from '../../models/auth.model';
+import { Logo } from '../../components/logo/logo';
 
 @Component({
   selector: 'app-registro',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, Logo],
   templateUrl: './registro.html',
   styleUrls: ['../login/login.css', './registro.css']
 })

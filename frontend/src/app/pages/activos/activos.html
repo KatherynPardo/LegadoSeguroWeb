@@ -18,7 +18,8 @@
           <th>Tipo</th>
           <th>Sensibilidad</th>
           <th>Monto</th>
-          <th>Herederos</th>
+          <th>Beneficiario</th>
+          <th>Estado</th>
           <th></th>
         </tr>
       </thead>
@@ -38,7 +39,10 @@
           </td>
           <td>
             @if (a.herederos.length) { {{ nombresHerederos(a) }} }
-            @else { <span class="sin-heredero">Sin asignar</span> }
+            @else { <span class="sin-asignar">Sin asignar</span> }
+          </td>
+          <td [class.estado-pendiente]="!a.herederos.length" class="estado-activo">
+            {{ a.herederos.length ? 'Activo' : 'Pendiente' }}
           </td>
           <td class="botones-fila">
             <button type="button" class="accion" title="Herederos" aria-label="Herederos" (click)="abrirAsignar(a)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></button>
@@ -51,7 +55,7 @@
         </tr>
         } @empty {
         <tr>
-          <td colspan="6" class="vacio">No hay activos. ¿Está encendido el backend?</td>
+          <td colspan="7" class="vacio">No hay activos. ¿Está encendido el backend?</td>
         </tr>
         }
       </tbody>

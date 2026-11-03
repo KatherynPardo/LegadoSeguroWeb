@@ -22,7 +22,8 @@ export class Beneficiarios implements OnInit {
   porEliminar = signal<Beneficiario | null>(null);
 
   // Código de verificación que recibe el heredero en su correo
-  correoOriginal = ''; // al editar, solo se pide código si el correo cambia
+  correoOriginal = ''; // al editar, solo se pide código si el correo cambia o aún no está verificado
+  verificadoOriginal = false;
   enviandoCodigo = signal(false);
   avisoCodigo = signal('');
 
@@ -42,9 +43,15 @@ export class Beneficiarios implements OnInit {
     });
   }
 
+  // Iniciales para el círculo de la tarjeta (primer nombre + primer apellido)
+  iniciales(b: Beneficiario): string {
+    return (b.nombres.trim()[0] + b.apellidos.trim()[0]).toUpperCase();
+  }
+
   abrir(): void {
     this.editandoId = null;
     this.correoOriginal = '';
+    this.verificadoOriginal = false;
     this.nuevo = this.vacio();
     this.error.set('');
     this.avisoDni.set('');
@@ -64,6 +71,7 @@ export class Beneficiarios implements OnInit {
       codigo: ''
     };
     this.correoOriginal = b.correo ?? '';
+    this.verificadoOriginal = b.verificado;
     this.error.set('');
     this.avisoDni.set('');
     this.avisoCodigo.set('');
@@ -96,7 +104,8 @@ export class Beneficiarios implements OnInit {
 
   // Hay que pedir código al crear un heredero, o al editar si cambió el correo
   necesitaCodigo(): boolean {
-    return this.editandoId === null || this.nuevo.correo.trim().toLowerCase() !== this.correoOriginal.toLowerCase();
+    return this.editandoId === null || !this.verificadoOriginal
+      || this.nuevo.correo.trim().toLowerCase() !== this.correoOriginal.toLowerCase();
   }
 
   enviarCodigo(): void {

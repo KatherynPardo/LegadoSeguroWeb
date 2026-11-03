@@ -27,7 +27,8 @@ export class ReglaHeredero extends Error {
 
 export async function listarBeneficiarios(idUsuario: number): Promise<Beneficiario[]> {
   const resultado = await pool.query<Beneficiario>(
-    `SELECT id_beneficiario AS id, nombres, apellidos, dni, parentesco, correo, telefono
+    `SELECT id_beneficiario AS id, nombres, apellidos, dni, parentesco, correo, telefono,
+            correo_verificado AS verificado
      FROM beneficiario
      WHERE id_usuario_propietario = $1 AND estado = 'ACTIVO'
      ORDER BY id_beneficiario`,
@@ -49,8 +50,8 @@ export async function crearBeneficiario(datos: NuevoBeneficiario, idUsuario: num
 
   const resultado = await pool.query(
     `INSERT INTO beneficiario
-       (id_usuario_propietario, nombres, apellidos, dni, correo, telefono, parentesco)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
+       (id_usuario_propietario, nombres, apellidos, dni, correo, telefono, parentesco, correo_verificado)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, TRUE)
      RETURNING id_beneficiario AS id`,
     [idUsuario, datos.nombres, datos.apellidos, datos.dni, datos.correo, datos.telefono, datos.parentesco]
   );
@@ -59,20 +60,22 @@ export async function crearBeneficiario(datos: NuevoBeneficiario, idUsuario: num
 
 export async function actualizarBeneficiario(id: number, datos: EdicionBeneficiario, idUsuario: number): Promise<void> {
   const actual = await pool.query(
-    "SELECT correo FROM beneficiario WHERE id_beneficiario = $1 AND id_usuario_propietario = $2 AND estado = 'ACTIVO'",
+    "SELECT correo, correo_verificado FROM beneficiario WHERE id_beneficiario = $1 AND id_usuario_propietario = $2 AND estado = 'ACTIVO'",
     [id, idUsuario]
   );
   if (actual.rows.length === 0) throw new ReglaHeredero('Heredero no encontrado', 404);
 
-  // Si cambia el correo, el nuevo correo también se tiene que verificar con un código
-  if (actual.rows[0].correo !== datos.correo) {
+  // Si cambia el correo, o el correo todavía no está verificado, hace falta el código
+  const pideCodigo = actual.rows[0].correo !== datos.correo || !actual.rows[0].correo_verificado;
+  if (pideCodigo) {
     const codigoOk = datos.codigo ? await validarCodigo('HEREDERO', datos.correo, datos.codigo) : false;
-    if (!codigoOk) throw new ReglaHeredero('Al cambiar el correo debes ingresar el código que le llegó al heredero', 400);
+    if (!codigoOk) throw new ReglaHeredero('Ingresa el código que le llegó al correo del heredero para verificarlo', 400);
   }
 
   const resultado = await pool.query(
     `UPDATE beneficiario
-     SET nombres = $1, apellidos = $2, correo = $3, telefono = $4, parentesco = $5
+     SET nombres = $1, apellidos = $2, correo = $3, telefono = $4, parentesco = $5,
+         correo_verificado = TRUE
      WHERE id_beneficiario = $6 AND id_usuario_propietario = $7 AND estado = 'ACTIVO'
      RETURNING id_beneficiario`,
     [datos.nombres, datos.apellidos, datos.correo, datos.telefono, datos.parentesco, id, idUsuario]

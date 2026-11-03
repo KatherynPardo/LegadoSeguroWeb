@@ -7,6 +7,7 @@ export interface Beneficiario {
     parentesco: string | null;
     correo: string | null;
     telefono: string | null;
+    verificado: boolean;
 }
 
 // Datos del formulario para registrar o editar un beneficiario
