@@ -665,8 +665,18 @@ El proceso de liberación ya no se abre de golpe. Ahora hay **dos etapas**:
 
 ---
 
+### Paso 8.12: Limpieza final y alineación con la base de datos
+
+Antes de entregar se revisó que no quedara código muerto ni datos sobrantes:
+
+1. **Código sin uso:** se compiló el backend con `tsc --noEmit --noUnusedLocals --noUnusedParameters` y se buscaron archivos, exportaciones, métodos, clases CSS y dependencias que nadie usa. Se eliminó lo encontrado.
+2. **Consultas contra la base real:** cada consulta SQL del backend (170) se validó con `PREPARE` contra Supabase; todas son válidas.
+3. **Columnas sobrantes:** se creó la migración `021_quitar_clave_heredero.sql`, que elimina `beneficiario.clave_acceso_hash` (el heredero entra con código por correo).
+4. **Diccionario:** se regeneró con `npm run diccionario` (33 tablas, 52 relaciones).
+
 ## Fase 9 · Pendientes del proyecto
 
-- Pantalla de solicitud de liberación del beneficiario (Figma 06) y portal del heredero (React): aquí se usará el mismo código por correo para que cada heredero confirme su identidad dentro del proceso de liberación.
+- Portal del validador externo (los activos financieros que lo exigen quedan en `PENDIENTE_VALIDADOR`).
+- Reporte de fallecimiento.
 - Cobro del plan Premium con Culqi (modo de pruebas) y límites reales por plan.
-- Despliegue.
+- Despliegue (el monitoreo de inactividad necesitará un programador externo en la nube).

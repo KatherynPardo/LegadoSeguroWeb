@@ -38,3 +38,6 @@ El documento [DOCUMENTACION_SISTEMA.md](../../DOCUMENTACION_SISTEMA.md) ya apunt
 | `30-dashboard.png` | Dashboard completo | 9.1 |
 | `31-reportes.png` | Reportes (con el ojito) | 9.2 |
 | `40-responsive.png` | El sistema en vista de celular (F12 → modo dispositivo) | 10.4 |
+| `32-monitoreo-admin.png` | Administración: tarjeta "Monitoreo de inactividad" con el resumen y la tabla de alertas | 7.10 |
+| `33-activo-tarjeta.png` | Formulario de una tarjeta de crédito (últimos 4, día de pago y cierre) | 7.4 |
+| `34-documentos-por-activo.png` | Ventana "Documentos del heredero" mostrando "Por: activo" | 7.8 |
