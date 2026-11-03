@@ -1,0 +1,76 @@
+<header class="barra">
+  <h1>Reportes</h1>
+</header>
+
+<section class="pagina">
+  @if (reporte(); as r) {
+  <div class="cifras">
+    <div class="cifra">
+      <span class="numero azul">{{ r.totalActivos }}</span>
+      <span class="etiqueta">Activos registrados</span>
+    </div>
+    <div class="cifra">
+      <span class="numero" [class.naranja]="r.sinHeredero > 0" [class.verde]="r.sinHeredero === 0">{{ r.sinHeredero }}</span>
+      <span class="etiqueta">Activos sin heredero</span>
+    </div>
+    <div class="cifra">
+      <span class="numero azul">{{ r.herederos.verificados }} de {{ r.herederos.total }}</span>
+      <span class="etiqueta">Herederos verificados</span>
+    </div>
+    <div class="cifra">
+      @for (d of r.dinero; track d.moneda) {
+      <span class="numero azul chica">
+        {{ simbolo(d.moneda) }} @if (verMontos()) { {{ d.total | number:'1.2-2' }} } @else { ••••••• }
+      </span>
+      } @empty {
+      <span class="numero gris">—</span>
+      }
+      <span class="etiqueta">Dinero registrado</span>
+      @if (r.dinero.length) {
+      <button type="button" class="ojo" [attr.aria-label]="verMontos() ? 'Ocultar montos' : 'Mostrar montos'"
+              [title]="verMontos() ? 'Ocultar montos' : 'Mostrar montos'" (click)="verMontos.set(!verMontos())">
+        @if (verMontos()) {
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        } @else {
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+        }
+      </button>
+      }
+    </div>
+  </div>
+
+  <div class="dos-columnas">
+    <div class="tarjeta">
+      <h2 class="subtitulo">Activos por tipo</h2>
+      @for (t of r.porTipo; track t.tipo) {
+      <div class="fila-tipo">
+        <div class="texto-tipo">
+          <span>{{ t.tipo }}</span>
+          <span class="cantidad">{{ t.cantidad }}</span>
+        </div>
+        <div class="barra-fondo">
+          <div class="barra-valor" [class.financiera]="t.sensibilidad === 'FINANCIERA'" [style.width.%]="ancho(t.cantidad, r.totalActivos)"></div>
+        </div>
+      </div>
+      } @empty {
+      <p class="vacio">Todavía no tienes activos.</p>
+      }
+    </div>
+
+    <div class="tarjeta">
+      <h2 class="subtitulo">Procesos de liberación</h2>
+      @for (p of r.procesos; track p.estado) {
+      <div class="fila-estado">
+        <span>{{ estados[p.estado] ?? p.estado }}</span>
+        <strong>{{ p.cantidad }}</strong>
+      </div>
+      } @empty {
+      <p class="vacio">No tienes procesos de liberación.</p>
+      }
+      <p class="enlace-historial"><a routerLink="/historial">Ver mi historial completo</a></p>
+    </div>
+  </div>
+  } @else {
+  <p class="vacio">Preparando tu reporte...</p>
+  }
+</section>

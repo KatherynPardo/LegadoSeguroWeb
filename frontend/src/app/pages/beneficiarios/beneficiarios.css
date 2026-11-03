@@ -136,3 +136,78 @@
 .aviso-info p {
   margin: 6px 0 0;
 }
+
+/* Medidor de herederos del plan */
+.acciones {
+  align-items: center;
+  gap: 24px;
+}
+
+.medidor {
+  font-size: 14px;
+  color: #6B7280;
+  min-width: 220px;
+}
+
+.medidor-fondo {
+  height: 6px;
+  margin-top: 6px;
+  background: #E3E7ED;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.medidor-valor {
+  height: 100%;
+  background: #1A4E8A;
+  border-radius: 999px;
+  transition: width 0.3s;
+}
+
+.medidor-valor.lleno {
+  background: var(--lg-advertencia);
+}
+
+/* Aviso para mejorar el plan */
+.plan-aviso {
+  text-align: center;
+  padding: 8px 0 4px;
+}
+
+.plan-icono {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: #FDF1DE;
+  color: var(--lg-dorado);
+  font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.plan-aviso h3 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.plan-aviso p {
+  color: #6B7280;
+}
+
+.plan-aviso ul {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 8px;
+  text-align: left;
+  display: inline-block;
+}
+
+.plan-aviso li::before {
+  content: '✓';
+  color: var(--lg-dorado);
+  margin-right: 8px;
+  font-weight: 700;
+}

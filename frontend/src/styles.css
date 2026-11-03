@@ -47,7 +47,8 @@
 
 .tarjeta {
   background: #fff;
-  border: 1px solid #D9D9D9;
+  box-shadow: 0 2px 6px rgba(15, 35, 80, 0.06);
+  border: 1px solid #E3E7ED;
   border-radius: 12px;
   padding: 24px 30px;
 }

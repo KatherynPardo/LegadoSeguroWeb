@@ -4,9 +4,12 @@
 import { pool } from '../config/database';
 import { Beneficiario, EdicionBeneficiario, NuevoBeneficiario } from '../models/beneficiario.model';
 import { enviarCodigo, validarCodigo } from './verificacion.service';
+import { limiteDeHerederos } from './suscripcion.service';
 
 // Envía al correo del heredero el código que el dueño tendrá que escribir para registrarlo
 export async function enviarCodigoHeredero(correo: string, idUsuario: number): Promise<void> {
+  await revisarLimite(idUsuario);
+
   const dueno = await pool.query('SELECT nombres, apellidos FROM usuario WHERE id_usuario = $1', [idUsuario]);
   const nombre = `${dueno.rows[0].nombres} ${dueno.rows[0].apellidos}`;
 
@@ -18,10 +21,25 @@ export async function enviarCodigoHeredero(correo: string, idUsuario: number): P
   );
 }
 
-// Errores de regla de negocio: el controlador los convierte en 404 o 409
+// Errores de regla de negocio: el controlador los convierte en 404, 409 o 403.
+// El código 'LIMITE_PLAN' le avisa al frontend que debe ofrecer cambiar de plan.
 export class ReglaHeredero extends Error {
-  constructor(mensaje: string, public estado: number) {
+  constructor(mensaje: string, public estado: number, public codigo?: string, public limite?: number) {
     super(mensaje);
+  }
+}
+
+// Si el plan tiene límite de herederos y ya se alcanzó, no se deja registrar otro
+async function revisarLimite(idUsuario: number): Promise<void> {
+  const limite = await limiteDeHerederos(idUsuario);
+  if (limite === null) return;
+
+  const cuenta = await pool.query(
+    "SELECT COUNT(*)::int AS n FROM beneficiario WHERE id_usuario_propietario = $1 AND estado = 'ACTIVO'",
+    [idUsuario]
+  );
+  if (cuenta.rows[0].n >= limite) {
+    throw new ReglaHeredero(`Tu plan permite hasta ${limite} herederos`, 403, 'LIMITE_PLAN', limite);
   }
 }
 
@@ -38,6 +56,8 @@ export async function listarBeneficiarios(idUsuario: number): Promise<Beneficiar
 }
 
 export async function crearBeneficiario(datos: NuevoBeneficiario, idUsuario: number): Promise<number> {
+  await revisarLimite(idUsuario);
+
   const repetido = await pool.query(
     "SELECT 1 FROM beneficiario WHERE id_usuario_propietario = $1 AND dni = $2 AND estado = 'ACTIVO'",
     [idUsuario, datos.dni]

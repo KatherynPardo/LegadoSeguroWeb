@@ -1,7 +1,9 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
+import { Router } from '@angular/router';
 import { BeneficiarioService } from '../../services/beneficiario.service';
+import { SuscripcionService } from '../../services/suscripcion.service';
 import { Beneficiario, NuevoBeneficiario } from '../../models/beneficiario.model';
 import { Modal } from '../../components/modal/modal';
 
@@ -21,6 +23,10 @@ export class Beneficiarios implements OnInit {
   buscandoDni = signal(false);
   porEliminar = signal<Beneficiario | null>(null);
 
+  // Límite de herederos del plan (null = sin límite) y aviso para mejorar el plan
+  limite = signal<number | null>(null);
+  avisoPlan = signal(false);
+
   // Código de verificación que recibe el heredero en su correo
   correoOriginal = ''; // al editar, solo se pide código si el correo cambia o aún no está verificado
   verificadoOriginal = false;
@@ -31,10 +37,33 @@ export class Beneficiarios implements OnInit {
 
   nuevo: NuevoBeneficiario = this.vacio();
 
-  constructor(private beneficiarioService: BeneficiarioService) {}
+  constructor(
+    private beneficiarioService: BeneficiarioService,
+    private suscripcionService: SuscripcionService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.cargar();
+    this.suscripcionService.getSuscripcion().subscribe(s => this.limite.set(s.limiteHerederos));
+  }
+
+  // true si el plan tiene límite y ya se usó completo
+  limiteAlcanzado(): boolean {
+    const limite = this.limite();
+    return limite !== null && this.beneficiarios().length >= limite;
+  }
+
+  // Porcentaje de la barra de uso (máximo 100)
+  porcentajeUso(): number {
+    const limite = this.limite();
+    if (limite === null || limite === 0) return 0;
+    return Math.min(100, Math.round((this.beneficiarios().length / limite) * 100));
+  }
+
+  irAPlanes(): void {
+    this.avisoPlan.set(false);
+    this.router.navigate(['/suscripcion']);
   }
 
   cargar(): void {
@@ -49,6 +78,12 @@ export class Beneficiarios implements OnInit {
   }
 
   abrir(): void {
+    // Si ya usó todos los herederos de su plan, en vez del formulario se le ofrece mejorar el plan
+    if (this.limiteAlcanzado()) {
+      this.avisoPlan.set(true);
+      return;
+    }
+
     this.editandoId = null;
     this.correoOriginal = '';
     this.verificadoOriginal = false;
@@ -120,6 +155,11 @@ export class Beneficiarios implements OnInit {
       },
       error: err => {
         this.enviandoCodigo.set(false);
+        if (err.error?.codigo === 'LIMITE_PLAN') {
+          this.mostrarFormulario.set(false);
+          this.avisoPlan.set(true);
+          return;
+        }
         this.avisoCodigo.set(err.error?.mensaje ?? 'No se pudo enviar el código');
       }
     });
@@ -140,7 +180,14 @@ export class Beneficiarios implements OnInit {
         this.mostrarFormulario.set(false);
       },
       // Si el backend rechaza los datos (por ejemplo, DNI repetido), se muestra su mensaje
-      error: err => this.error.set(err.error?.mensaje ?? 'No se pudo guardar el heredero')
+      error: err => {
+        if (err.error?.codigo === 'LIMITE_PLAN') {
+          this.mostrarFormulario.set(false);
+          this.avisoPlan.set(true);
+          return;
+        }
+        this.error.set(err.error?.mensaje ?? 'No se pudo guardar el heredero');
+      }
     });
   }
 

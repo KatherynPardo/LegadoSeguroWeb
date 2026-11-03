@@ -317,7 +317,9 @@ Son datos ficticios, solo para desarrollo.
 | Procesos | `/procesos` | Ver los procesos de liberación, su detalle (activos, confirmaciones, objeciones, entregas) y cancelarlos |
 | Registro | `/registro` | Crear una cuenta nueva |
 | Usuarios | `/usuarios` | Solo administrador: ver cuentas y activarlas o desactivarlas |
-| Mi Historial | `/historial` | Ver sus propias acciones e ingresos, con fecha e IP |
+| Suscripción | `/suscripcion` | Ver el plan actual, comparar planes, volver al gratuito e historial de pagos |
+| Reportes | `/reportes` | Resumen propio: activos por tipo, sin heredero, herederos verificados, dinero registrado y procesos |
+| Mi Historial | `/historial` | Ver sus propias acciones e ingresos, con fecha e IP (se llega desde Reportes) |
 | Mi Perfil | `/perfil` | Editar datos personales y cambiar la contraseña |
 
 ### Endpoints de la API
@@ -341,6 +343,9 @@ Son datos ficticios, solo para desarrollo.
 | POST | `/api/auth/verificar-correo` | No | Confirma el correo con el código de 6 dígitos y activa la cuenta |
 | POST | `/api/auth/reenviar-codigo` | No | Reenvía el código a una cuenta pendiente |
 | POST | `/api/beneficiarios/codigo` | Sí | Envía el código al correo de un heredero |
+| GET | `/api/suscripcion` | Sí | Plan actual, planes disponibles, uso y pagos |
+| POST | `/api/suscripcion/plan` | Sí | Cambiar de plan (por ahora solo al gratuito) |
+| GET | `/api/reportes` | Sí | Datos del reporte del usuario |
 | GET | `/api/historial` | Sí | Acciones e ingresos del propio usuario |
 | POST | `/api/auth/registro` | No | Paso 1 del registro: crea la cuenta pendiente y envía el código |
 | GET | `/api/admin/usuarios` | Admin | Listar todos los usuarios |
@@ -530,11 +535,25 @@ npm run cifrar
 
 La migración `006_usuario_admin.sql` crea `admin@legadoseguro.pe` (contraseña de prueba `Admin2026!`) con rol `ADMINISTRADOR`. El backend revisa el rol en la base en cada petición a `/api/admin` (`middlewares/admin.middleware.ts`) y el frontend oculta el menú y bloquea la ruta (`core/admin.guard.ts`). Un usuario desactivado ya no puede iniciar sesión.
 
+### Paso 8.10: Suscripción
+
+- **Qué es:** la pantalla muestra el plan actual, compara los planes (tabla `plan`) y lista los pagos (tabla `pago`). Si el usuario no tiene una suscripción activa, está en el plan **Gratuito**.
+- **Qué falta:** pagar el plan Premium. Hasta conectar **Culqi**, el botón está desactivado y el backend responde que el pago aún no está disponible. Solo se puede volver al plan gratuito, y el cambio queda en `suscripcion` y en la auditoría.
+- **Plan Básico (gratis):** permite hasta **2 herederos**. El límite está en la columna `plan.limite_herederos` (vacío = ilimitado, como el Premium).
+- **Aviso para mejorar el plan:** en **Mis Herederos** una barra muestra cuántos herederos se usaron ("2 de 2"). Si el límite ya se alcanzó, al pulsar **+ Designar Beneficiario** aparece una ventana invitando a mejorar el plan, con el botón **Ver planes**. El backend también lo exige: responde 403 con el código `LIMITE_PLAN` (`services/beneficiario.service.ts`), por si alguien salta la pantalla.
+- **Herederos que ya existían:** si alguien tenía más herederos que el límite, se conservan; solo se bloquea designar nuevos.
+
+### Paso 8.11: Reportes
+
+- **Qué es:** un resumen del propio usuario (`services/reporte.service.ts`): activos por tipo, activos sin heredero, herederos verificados, dinero registrado por moneda y procesos por estado.
+- **Ojito:** la tarjeta de dinero registrado empieza oculta (•••••••) y se muestra u oculta con el ícono del ojo.
+- **Detalle importante:** los montos están cifrados en la base, así que el backend los descifra y los suma antes de enviarlos.
+
 ---
 
 ## Fase 9 · Pendientes del proyecto
 
 - Recuperación de contraseña por correo (ya existe la tabla `token_recuperacion` y el envío de correos).
-- Portal del heredero (React): aquí se usará el mismo código por correo para que cada heredero confirme su identidad dentro del proceso de liberación.
-- Planes, suscripciones y pagos con Culqi (modo de pruebas).
+- Pantalla de solicitud de liberación del beneficiario (Figma 06) y portal del heredero (React): aquí se usará el mismo código por correo para que cada heredero confirme su identidad dentro del proceso de liberación.
+- Cobro del plan Premium con Culqi (modo de pruebas) y límites reales por plan.
 - Despliegue.

@@ -26,10 +26,12 @@ Bitácora de lo construido, en orden cronológico.
 | 02/11/2026 | **Herederos por activo**: en Mis Activos se elige qué herederos recibe cada activo (tabla `activo_beneficiario`, el orden marca la prioridad). Al iniciarse un proceso, las confirmaciones se generan a partir de esa asignación. |
 | 03/11/2026 | **Validaciones obligatorias** en activos, herederos, registro y perfil (teléfono de 9 dígitos, correo válido, textos con máximo). **Editar y eliminar** activos y herederos (eliminar = marcar INACTIVO para conservar el historial). **Bancos** (catálogo con botón "Nuevo banco"), **monto opcional** en cualquier activo con moneda soles o dólares e **historial de montos**. |
 | 03/11/2026 | **Seguridad**: código de verificación por correo al registrarse y al registrar un heredero (contra suplantación), cifrado AES-256 de descripciones y montos, y pantalla **Mi Historial**. El heredero ya no tiene clave guardada (se verifica con códigos por correo) y se quitó el rango de ahorro, porque el monto exacto con historial ya cubre esa necesidad. El manual se reordena paso a paso (Fase 8). |
+| 03/11/2026 | **Diseño según Figma**: escudo y menú lateral, saludo y actividad real en el Dashboard, columna Estado en Activos, tarjetas de herederos con insignia de identidad verificada. Nuevas pantallas **Suscripción** y **Reportes**, y menú en el orden del diseño (Dashboard, Activos, Herederos, Reglas, Procesos, Suscripción, Reportes, Administración). |
+| 03/11/2026 | **Plan Básico gratuito con 2 herederos**: al llegar al límite, una ventana invita a mejorar el plan (backend y pantalla lo validan). El dinero registrado en Reportes se puede ocultar o mostrar con un ojito. |
 
 ## Próximos pasos
 
 1. Recuperación de contraseña por correo.
 2. Portal del heredero (React) con código por correo en cada confirmación.
-3. Planes, suscripciones y pagos (Culqi).
+3. Cobro del plan Premium con Culqi.
 4. Despliegue.

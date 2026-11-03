@@ -1,0 +1,71 @@
+<header class="barra">
+  <h1>Suscripción</h1>
+</header>
+
+<section class="pagina">
+  @if (mensaje()) { <p class="ok-form">{{ mensaje() }}</p> }
+  @if (error()) { <p class="error-form">{{ error() }}</p> }
+
+  @if (datos(); as d) {
+  <div class="tarjeta resumen">
+    <div>
+      <p class="etiqueta">Tu plan actual</p>
+      <h2 class="plan-actual">{{ planActual()?.nombre ?? 'Gratuito' }}</h2>
+      @if (d.desde) { <p class="ayuda">Desde el {{ d.desde | date:'dd/MM/yyyy' }}</p> }
+    </div>
+    <div class="uso">
+      <div><strong>{{ d.uso.activos }}</strong><span>Activos registrados</span></div>
+      <div>
+        <strong>{{ d.uso.beneficiarios }}@if (d.limiteHerederos !== null) { <small> / {{ d.limiteHerederos }}</small> }</strong>
+        <span>Herederos designados</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="planes">
+    @for (p of d.planes; track p.id) {
+    <article class="plan" [class.actual]="esActual(p)">
+      <h3>{{ p.nombre }}</h3>
+      <p class="precio">
+        @if (p.precio === 0) { Gratis } @else { S/ {{ p.precio | number:'1.2-2' }} <small>/ mes</small> }
+      </p>
+      <p class="ayuda">{{ p.descripcion }}</p>
+
+      @if (esActual(p)) {
+      <span class="insignia ok">Plan actual</span>
+      } @else if (p.precio === 0) {
+      <button type="button" class="btn btn-outline-primary" (click)="elegir(p)">Cambiar a este plan</button>
+      } @else {
+      <button type="button" class="btn btn-primary" disabled>Pagar con Culqi (próximamente)</button>
+      }
+    </article>
+    }
+  </div>
+
+  <div class="aviso-info">
+    <strong>Sobre los límites del plan</strong>
+    <p>El plan Básico es gratis e incluye hasta 2 herederos. Si ya tenías más herederos, se conservan, pero no podrás designar nuevos hasta mejorar tu plan. El cobro del plan Premium se conectará con Culqi (modo de pruebas).</p>
+  </div>
+
+  <h2 class="subtitulo">Historial de pagos</h2>
+  <div class="tarjeta">
+    <table class="tabla">
+      <thead><tr><th>Fecha</th><th>Plan</th><th>Monto</th><th>Estado</th></tr></thead>
+      <tbody>
+        @for (pago of d.pagos; track $index) {
+        <tr>
+          <td>{{ pago.fecha | date:'dd/MM/yyyy' }}</td>
+          <td>{{ pago.plan }}</td>
+          <td>S/ {{ pago.monto | number:'1.2-2' }}</td>
+          <td>{{ pago.estado }}</td>
+        </tr>
+        } @empty {
+        <tr><td colspan="4" class="vacio">Todavía no hay pagos registrados.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  } @else {
+  <p class="vacio">Cargando tu suscripción...</p>
+  }
+</section>

@@ -11,7 +11,7 @@ const PARENTESCOS = ['Hijo/a', 'Esposo/a', 'Padre', 'Madre', 'Hermano/a', 'Otro'
 
 function responderError(error: unknown, res: Response, accion: string) {
   if (error instanceof ReglaHeredero) {
-    res.status(error.estado).json({ mensaje: error.message });
+    res.status(error.estado).json({ mensaje: error.message, codigo: error.codigo, limite: error.limite });
     return;
   }
   console.error(`Error al ${accion}:`, error);

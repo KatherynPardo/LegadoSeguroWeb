@@ -7,6 +7,14 @@
   @if (error() && !mostrarFormulario()) { <p class="error-form">{{ error() }}</p> }
 
   <div class="acciones">
+    @if (limite() !== null) {
+    <div class="medidor">
+      <span>{{ beneficiarios().length }} de {{ limite() }} herederos de tu plan</span>
+      <div class="medidor-fondo">
+        <div class="medidor-valor" [class.lleno]="limiteAlcanzado()" [style.width.%]="porcentajeUso()"></div>
+      </div>
+    </div>
+    }
     <button class="btn btn-primary" (click)="abrir()">+ Designar Beneficiario</button>
   </div>
 
@@ -101,6 +109,23 @@
       <button type="submit" class="btn btn-primary" [disabled]="f.invalid">Guardar</button>
     </div>
   </form>
+</app-modal>
+
+<app-modal titulo="Mejora tu plan" [abierto]="avisoPlan()" (cerrar)="avisoPlan.set(false)">
+  <div class="plan-aviso">
+    <div class="plan-icono">★</div>
+    <h3>Llegaste al límite de tu plan</h3>
+    <p>Tu plan Básico incluye hasta <strong>{{ limite() }} herederos</strong> y ya los usaste. Con el plan Premium puedes designar a todas las personas que quieras.</p>
+    <ul>
+      <li>Herederos ilimitados</li>
+      <li>Cada heredero verificado con código por correo</li>
+      <li>Tu legado protegido con cifrado</li>
+    </ul>
+  </div>
+  <div class="botones-form">
+    <button type="button" class="btn btn-outline-secondary" (click)="avisoPlan.set(false)">Ahora no</button>
+    <button type="button" class="btn btn-primary" (click)="irAPlanes()">Ver planes</button>
+  </div>
 </app-modal>
 
 <app-modal titulo="Eliminar heredero" [abierto]="porEliminar() !== null" (cerrar)="porEliminar.set(null)">

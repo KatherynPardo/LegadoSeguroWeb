@@ -14,13 +14,15 @@ Esta carpeta contiene **toda la información de la base de datos**: el esquema, 
 | `migrations/008_bancos_y_montos.sql` | Crea `entidad_financiera` (bancos) e `historial_monto`, y agrega banco, moneda y monto a `activo_digital` |
 | `migrations/009_cifrado_y_codigos.sql` | Agrega las columnas cifradas (monto) y la tabla `codigo_verificacion` |
 | `migrations/010_sin_clave_heredero.sql` | El heredero ya no guarda clave (usa códigos por correo) y se quita la columna del rango de ahorro |
+| `migrations/011_heredero_verificado.sql` | Marca si el heredero confirmó su correo (`beneficiario.correo_verificado`) |
+| `migrations/012_plan_basico.sql` | Plan Básico gratuito con límite de 2 herederos (`plan.limite_herederos`); el Premium no tiene límite |
 
 ## Cómo ejecutarlas
 
 1. Entra a tu proyecto en [supabase.com](https://supabase.com).
 2. Abre **SQL Editor** y pulsa **New query**.
 3. Pega el contenido de `001_esquema_inicial.sql` y pulsa **Run**.
-4. Repite con `002` a `010`, **en ese orden**: cada una depende de la anterior.
+4. Repite con `002` a `012`, **en ese orden**: cada una depende de la anterior.
 5. En **Table Editor** debes ver 27 tablas: las 24 del modelo original más `entidad_financiera`, `historial_monto` y `codigo_verificacion`.
 
 > Cada archivo se ejecuta **una sola vez**. Si lo corres de nuevo dará error de "ya existe".
