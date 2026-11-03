@@ -513,6 +513,7 @@ SMTP_USER=tucorreo@gmail.com
 SMTP_PASS=la-contraseña-de-aplicación
 SMTP_FROM=LegadoSeguro <tucorreo@gmail.com>
 ```
+- **Diseño del correo:** `correo.service.ts` convierte el texto en un correo HTML con la cabecera azul y dorada de LegadoSeguro, el código de 6 dígitos en una caja grande y un pie de aviso automático; el texto plano va como respaldo. Aplica a todos los correos del sistema.- **Probar con varios correos:** el correo del usuario es único (restricción en la base). Para pruebas usa el truco de Gmail: `tucorreo+prueba1@gmail.com`, `tucorreo+prueba2@gmail.com`... son distintos para el sistema y llegan a la misma bandeja.- **Hotmail/Outlook:** también puede enviar (`smtp-mail.outlook.com`, puerto 587), pero Microsoft suele bloquear el acceso SMTP con contraseña; Gmail es más fiable.
 
 ### Paso 8.4: Código para registrar a un heredero
 
