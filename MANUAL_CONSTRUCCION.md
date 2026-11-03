@@ -354,6 +354,12 @@ Son datos ficticios, solo para desarrollo.
 | PATCH | `/api/portal/documentos/:id` | Heredero | Marca un documento como entregado o pendiente |
 | GET / PUT | `/api/beneficiarios/:id/documentos` | Propietario | Documentos de un heredero |
 | GET / POST / PUT | `/api/admin/requisitos` | Admin | Catálogo de documentos |
+| GET | `/api/portal/solicitudes` | Heredero | Sus solicitudes de liberación (y las entregas si ya se liberó) |
+| POST | `/api/portal/solicitudes/:idProceso/:idBeneficiario/dni` | Heredero | Paso 2: valida el DNI |
+| POST | `/api/portal/solicitudes/:idProceso/:idBeneficiario/selfie` | Heredero | Paso 3: envía la selfie |
+| POST | `/api/portal/solicitudes/:idProceso/:idBeneficiario/confirmar` | Heredero | Confirma su participación |
+| POST | `/api/portal/solicitudes/:idProceso/:idBeneficiario/objecion` | Heredero | Presenta una objeción |
+| POST | `/api/procesos/:id/objeciones/:idObjecion/resolver` | Propietario | Marca una objeción como resuelta |
 | GET | `/api/historial` | Sí | Acciones e ingresos del propio usuario |
 | POST | `/api/auth/registro` | No | Paso 1 del registro: crea la cuenta pendiente y envía el código |
 | GET | `/api/admin/usuarios` | Admin | Listar todos los usuarios |
@@ -586,6 +592,29 @@ El sistema maneja tres roles, guardados en la tabla `rol`: **ADMINISTRADOR**, **
 - **Sesiones separadas:** el heredero tiene su propia sesión. Su token lleva `tipo: HEREDERO` y el backend lo rechaza en las pantallas del propietario (`middlewares/auth.middleware.ts`); y el token del propietario se rechaza en el portal (`middlewares/portal.middleware.ts`).
 - **Quién puede entrar al portal:** solo herederos con el correo verificado. Si el correo no es de un heredero, la respuesta es igual de neutra y no se envía ningún código.
 - **Qué no hace:** no se adjuntan archivos; es una lista de control.
+
+### Paso 8.10d: Confirmación del heredero y liberación del legado
+
+El proceso de liberación avanza por etapas. Las cumple el **heredero** desde su portal (pantalla del Figma 06) y el **motor** del backend.
+
+```
+DETECTADO ─aviso por correo─► EN_CONFIRMACION ─(confirman las personas que pide la regla)─► EN_ESPERA
+EN_ESPERA ─(pasa el período de espera y no hay objeciones abiertas)─► LIBERADO
+En cualquier momento el propietario puede CANCELAR el proceso.
+```
+
+1. **Aviso.** Al abrir un proceso, el sistema envía un correo al propietario ("si estás bien, cancela") y a cada heredero verificado ("entra a tu espacio"). Cada aviso queda en la tabla `notificacion`.
+2. **Las tres verificaciones del heredero** (Figma 06):
+   - **1. Código de acceso:** ya la hizo al entrar al portal con el código del correo.
+   - **2. Validación de DNI:** escribe su DNI y el backend lo compara con el que registró el propietario.
+   - **3. Verificación facial:** se toma una selfie, se reduce a un tamaño pequeño y se guarda **cifrada** (AES-256) en `verificacion_beneficiario`. *La foto se guarda como evidencia; el sistema no la compara automáticamente con el DNI.*
+3. **Decisión.** Con los tres pasos hechos puede **Confirmar participación** (sus filas de `confirmacion_beneficiario` pasan a `CONFIRMADA`) o **Presentar objeción** (queda en `objecion` y su confirmación pasa a `OBJETADA`).
+4. **Espera final.** Cuando confirman tantos herederos como pide la regla (`min_confirmaciones`), el proceso pasa a `EN_ESPERA` y se avisa al propietario, que todavía puede cancelar.
+5. **Liberación.** El motor (que corre cada hora) libera los procesos cuya espera terminó y que **no tienen objeciones abiertas**: crea una `entrega` por cada activo y heredero que confirmó, y avisa a los herederos. Si la regla exige validador externo, las entregas de activos financieros quedan en `PENDIENTE_VALIDADOR`.
+6. **Objeciones.** El propietario las ve en **Procesos → Ver detalle** y puede marcarlas como resueltas; mientras haya una abierta, no se libera.
+
+- **Qué ve el heredero al liberarse:** el nombre y tipo de cada activo y la descripción que dejó el propietario (que está cifrada en la base y se descifra solo para las entregas autorizadas). El sistema **no guarda contraseñas de las cuentas**, así que la descripción es donde el propietario deja las indicaciones.
+- **Pendiente:** el portal del validador externo, que aprobaría las entregas financieras.
 
 ### Paso 8.11: Reportes
 

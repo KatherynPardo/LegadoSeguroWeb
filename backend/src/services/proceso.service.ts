@@ -46,7 +46,7 @@ export async function obtenerProceso(idProceso: number, idUsuario: number): Prom
        JOIN activo_digital a ON a.id_activo = c.id_activo
        WHERE c.id_proceso = $1 ORDER BY b.nombres, a.nombre`, [idProceso]),
     pool.query(
-      `SELECT COALESCE(b.nombres || ' ' || b.apellidos, 'Propietario') AS autor, o.motivo, o.estado, o.fecha
+      `SELECT o.id_objecion AS id, COALESCE(b.nombres || ' ' || b.apellidos, 'Propietario') AS autor, o.motivo, o.estado, o.fecha
        FROM objecion o
        LEFT JOIN beneficiario b ON b.id_beneficiario = o.id_beneficiario
        WHERE o.id_proceso = $1 ORDER BY o.fecha DESC`, [idProceso]),

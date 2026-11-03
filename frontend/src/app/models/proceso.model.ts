@@ -14,7 +14,7 @@ export interface ProcesoResumen {
 
 export interface ActivoProceso { nombre: string; tipo: string; sensibilidad: string; estado: string; }
 export interface ConfirmacionProceso { beneficiario: string; activo: string; resultado: string; fecha: string | null; }
-export interface ObjecionProceso { autor: string; motivo: string; estado: string; fecha: string; }
+export interface ObjecionProceso { id: number; autor: string; motivo: string; estado: string; fecha: string; }
 export interface EntregaProceso { activo: string; beneficiario: string; estado: string; fechaAcceso: string | null; }
 
 export interface ProcesoDetalle extends ProcesoResumen {

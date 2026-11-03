@@ -8,7 +8,7 @@ import routes from './routes';
 const app = express();
 
 app.use(cors());         // permite que Angular (puerto 4200) se conecte
-app.use(express.json()); // permite recibir datos en formato JSON (lo usaremos al registrar)
+app.use(express.json({ limit: '1mb' })); // recibe datos en JSON (el límite permite la selfie del heredero)
 
 // Ruta raíz: solo confirma que el servidor está encendido
 app.get('/', (req, res) => {

@@ -64,7 +64,7 @@
 | Registro e ingreso de usuarios con verificación de correo por código | Cobro real de planes con Culqi |
 | Activos digitales con tipo, banco, monto cifrado e historial | Despliegue público en Vercel |
 | Herederos verificados por código, con checklist de documentos | Subida de archivos (DNI, certificados) |
-| Regla de liberación configurable y procesos de liberación automáticos | Verificación facial y confirmación del heredero dentro del proceso |
+| Regla de liberación configurable y procesos de liberación automáticos | Comparación facial automática de la selfie |
 | Planes con límite de herederos | Notificaciones por SMS o llamada |
 | Dashboard, reportes, historial y auditoría | Aplicación móvil |
 | Portal del heredero (ingreso por código) | |
@@ -113,17 +113,17 @@
 
 ### 2.1 Modelo entidad-relación
 
-El modelo tiene **29 tablas** organizadas en módulos:
+El modelo tiene **30 tablas** organizadas en módulos:
 
 | Módulo | Tablas |
 |---|---|
 | Usuarios y seguridad | `rol`, `usuario`, `token_recuperacion`, `actividad_usuario`, `auditoria`, `codigo_verificacion` |
 | Activos y herederos | `tipo_activo`, `activo_digital`, `beneficiario`, `activo_beneficiario`, `validador_externo`, `entidad_financiera`, `historial_monto`, `requisito_documental`, `documento_heredero` |
-| Regla y proceso de liberación | `regla_liberacion`, `reporte_fallecimiento`, `proceso_liberacion`, `proceso_activo`, `confirmacion_beneficiario`, `validacion_externa`, `objecion`, `entrega` |
+| Regla y proceso de liberación | `verificacion_beneficiario`, `regla_liberacion`, `reporte_fallecimiento`, `proceso_liberacion`, `proceso_activo`, `confirmacion_beneficiario`, `validacion_externa`, `objecion`, `entrega` |
 | Orientación legal y notificaciones | `guia_legal`, `orientacion_legal_generada`, `notificacion` |
 | Suscripciones y pagos | `plan`, `suscripcion`, `pago` |
 
-Las 24 tablas originales se crearon en la primera migración; las otras 5 se agregaron al construir cada función nueva (`entidad_financiera`, `historial_monto`, `codigo_verificacion`, `requisito_documental`, `documento_heredero`). Cada cambio quedó como una migración numerada en `supabase/migrations/`.
+Las 24 tablas originales se crearon en la primera migración; las otras 6 se agregaron al construir cada función nueva (`entidad_financiera`, `historial_monto`, `codigo_verificacion`, `requisito_documental`, `documento_heredero`, `verificacion_beneficiario`). Cada cambio quedó como una migración numerada en `supabase/migrations/`.
 
 El diagrama entidad-relación por módulos está en Lucidchart (ver el enlace en la presentación del proyecto). Las relaciones, con sus cardinalidades, se listan al final del diccionario de datos (2.2), generadas desde la base real.
 
@@ -135,7 +135,7 @@ Se genera automáticamente. Si cambia la base de datos, se ejecuta `npm run dicc
 
 <!-- DICCIONARIO:INICIO -->
 
-**Generado automáticamente desde la base de datos el 3/11/2026** · 29 tablas.
+**Generado automáticamente desde la base de datos el 3/11/2026** · 30 tablas.
 
 #### actividad_usuario
 
@@ -407,6 +407,7 @@ Cada proceso de entrega del legado, desde que se detecta hasta que termina.
 | fecha_fin | TIMESTAMPTZ | — | Puede ser vacío | Fecha y hora de fin (vacío = sigue abierto). |
 | estado | VARCHAR(30) | — | NOT NULL; Por defecto 'DETECTADO' | Estado del registro (por ejemplo ACTIVO o INACTIVO). |
 | motivo | VARCHAR(200) | — | Puede ser vacío | Motivo o razón. |
+| fecha_espera | TIMESTAMPTZ | — | Puede ser vacío | — |
 
 #### regla_liberacion
 
@@ -542,6 +543,19 @@ Persona de confianza que aprueba la liberación de activos financieros.
 | telefono | VARCHAR(20) | — | Puede ser vacío | Teléfono de contacto (9 dígitos). |
 | estado | VARCHAR(20) | — | NOT NULL; Por defecto 'ACTIVO' | Estado del registro (por ejemplo ACTIVO o INACTIVO). |
 
+#### verificacion_beneficiario
+
+
+
+| Campo | Tipo | PK/FK | Restricción | Descripción |
+|---|---|---|---|---|
+| id_proceso | INT | PK, FK → proceso_liberacion | NOT NULL | Referencia a proceso_liberacion. |
+| id_beneficiario | INT | PK, FK → beneficiario | NOT NULL | Referencia a beneficiario. |
+| dni_validado | BOOLEAN | — | NOT NULL; Por defecto false | — |
+| fecha_dni | TIMESTAMPTZ | — | Puede ser vacío | — |
+| selfie_cifrada | TEXT | — | Puede ser vacío | — |
+| fecha_selfie | TIMESTAMPTZ | — | Puede ser vacío | — |
+
 #### Relaciones entre tablas
 
 Cada fila es una llave foránea. La cardinalidad se lee de la tabla padre (1) a la tabla hija (N).
@@ -593,6 +607,8 @@ Cada fila es una llave foránea. La cardinalidad se lee de la tabla padre (1) a 
 | proceso_liberacion | validacion_externa | id_proceso | 1 : N |
 | validador_externo | validacion_externa | id_validador | 1 : N |
 | usuario | validador_externo | id_usuario_propietario | 1 : N |
+| beneficiario | verificacion_beneficiario | id_beneficiario | 1 : N |
+| proceso_liberacion | verificacion_beneficiario | id_proceso | 1 : N |
 
 <!-- DICCIONARIO:FIN -->
 
@@ -949,7 +965,8 @@ WHERE r.estado = 'ACTIVA' AND u.estado = 'ACTIVO'
 - **Explicación:** al arrancar el backend y luego **cada hora**, se revisa a cada usuario con regla activa. Si su última actividad (cada inicio de sesión se registra en `actividad_usuario`) es más antigua que los días de su regla y no tiene un proceso abierto, se crea un `proceso_liberacion` en estado `DETECTADO`, con sus activos y las confirmaciones pendientes de los herederos asignados (todo en una transacción).
 - **Operaciones:** listar, ver detalle (activos, confirmaciones, objeciones, entregas) y **cancelar** (queda en la auditoría).
 - **Estados:** `DETECTADO`, `EN_CONFIRMACION`, `EN_ESPERA`, `LIBERADO`, `CANCELADO`.
-- **Limitación actual:** las etapas de confirmación, objeción y entrega por parte del heredero todavía no están implementadas.
+- **Etapas del heredero:** avisos por correo, tres verificaciones (código, DNI y selfie cifrada), confirmar participación o presentar objeción, espera final y liberación con entregas (pantalla del Figma 06). Detalle en el Paso 8.10d de [MANUAL_CONSTRUCCION.md](MANUAL_CONSTRUCCION.md).
+- **Limitación actual:** la selfie se guarda cifrada como evidencia, **sin comparación facial automática**; y el portal del validador externo (que aprobaría las entregas de activos financieros) no está hecho.
 - **Prueba:** casos P-25 a P-27.
 
 ### 7.8 Módulo: Checklist de documentos y portal del heredero
@@ -957,7 +974,7 @@ WHERE r.estado = 'ACTIVA' AND u.estado = 'ACTIVO'
 - **Objetivo:** que cada heredero sepa qué documentos debe reunir cuando se le entregue el legado.
 - **Requerimiento:** RF-08, RF-09, RNF-03.
 - **Archivos:** `services/documento.service.ts`, `services/portal.service.ts`, `controllers/documento.controller.ts`, `controllers/portal.controller.ts`, `middlewares/portal.middleware.ts`; `frontend/.../pages/portal`, `services/portal.service.ts`, `pages/admin`, `pages/beneficiarios`.
-- **Interfaz:** ![Portal: ingreso](docs/capturas/21-portal-ingreso.png) ![Portal: checklist](docs/capturas/22-portal-checklist.png) ![Documentos del heredero](docs/capturas/23-documentos-propietario.png) ![Catálogo del administrador](docs/capturas/24-catalogo-admin.png)
+- **Interfaz:** ![Portal: ingreso](docs/capturas/21-portal-ingreso.png) ![Portal: checklist](docs/capturas/22-portal-checklist.png) ![Solicitud de liberación (Figma 06)](docs/capturas/29-solicitud-liberacion.png) ![Documentos del heredero](docs/capturas/23-documentos-propietario.png) ![Catálogo del administrador](docs/capturas/24-catalogo-admin.png)
 - **Tres roles, tres vistas:**
 
 | Rol | Qué hace |
@@ -1127,6 +1144,17 @@ Las pruebas del backend se hicieron contra la base real (con datos temporales qu
 | P-35 | Admin lista usuarios y auditoría | 200 | 200 | Aprobado |
 | P-36 | Admin desactiva y activa un usuario | 200 y auditoría con IP | Verificado | Aprobado |
 | P-37 | Mi historial | Acciones e ingresos | Devolvió registros | Aprobado |
+| P-38 | El monitoreo detecta inactividad y abre el proceso | Proceso EN_CONFIRMACION y 3 avisos (dueño y 2 herederos) | Los 3 avisos guardados | Aprobado |
+| P-39 | Heredero confirma o manda la selfie sin cumplir los pasos | 409 | 409 | Aprobado |
+| P-40 | DNI que no coincide / DNI correcto | 400 / 200 con DNI enmascarado | 400 / 200 (`****1111`) | Aprobado |
+| P-41 | Selfie que no es JPEG / selfie correcta | 400 / 200 y cifrada en la base | 400 / 200 y `enc:...` | Aprobado |
+| P-42 | Un heredero actúa por otro / el propietario usa el portal | 404 / 401 | 404 / 401 | Aprobado |
+| P-43 | Heredero objeta; se intenta liberar con objeción abierta | No se libera | 0 liberados | Aprobado |
+| P-44 | El propietario resuelve la objeción y confirman los dos herederos | EN_ESPERA | EN_ESPERA | Aprobado |
+| P-45 | Termina la espera | LIBERADO y 4 entregas (2 activos × 2 herederos) | LIBERADO y 4 entregas | Aprobado |
+| P-46 | Validador exigido por la regla | Activo financiero PENDIENTE_VALIDADOR; el otro AUTORIZADA | Correcto | Aprobado |
+| P-47 | El heredero ve su entrega | Descripción descifrada solo en las autorizadas | Correcto | Aprobado |
+| P-48 | Confirmar un proceso terminado | 409 | 409 | Aprobado |
 
 ### 10.2 Pruebas de integración (Frontend → Backend → Supabase)
 
@@ -1337,13 +1365,14 @@ Cuentas externas necesarias: Supabase (obligatoria); apiperu.dev y una cuenta de
 **Limitaciones**
 - No está desplegado públicamente.
 - El cobro con Culqi no está conectado.
-- El heredero todavía no puede confirmar su participación, objetar ni recibir la entrega dentro del proceso (solo ve su checklist).
+- La selfie del heredero se guarda como evidencia, pero no se compara automáticamente con su DNI.
+- El portal del validador externo (que aprobaría las entregas de activos financieros) no está hecho.
 - No se adjuntan archivos.
 - Los correos reales requieren configurar una cuenta SMTP.
 - Pruebas responsive y de navegador pendientes de verificar de forma sistemática.
 
 **Mejoras futuras**
-- Solicitud de liberación del heredero con confirmación por código (diseño de Figma 06).
+- Portal del validador externo y comparación facial de la selfie.
 - Indicaciones por activo que viajan al heredero cuando se libera el proceso.
 - Cobro con Culqi y despliegue en la nube.
 - Notificaciones por SMS o llamada, y autenticador (TOTP).

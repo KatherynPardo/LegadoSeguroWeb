@@ -18,18 +18,19 @@ Esta carpeta contiene **toda la información de la base de datos**: el esquema, 
 | `migrations/012_plan_basico.sql` | Plan Básico gratuito con límite de 2 herederos (`plan.limite_herederos`); el Premium no tiene límite |
 | `migrations/013_dias_inactividad_libres.sql` | Los días de inactividad son libres; la base exige que estén entre 7 y 3650 (`regla_liberacion`) |
 | `migrations/014_checklist_documentos.sql` | Crea `requisito_documental` (catálogo) y `documento_heredero` (checklist de cada heredero) con 5 requisitos iniciales |
+| `migrations/015_confirmacion_heredero.sql` | Crea `verificacion_beneficiario` (DNI y selfie del heredero en un proceso) y `proceso_liberacion.fecha_espera` |
 
 ## Cómo ejecutarlas
 
 1. Entra a tu proyecto en [supabase.com](https://supabase.com).
 2. Abre **SQL Editor** y pulsa **New query**.
 3. Pega el contenido de `001_esquema_inicial.sql` y pulsa **Run**.
-4. Repite con `002` a `014`, **en ese orden**: cada una depende de la anterior.
-5. En **Table Editor** debes ver 29 tablas: las 24 del modelo original más `entidad_financiera`, `historial_monto`, `codigo_verificacion`, `requisito_documental` y `documento_heredero`.
+4. Repite con `002` a `015`, **en ese orden**: cada una depende de la anterior.
+5. En **Table Editor** debes ver 30 tablas: las 24 del modelo original más `entidad_financiera`, `historial_monto`, `codigo_verificacion`, `requisito_documental`, `documento_heredero` y `verificacion_beneficiario`.
 
 > Cada archivo se ejecuta **una sola vez**. Si lo corres de nuevo dará error de "ya existe".
 
-## Las tablas, por módulo (24 originales + 5 nuevas)
+## Las tablas, por módulo (24 originales + 6 nuevas)
 
 | Módulo | Tablas |
 |---|---|

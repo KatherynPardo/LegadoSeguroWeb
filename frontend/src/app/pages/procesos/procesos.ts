@@ -52,6 +52,21 @@ export class Procesos implements OnInit {
     this.procesoService.getProceso(p.id).subscribe(d => this.detalle.set(d));
   }
 
+  // El propietario revisó la objeción de un heredero y la da por resuelta
+  resolverObjecion(idObjecion: number): void {
+    const d = this.detalle();
+    if (!d) return;
+
+    this.procesoService.resolverObjecion(d.id, idObjecion).subscribe({
+      next: () => {
+        this.mensaje.set('Objeción marcada como resuelta');
+        this.verDetalle(d);
+        this.cargar();
+      },
+      error: err => this.error.set(err.error?.mensaje ?? 'No se pudo resolver la objeción')
+    });
+  }
+
   pedirCancelar(p: ProcesoResumen): void {
     this.mensaje.set('');
     this.error.set('');

@@ -82,7 +82,12 @@
 
   <h3 class="seccion">Objeciones</h3>
   @for (o of d.objeccionesDetalle; track $index) {
-  <p class="linea"><strong>{{ o.autor }}</strong> ({{ o.estado }}): {{ o.motivo }}</p>
+  <p class="linea">
+    <strong>{{ o.autor }}</strong> ({{ o.estado }}): {{ o.motivo }}
+    @if (o.estado === 'ABIERTA') {
+    <button type="button" class="btn btn-sm btn-outline-secondary ms-2" (click)="resolverObjecion(o.id)">Marcar como resuelta</button>
+    }
+  </p>
   } @empty {
   <p class="vacio">No hay objeciones.</p>
   }

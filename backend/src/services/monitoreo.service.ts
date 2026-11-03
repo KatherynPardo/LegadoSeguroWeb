@@ -3,6 +3,7 @@
 // (y no tiene ya un proceso abierto), inicia el proceso de liberación.
 
 import { pool } from '../config/database';
+import { avisarInicioProceso } from './liberacion.service';
 
 type Detectado = { id_regla: number; id_usuario: number; dias_inactividad: number };
 
@@ -31,6 +32,7 @@ export async function detectarInactividad(): Promise<number> {
 }
 
 async function iniciarProceso(c: Detectado): Promise<void> {
+  let idProcesoCreado = 0;
   const cliente = await pool.connect();
   try {
     await cliente.query('BEGIN');
@@ -42,6 +44,7 @@ async function iniciarProceso(c: Detectado): Promise<void> {
       [c.id_usuario, c.id_regla, `Inactividad superior a ${c.dias_inactividad} días`]
     );
     const idProceso = proceso.rows[0].id_proceso;
+    idProcesoCreado = idProceso;
 
     // Entran al proceso todos los activos vigentes del usuario
     await cliente.query(
@@ -73,4 +76,7 @@ async function iniciarProceso(c: Detectado): Promise<void> {
   } finally {
     cliente.release();
   }
+
+  // Con el proceso ya guardado, se avisa al propietario y a los herederos
+  await avisarInicioProceso(idProcesoCreado);
 }

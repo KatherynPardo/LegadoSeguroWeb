@@ -19,6 +19,10 @@ export class ProcesoService {
         return this.http.get<ProcesoDetalle>(`${this.apiUrl}/${id}`);
     }
 
+    resolverObjecion(idProceso: number, idObjecion: number): Observable<{ mensaje: string }> {
+        return this.http.post<{ mensaje: string }>(`${this.apiUrl}/${idProceso}/objeciones/${idObjecion}/resolver`, {});
+    }
+
     cancelar(id: number): Observable<{ mensaje: string }> {
         return this.http.post<{ mensaje: string }>(`${this.apiUrl}/${id}/cancelar`, {});
     }

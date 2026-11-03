@@ -24,7 +24,7 @@ export type ProcesoResumen = {
 
 export type ActivoProceso = { nombre: string; tipo: string; sensibilidad: string; estado: string };
 export type ConfirmacionProceso = { beneficiario: string; activo: string; resultado: string; fecha: string | null };
-export type ObjecionProceso = { autor: string; motivo: string; estado: string; fecha: string };
+export type ObjecionProceso = { id: number; autor: string; motivo: string; estado: string; fecha: string };
 export type EntregaProceso = { activo: string; beneficiario: string; estado: string; fechaAcceso: string | null };
 
 // Detalle completo de un proceso.

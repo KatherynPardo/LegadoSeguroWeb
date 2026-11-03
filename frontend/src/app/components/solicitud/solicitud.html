@@ -1,0 +1,145 @@
+<section class="tarjeta-solicitud">
+  <div class="aviso">
+    <h2>Solicitud de liberación de legado digital</h2>
+    <p>
+      Has sido designado beneficiario por <strong>{{ solicitud().benefactor }}</strong>.
+      @if (!solicitud().confirmado && solicitud().estado !== 'LIBERADO') {
+      Para continuar, debes completar las tres verificaciones de identidad que se indican a continuación.
+      }
+    </p>
+  </div>
+
+  @if (solicitud().estado === 'LIBERADO') {
+  <!-- ===== El legado ya fue liberado ===== -->
+  <div class="resultado ok">
+    <strong>El legado fue liberado</strong>
+    <span>Esto es lo que recibes. Los activos financieros esperan la aprobación del validador externo.</span>
+  </div>
+  @for (e of solicitud().entregas; track e.activo) {
+  <div class="entrega">
+    <div class="entrega-cabecera">
+      <strong>{{ e.activo }}</strong>
+      <span class="etiqueta" [class.espera]="e.estado !== 'AUTORIZADA'">{{ etiquetaEntrega(e.estado) }}</span>
+    </div>
+    <span class="tipo">{{ e.tipo }}</span>
+    @if (e.descripcion) { <p class="indicacion">{{ e.descripcion }}</p> }
+  </div>
+  } @empty {
+  <p class="nota">No tienes activos asignados en este proceso.</p>
+  }
+
+  } @else if (solicitud().confirmado) {
+  <!-- ===== Ya confirmó ===== -->
+  <div class="resultado ok">
+    <strong>Confirmaste tu participación</strong>
+    @if (solicitud().estado === 'EN_ESPERA') {
+    <span>Ya confirmaron las personas necesarias. Empezó la espera final de {{ solicitud().diasEspera }} días.</span>
+    } @else {
+    <span>Han confirmado {{ solicitud().confirmaron }} de {{ solicitud().minConfirmaciones }} herederos necesarios.</span>
+    }
+  </div>
+  @if (solicitud().objetado) {
+  <div class="resultado aviso-obj"><strong>Tienes una objeción abierta</strong><span>El propietario la revisará antes de liberar el legado.</span></div>
+  }
+  <div class="botones">
+    <button type="button" class="btn-objecion" (click)="abrirObjecion()">Presentar objeción</button>
+  </div>
+
+  } @else {
+  <!-- ===== Las tres verificaciones ===== -->
+
+  <!-- 1. Código de acceso: ya lo hizo al entrar -->
+  <div class="paso hecho">
+    <span class="circulo hecho">✓</span>
+    <div class="paso-texto">
+      <strong>1. Código de acceso</strong>
+      <span>Verificaste tu correo con el código que te enviamos.</span>
+    </div>
+    <span class="estado ok">Completado</span>
+  </div>
+
+  <!-- 2. DNI -->
+  @if (solicitud().dniValidado) {
+  <div class="paso hecho">
+    <span class="circulo hecho">✓</span>
+    <div class="paso-texto">
+      <strong>2. Validación de DNI</strong>
+      <span>@if (dniEnmascarado()) { DNI {{ dniEnmascarado() }} — {{ nombre() }}. }Los datos coinciden con el registro.</span>
+    </div>
+    <span class="estado ok">Completado</span>
+  </div>
+  } @else {
+  <div class="paso activo">
+    <span class="circulo">2</span>
+    <div class="paso-texto">
+      <strong>2. Validación de DNI</strong>
+      <span>Escribe tu DNI para compararlo con el que registró {{ solicitud().benefactor }}.</span>
+      <div class="fila-entrada">
+        <input name="dni" maxlength="8" inputmode="numeric" placeholder="Tu DNI de 8 dígitos" [(ngModel)]="dni" />
+        <button type="button" class="btn-primario" [disabled]="cargando() || dni.length !== 8" (click)="validarDni()">Validar</button>
+      </div>
+    </div>
+    <span class="estado curso">En curso</span>
+  </div>
+  }
+
+  <!-- 3. Selfie -->
+  @if (solicitud().selfieTomada) {
+  <div class="paso hecho">
+    <span class="circulo hecho">✓</span>
+    <div class="paso-texto">
+      <strong>3. Verificación facial</strong>
+      <span>Tu foto fue enviada y quedó guardada como evidencia.</span>
+    </div>
+    @if (vistaPrevia()) { <img class="foto" [src]="vistaPrevia()" alt="Tu selfie" /> }
+    <span class="estado ok">Completado</span>
+  </div>
+  } @else if (solicitud().dniValidado) {
+  <div class="paso activo">
+    <span class="circulo">3</span>
+    <div class="paso-texto">
+      <strong>3. Verificación facial</strong>
+      <span>Toma una selfie para confirmar que eres tú. Asegúrate de estar en un lugar bien iluminado.</span>
+      <div class="fila-entrada">
+        <div class="archivo">{{ vistaPrevia() ? 'Foto lista' : 'Ningún archivo seleccionado' }}</div>
+        <label class="btn-primario" [class.apagado]="cargando()">
+          Tomar selfie
+          <input type="file" accept="image/*" capture="user" hidden [disabled]="cargando()" (change)="elegirFoto($event)" />
+        </label>
+      </div>
+    </div>
+    <span class="estado curso">En curso</span>
+  </div>
+  } @else {
+  <div class="paso pendiente">
+    <span class="circulo gris">3</span>
+    <div class="paso-texto">
+      <strong>3. Verificación facial</strong>
+      <span>Se activa cuando termines el paso 2.</span>
+    </div>
+  </div>
+  }
+
+  @if (error()) { <p class="error">{{ error() }}</p> }
+  @if (solicitud().objetado) {
+  <div class="resultado aviso-obj"><strong>Tienes una objeción abierta</strong><span>No podrás confirmar hasta que el propietario la resuelva.</span></div>
+  }
+
+  <div class="botones">
+    <button type="button" class="btn-objecion" (click)="abrirObjecion()">Presentar objeción</button>
+    <button type="button" class="btn-confirmar" [disabled]="!pasosCompletos() || cargando() || solicitud().objetado" (click)="confirmar()">
+      Confirmar participación
+    </button>
+  </div>
+  }
+</section>
+
+<app-modal titulo="Presentar objeción" [abierto]="mostrarObjecion()" (cerrar)="mostrarObjecion.set(false)">
+  <p class="nota">Cuéntanos por qué no estás de acuerdo. El propietario recibirá tu objeción y se detendrá la liberación hasta que la revise.</p>
+  <textarea class="form-control" rows="4" maxlength="300" placeholder="Escribe el motivo (mínimo 10 caracteres)" [(ngModel)]="motivo"></textarea>
+  @if (errorObjecion()) { <p class="error">{{ errorObjecion() }}</p> }
+  <div class="botones">
+    <button type="button" class="btn btn-outline-secondary" (click)="mostrarObjecion.set(false)">Cancelar</button>
+    <button type="button" class="btn btn-danger" [disabled]="motivo.trim().length < 10" (click)="enviarObjecion()">Enviar objeción</button>
+  </div>
+</app-modal>

@@ -1,0 +1,263 @@
+.tarjeta-solicitud {
+  background: #fff;
+  border: 1px solid #E3E7ED;
+  border-radius: 16px;
+  box-shadow: 0 6px 24px rgba(15, 35, 80, 0.1);
+  padding: 32px;
+  margin-bottom: 28px;
+}
+
+/* Aviso naranja de arriba */
+.aviso {
+  background: #FFF4E8;
+  border: 1px solid #F0D3A0;
+  border-radius: 12px;
+  padding: 18px 22px;
+  margin-bottom: 20px;
+}
+
+.aviso h2 {
+  margin: 0 0 6px;
+  font-size: 19px;
+  font-weight: 700;
+  color: #8A5A12;
+}
+
+.aviso p {
+  margin: 0;
+  color: #374151;
+  line-height: 1.5;
+}
+
+/* Cada paso */
+.paso {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 18px 22px;
+  margin-bottom: 14px;
+  border-radius: 12px;
+  border: 1px solid #D9D9D9;
+}
+
+.paso.hecho {
+  background: #E8F5EC;
+  border-color: #B7DEC2;
+  align-items: center;
+}
+
+.paso.activo {
+  border: 2px solid #1A4E8A;
+}
+
+.paso.pendiente {
+  background: #F7F8FA;
+  color: #9CA3AF;
+}
+
+.circulo {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #1A4E8A;
+  color: #fff;
+  font-weight: 700;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.circulo.hecho { background: var(--lg-exito); }
+.circulo.gris { background: #C4C9D1; }
+
+.paso-texto {
+  flex: 1;
+}
+
+.paso-texto strong,
+.paso-texto > span {
+  display: block;
+}
+
+.paso-texto > span {
+  color: #6B7280;
+  font-size: 14px;
+}
+
+.estado {
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.estado.ok { color: var(--lg-exito); }
+.estado.curso { color: #1A4E8A; }
+
+.fila-entrada {
+  display: flex;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.fila-entrada input,
+.archivo {
+  flex: 1;
+  height: 46px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  background: #F7F8FA;
+  border: 1px solid #D9D9D9;
+  border-radius: 8px;
+  font-size: 15px;
+  color: #6B7280;
+}
+
+.fila-entrada input {
+  color: #1F2937;
+}
+
+.btn-primario {
+  height: 46px;
+  min-width: 150px;
+  padding: 0 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #1A4E8A;
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-primario:disabled,
+.btn-primario.apagado {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.foto {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* Botones finales */
+.botones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.btn-objecion {
+  height: 50px;
+  padding: 0 24px;
+  background: #fff;
+  color: var(--lg-error);
+  font-weight: 700;
+  border: 1px solid var(--lg-error);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-confirmar {
+  height: 50px;
+  padding: 0 28px;
+  background: var(--lg-exito);
+  color: #fff;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-confirmar:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.error {
+  margin: 12px 0 0;
+  color: var(--lg-error);
+  font-weight: 600;
+}
+
+.nota {
+  color: #6B7280;
+  font-size: 14px;
+}
+
+/* Resultados */
+.resultado {
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-bottom: 14px;
+}
+
+.resultado strong,
+.resultado span {
+  display: block;
+}
+
+.resultado.ok {
+  background: #E8F5EC;
+  border: 1px solid #B7DEC2;
+  color: var(--lg-exito);
+}
+
+.resultado.aviso-obj {
+  background: #FDF1DE;
+  border: 1px solid #F0D3A0;
+  color: #8A5A12;
+}
+
+.entrega {
+  padding: 14px 4px;
+  border-top: 1px solid #F0F2F5;
+}
+
+.entrega-cabecera {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tipo {
+  color: #6B7280;
+  font-size: 14px;
+}
+
+.indicacion {
+  margin: 8px 0 0;
+  padding: 10px 14px;
+  background: #F7F8FA;
+  border-radius: 8px;
+}
+
+.etiqueta {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #E2F3E7;
+  color: var(--lg-exito);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.etiqueta.espera {
+  background: #FDF1DE;
+  color: #8A5A12;
+}
+
+@media (max-width: 576px) {
+  .tarjeta-solicitud { padding: 20px; }
+  .fila-entrada { flex-direction: column; }
+  .botones { flex-direction: column; }
+  .paso { flex-wrap: wrap; }
+}

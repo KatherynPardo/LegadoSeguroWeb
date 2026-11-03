@@ -2,12 +2,13 @@ import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { PortalService } from '../../services/portal.service';
-import { ChecklistHeredero, DocumentoChecklist } from '../../models/documento.model';
+import { ChecklistHeredero, DocumentoChecklist, Solicitud as DatosSolicitud } from '../../models/documento.model';
+import { Solicitud } from '../../components/solicitud/solicitud';
 import { Logo } from '../../components/logo/logo';
 
 @Component({
   selector: 'app-portal',
-  imports: [FormsModule, RouterLink, Logo],
+  imports: [FormsModule, RouterLink, Logo, Solicitud],
   templateUrl: './portal.html',
   styleUrl: './portal.css'
 })
@@ -20,14 +21,15 @@ export class Portal implements OnInit {
   error = signal('');
   cargando = signal(false);
 
-  // Checklist (cuando ya ingresó)
+  // Solicitudes de liberación y checklist (cuando ya ingresó)
+  solicitudes = signal<DatosSolicitud[]>([]);
   listas = signal<ChecklistHeredero[]>([]);
   cargado = signal(false);
 
   constructor(protected portal: PortalService) {}
 
   ngOnInit(): void {
-    if (this.portal.ingresado()) this.cargarChecklist();
+    if (this.portal.ingresado()) this.cargarTodo();
   }
 
   // ---- Ingreso ----
@@ -55,7 +57,7 @@ export class Portal implements OnInit {
     this.portal.entrar(this.correo.trim().toLowerCase(), this.codigo).subscribe({
       next: () => {
         this.cargando.set(false);
-        this.cargarChecklist();
+        this.cargarTodo();
       },
       error: err => {
         this.cargando.set(false);
@@ -64,7 +66,16 @@ export class Portal implements OnInit {
     });
   }
 
-  // ---- Checklist ----
+  // ---- Solicitudes y checklist ----
+  cargarTodo(): void {
+    this.cargarSolicitudes();
+    this.cargarChecklist();
+  }
+
+  cargarSolicitudes(): void {
+    this.portal.getSolicitudes().subscribe(data => this.solicitudes.set(data));
+  }
+
   cargarChecklist(): void {
     this.portal.getChecklist().subscribe(data => {
       this.listas.set(data);

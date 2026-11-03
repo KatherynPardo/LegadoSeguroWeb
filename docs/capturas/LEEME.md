@@ -30,6 +30,7 @@ El documento [DOCUMENTACION_SISTEMA.md](../../DOCUMENTACION_SISTEMA.md) ya apunt
 | `22-portal-checklist.png` | Portal del heredero, checklist con avance | 7.8 |
 | `23-documentos-propietario.png` | Ventana "Documentos del heredero" | 7.8 |
 | `24-catalogo-admin.png` | Catálogo de documentos en Administración | 7.8 |
+| `29-solicitud-liberacion.png` | Solicitud de liberación del heredero (los tres pasos y los botones) | 7.8 |
 | `25-suscripcion.png` | Pantalla de Suscripción | 7.9 |
 | `26-administracion.png` | Administración (usuarios y auditoría) | 7.10 |
 | `27-historial.png` | Mi Historial | 7.10 |

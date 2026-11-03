@@ -48,6 +48,11 @@
     } @else {
     <!-- ===== Checklist ===== -->
     <div class="ancho">
+      <!-- Solicitudes de liberación (Figma 06) -->
+      @for (s of solicitudes(); track s.idProceso + '-' + s.idBeneficiario) {
+      <app-solicitud [solicitud]="s" (cambio)="cargarSolicitudes()" />
+      }
+
       <div class="aviso-naranja">
         <strong>Documentos que debes reunir</strong>
         <span>Estos son los documentos que necesitarás cuando se te entregue el legado. Marca cada uno cuando ya lo tengas.</span>

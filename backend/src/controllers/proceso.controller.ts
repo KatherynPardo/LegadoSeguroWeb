@@ -2,6 +2,7 @@
 
 import { Request, Response } from 'express';
 import { cancelarProceso, listarProcesos, obtenerProceso } from '../services/proceso.service';
+import { resolverObjecion } from '../services/liberacion.service';
 
 export async function obtenerProcesos(req: Request, res: Response) {
   try {
@@ -49,5 +50,26 @@ export async function cancelar(req: Request, res: Response) {
   } catch (error) {
     console.error('Error al cancelar el proceso:', error);
     res.status(500).json({ mensaje: 'Error al cancelar el proceso' });
+  }
+}
+
+export async function resolverObjecionDelProceso(req: Request, res: Response) {
+  const idProceso = Number(req.params.id);
+  const idObjecion = Number(req.params.idObjecion);
+  if (!Number.isInteger(idProceso) || !Number.isInteger(idObjecion)) {
+    res.status(400).json({ mensaje: 'Datos no válidos' });
+    return;
+  }
+
+  try {
+    const resuelta = await resolverObjecion(idProceso, idObjecion, res.locals.usuarioId);
+    if (!resuelta) {
+      res.status(404).json({ mensaje: 'La objeción no existe o ya fue resuelta' });
+      return;
+    }
+    res.json({ mensaje: 'Objeción resuelta' });
+  } catch (error) {
+    console.error('Error al resolver la objeción:', error);
+    res.status(500).json({ mensaje: 'Error al resolver la objeción' });
   }
 }
