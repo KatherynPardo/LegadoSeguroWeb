@@ -39,7 +39,7 @@ function leerActivos(valor: unknown): number[] | null {
   return valor.every(v => Number.isInteger(v) && v > 0) ? (valor as number[]) : null;
 }
 
-export async function obtenerBeneficiarios(req: Request, res: Response) {
+export async function obtenerBeneficiarios(_req: Request, res: Response) {
   try {
     res.json(await listarBeneficiarios(res.locals.usuarioId));
   } catch (error) {

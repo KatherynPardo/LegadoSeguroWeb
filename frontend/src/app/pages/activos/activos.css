@@ -15,11 +15,6 @@
   color: var(--lg-error);
 }
 
-.sin-heredero {
-  color: var(--lg-advertencia);
-  font-weight: 600;
-}
-
 .ok-form {
   color: var(--lg-exito);
   font-weight: 600;

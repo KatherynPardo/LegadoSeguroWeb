@@ -3,7 +3,7 @@
 import { Request, Response } from 'express';
 import { listarTipos } from '../services/tipo-activo.service';
 
-export async function obtenerTipos(req: Request, res: Response) {
+export async function obtenerTipos(_req: Request, res: Response) {
   try {
     res.json(await listarTipos());
   } catch (error) {

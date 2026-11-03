@@ -5,7 +5,7 @@ import { DIAS_INACTIVIDAD_MAX, DIAS_INACTIVIDAD_MIN, PERIODOS_ESPERA_VALIDOS } f
 import { contarBeneficiarios, guardarRegla, obtenerRegla } from '../services/regla.service';
 import { limiteDeHerederos } from '../services/suscripcion.service';
 
-export async function verRegla(req: Request, res: Response) {
+export async function verRegla(_req: Request, res: Response) {
   try {
     res.json(await obtenerRegla(res.locals.usuarioId));
   } catch (error) {

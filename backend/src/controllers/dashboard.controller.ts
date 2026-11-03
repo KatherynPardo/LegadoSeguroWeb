@@ -3,7 +3,7 @@
 import { Request, Response } from 'express';
 import { obtenerResumen } from '../services/dashboard.service';
 
-export async function obtenerDashboard(req: Request, res: Response) {
+export async function obtenerDashboard(_req: Request, res: Response) {
   try {
     res.json(await obtenerResumen(res.locals.usuarioId));
   } catch (error) {

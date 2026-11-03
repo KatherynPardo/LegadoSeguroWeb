@@ -4,7 +4,7 @@ import { Request, Response } from 'express';
 import { esCorreo, esTelefono, texto } from '../utils/validar';
 import { actualizarPerfil, cambiarPassword, obtenerPerfil } from '../services/perfil.service';
 
-export async function verPerfil(req: Request, res: Response) {
+export async function verPerfil(_req: Request, res: Response) {
   try {
     const perfil = await obtenerPerfil(res.locals.usuarioId);
     if (!perfil) {

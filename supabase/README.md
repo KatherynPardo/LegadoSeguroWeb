@@ -24,13 +24,14 @@ Esta carpeta contiene **toda la información de la base de datos**: el esquema, 
 | `migrations/018_dni_unico_por_propietario.sql` | Un propietario no puede tener dos herederos vigentes con el mismo DNI (lo exige la base) |
 | `migrations/019_alerta_inactividad.sql` | Alerta previa al propietario con plazo de gracia: tabla `alerta_inactividad` y `regla_liberacion.dias_gracia` |
 | `migrations/020_usuario_inactivo_demo.sql` | Datos de PRUEBA: un propietario inactivo hace 200 días, con un heredero verificado, para ver el monitoreo sin esperar |
+| `migrations/021_quitar_clave_heredero.sql` | Elimina `beneficiario.clave_acceso_hash` (el heredero entra con código por correo) |
 
 ## Cómo ejecutarlas
 
 1. Entra a tu proyecto en [supabase.com](https://supabase.com).
 2. Abre **SQL Editor** y pulsa **New query**.
 3. Pega el contenido de `001_esquema_inicial.sql` y pulsa **Run**.
-4. Repite con `002` a `020`, **en ese orden**: cada una depende de la anterior.
+4. Repite con `002` a `021`, **en ese orden**: cada una depende de la anterior.
 5. En **Table Editor** debes ver 33 tablas: las 24 del modelo original más `entidad_financiera`, `historial_monto`, `codigo_verificacion`, `requisito_documental`, `documento_heredero`, `verificacion_beneficiario`, `requisito_tipo`, `detalle_tarjeta` y `alerta_inactividad`.
 
 > Cada archivo se ejecuta **una sola vez**. Si lo corres de nuevo dará error de "ya existe".

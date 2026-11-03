@@ -50,7 +50,7 @@ const CAMPOS: Record<string, string> = {
   nombre: 'Nombre.', nombres: 'Nombres de la persona.', apellidos: 'Apellidos de la persona.',
   descripcion: 'Texto descriptivo (en activo_digital va cifrado).', estado: 'Estado del registro (por ejemplo ACTIVO o INACTIVO).',
   dni: 'Documento de identidad (8 dígitos).', correo: 'Correo electrónico.', telefono: 'Teléfono de contacto (9 dígitos).',
-  password_hash: 'Contraseña cifrada con bcrypt (nunca en texto plano).', clave_acceso_hash: 'Ya no se usa: el heredero entra con códigos por correo.',
+  password_hash: 'Contraseña cifrada con bcrypt (nunca en texto plano).',
   fecha_registro: 'Fecha y hora de creación.', fecha: 'Fecha y hora del hecho.', fecha_actividad: 'Fecha y hora del evento.',
   fecha_creacion: 'Fecha y hora de creación.', fecha_expiracion: 'Fecha y hora en que vence.', fecha_inicio: 'Fecha y hora de inicio.',
   fecha_fin: 'Fecha y hora de fin (vacío = sigue abierto).', fecha_pago: 'Fecha y hora del pago.', fecha_envio: 'Fecha y hora de envío.',
@@ -77,8 +77,6 @@ const CAMPOS: Record<string, string> = {
   referencia_pago_externa: 'Código de operación de la pasarela de pago (Culqi).', obligatorio: 'Si el documento se asigna a todos los herederos.',
   ubicacion: 'Dónde está el original del documento (nota del propietario).'
 };
-
-type Columna = { tabla: string; columna: string; tipo: string; nulo: string; defecto: string | null; identidad: string };
 
 function formatearTipo(c: any): string {
   const t: Record<string, string> = {
@@ -132,7 +130,7 @@ async function main() {
       const reglas: string[] = [c.is_nullable === 'NO' ? 'NOT NULL' : 'Puede ser vacío'];
       if (c.is_identity === 'YES') reglas.push('Autonumérico');
       if (c.column_default && c.is_identity !== 'YES') reglas.push(`Por defecto ${c.column_default.replace(/::[a-z ]+/g, '').replace(/\|/g, '/')}`);
-      for (const u of restricciones.rows.filter(r => r.tabla === tabla && r.tipo === 'u' && r.columnas.length === 1 && r.columnas[0] === c.column_name)) reglas.push('UNIQUE');
+      if (restricciones.rows.some(r => r.tabla === tabla && r.tipo === 'u' && r.columnas.length === 1 && r.columnas[0] === c.column_name)) reglas.push('UNIQUE');
       for (const k of restricciones.rows.filter(r => r.tabla === tabla && r.tipo === 'c' && r.definicion.includes(c.column_name))) {
         reglas.push(k.definicion.replace('CHECK ', 'CHECK ').replace(/::[a-z ]+/g, '').replace(/\|/g, '/'));
       }

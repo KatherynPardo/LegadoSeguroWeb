@@ -81,7 +81,7 @@ function leerId(req: Request, res: Response): number | null {
   return id;
 }
 
-export async function obtenerActivos(req: Request, res: Response) {
+export async function obtenerActivos(_req: Request, res: Response) {
   try {
     res.json(await listarActivos(res.locals.usuarioId));
   } catch (error) {

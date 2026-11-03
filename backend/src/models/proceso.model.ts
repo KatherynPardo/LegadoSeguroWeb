@@ -6,7 +6,6 @@
 //   EN_ESPERA       se cumplieron las confirmaciones y corre el período de espera
 //   LIBERADO        se entregaron los activos
 //   CANCELADO       el dueño reapareció y canceló el proceso
-export const ESTADOS_PROCESO = ['DETECTADO', 'EN_CONFIRMACION', 'EN_ESPERA', 'LIBERADO', 'CANCELADO'];
 
 // Fila del listado de procesos.
 export type ProcesoResumen = {

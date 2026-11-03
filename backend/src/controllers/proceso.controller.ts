@@ -4,7 +4,7 @@ import { Request, Response } from 'express';
 import { cancelarProceso, listarProcesos, obtenerProceso } from '../services/proceso.service';
 import { resolverObjecion } from '../services/liberacion.service';
 
-export async function obtenerProcesos(req: Request, res: Response) {
+export async function obtenerProcesos(_req: Request, res: Response) {
   try {
     res.json(await listarProcesos(res.locals.usuarioId));
   } catch (error) {

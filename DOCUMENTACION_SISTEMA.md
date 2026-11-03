@@ -223,7 +223,6 @@ Herederos designados por cada propietario.
 | correo | VARCHAR(150) | — | NOT NULL | Correo electrónico. |
 | telefono | VARCHAR(20) | — | Puede ser vacío | Teléfono de contacto (9 dígitos). |
 | parentesco | VARCHAR(50) | — | Puede ser vacío | Relación con el propietario. |
-| clave_acceso_hash | VARCHAR(255) | — | Puede ser vacío | Ya no se usa: el heredero entra con códigos por correo. |
 | estado | VARCHAR(20) | — | NOT NULL; Por defecto 'ACTIVO' | Estado del registro (por ejemplo ACTIVO o INACTIVO). |
 | correo_verificado | BOOLEAN | — | NOT NULL; Por defecto false | Si el heredero confirmó su correo con un código. |
 
@@ -1392,7 +1391,7 @@ Abrir `backend/.env` y completar:
 | `DNI_PROVIDER` / `DNI_API_TOKEN` | Opcionales; sin token, los nombres se escriben a mano |
 | `SMTP_*` | Opcionales; sin ellos, los códigos salen en la consola del backend |
 
-Preparar la base de datos (si usa su propio proyecto): ejecutar en **SQL Editor** las migraciones `001` a `020` de `supabase/migrations/`, en orden.
+Preparar la base de datos (si usa su propio proyecto): ejecutar en **SQL Editor** las migraciones `001` a `021` de `supabase/migrations/`, en orden.
 
 Encender el backend y, en otra terminal, el frontend:
 
@@ -1419,7 +1418,7 @@ Cuentas externas necesarias: Supabase (obligatoria); apiperu.dev y una cuenta de
 
 ## 16. Cierre del proyecto
 
-**Resultados obtenidos.** Módulos terminados: login, registro con verificación, recuperación de contraseña, activos (con bancos, montos cifrados e historial), herederos (con verificación y límite de plan), reglas de liberación, procesos con monitoreo automático, checklist de documentos con portal del heredero, suscripción, dashboard, reportes, historial, administración y perfil. Base de datos de **33 tablas** con 20 migraciones documentadas.
+**Resultados obtenidos.** Módulos terminados: login, registro con verificación, recuperación de contraseña, activos (con bancos, montos cifrados e historial), herederos (con verificación y límite de plan), reglas de liberación, procesos con monitoreo automático, checklist de documentos con portal del heredero, suscripción, dashboard, reportes, historial, administración y perfil. Base de datos de **33 tablas** con 21 migraciones documentadas.
 
 | | |
 |---|---|

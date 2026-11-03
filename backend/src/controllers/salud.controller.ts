@@ -3,7 +3,7 @@
 import { Request, Response } from 'express';
 import { horaDeLaBaseDeDatos } from '../services/salud.service';
 
-export async function comprobarSalud(req: Request, res: Response) {
+export async function comprobarSalud(_req: Request, res: Response) {
   try {
     res.json({ estado: 'ok', horaBaseDeDatos: await horaDeLaBaseDeDatos() });
   } catch (error) {
