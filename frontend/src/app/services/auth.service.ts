@@ -42,6 +42,16 @@ export class AuthService {
         return this.http.post<{ mensaje: string }>(`${this.apiUrl}/reenviar-codigo`, { correo });
     }
 
+    // Recuperar contraseña: paso 1, el backend envía un código al correo
+    olvidePassword(correo: string): Observable<{ mensaje: string }> {
+        return this.http.post<{ mensaje: string }>(`${this.apiUrl}/olvide-password`, { correo });
+    }
+
+    // Recuperar contraseña: paso 2, código correcto + contraseña nueva
+    restablecerPassword(correo: string, codigo: string, password: string): Observable<{ mensaje: string }> {
+        return this.http.post<{ mensaje: string }>(`${this.apiUrl}/restablecer-password`, { correo, codigo, password });
+    }
+
     // Consulta pública de DNI para el registro (los datos vienen de RENIEC)
     buscarDni(dni: string): Observable<PersonaDni> {
         return this.http.get<PersonaDni>(`${this.apiUrl}/dni/${dni}`);

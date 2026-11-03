@@ -341,6 +341,8 @@ Son datos ficticios, solo para desarrollo.
 | PUT / DELETE | `/api/beneficiarios/:id` | Sí | Editar un heredero / eliminarlo (queda INACTIVO) |
 | PUT | `/api/activos/:id/beneficiarios` | Sí | Reemplaza los herederos de un activo (lista de ids) |
 | POST | `/api/auth/verificar-correo` | No | Confirma el correo con el código de 6 dígitos y activa la cuenta |
+| POST | `/api/auth/olvide-password` | No | Envía un código al correo para recuperar la contraseña |
+| POST | `/api/auth/restablecer-password` | No | Con el código correcto, guarda la contraseña nueva |
 | POST | `/api/auth/reenviar-codigo` | No | Reenvía el código a una cuenta pendiente |
 | POST | `/api/beneficiarios/codigo` | Sí | Envía el código al correo de un heredero |
 | GET | `/api/suscripcion` | Sí | Plan actual, planes disponibles, uso y pagos |
@@ -476,6 +478,13 @@ Esta fase explica, una por una, las piezas que protegen el sistema. Cada paso di
 - **Reglas del código** (`services/verificacion.service.ts`): vale **10 minutos**, se puede intentar **5 veces**, solo sirve **una vez** y se guarda cifrado (bcrypt) en la tabla `codigo_verificacion`.
 - **Cómo comprobarlo:** regístrate y mira la consola del backend (ver Paso 8.3).
 
+### Paso 8.2b: Recuperar la contraseña
+
+- **Qué es:** en el login, el enlace "¿Olvidaste tu contraseña?" lleva a `/recuperar`. Se escribe el correo, llega un código de 6 dígitos y con él se elige una contraseña nueva.
+- **Cómo funciona:** `POST /api/auth/olvide-password` envía el código y `POST /api/auth/restablecer-password` lo valida y guarda la contraseña nueva cifrada con bcrypt. Usa la misma tabla `codigo_verificacion` (propósito `RECUPERACION`), con las mismas reglas: 10 minutos, 5 intentos y un solo uso.
+- **Seguridad:** la respuesta es siempre la misma exista o no el correo, para que nadie pueda averiguar qué correos están registrados. El cambio queda en la auditoría con la IP.
+- **Cómo comprobarlo:** pide el código y copia los 6 dígitos de la consola del backend (modo prueba, Paso 8.3).
+
 ### Paso 8.3: Enviar correos (o verlos en la consola)
 
 - **Qué es:** `services/correo.service.ts` envía los correos con la librería `nodemailer`.
@@ -567,7 +576,6 @@ El Dashboard no repite los Reportes: muestra **cómo está tu legado hoy y qué 
 
 ## Fase 9 · Pendientes del proyecto
 
-- Recuperación de contraseña por correo (ya existe la tabla `token_recuperacion` y el envío de correos).
 - Pantalla de solicitud de liberación del beneficiario (Figma 06) y portal del heredero (React): aquí se usará el mismo código por correo para que cada heredero confirme su identidad dentro del proceso de liberación.
 - Cobro del plan Premium con Culqi (modo de pruebas) y límites reales por plan.
 - Despliegue.

@@ -12,12 +12,14 @@ import { Admin } from './pages/admin/admin';
 import { Historial } from './pages/historial/historial';
 import { Suscripcion } from './pages/suscripcion/suscripcion';
 import { Reportes } from './pages/reportes/reportes';
+import { Recuperar } from './pages/recuperar/recuperar';
 import { adminGuard } from './core/admin.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   { path: 'login', component: Login },
   { path: 'registro', component: Registro },
+  { path: 'recuperar', component: Recuperar },
   // Pantallas protegidas: exigen haber iniciado sesión
   { path: 'dashboard', component: Dashboard, canActivate: [authGuard] },
   { path: 'beneficiarios', component: Beneficiarios, canActivate: [authGuard] },

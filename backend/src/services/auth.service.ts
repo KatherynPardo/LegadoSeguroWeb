@@ -113,3 +113,37 @@ export async function confirmarCorreo(correo: string, codigo: string, ip: string
 
   return crearSesion({ ...resultado.rows[0], rol: 'PROPIETARIO' });
 }
+
+// Recuperar contraseña, paso 1: si el correo pertenece a una cuenta activa, se envía un código.
+// Quien llama responde siempre lo mismo, exista o no el correo, para no revelar qué correos están registrados.
+export async function solicitarRecuperacion(correo: string): Promise<void> {
+  const usuario = await pool.query("SELECT id_usuario FROM usuario WHERE correo = $1 AND estado = 'ACTIVO'", [correo]);
+  if (usuario.rows.length === 0) return;
+
+  await enviarCodigo(
+    'RECUPERACION',
+    correo,
+    usuario.rows[0].id_usuario,
+    'Alguien pidió restablecer la contraseña de tu cuenta de LegadoSeguro. Usa este código para elegir una nueva.'
+  );
+}
+
+// Recuperar contraseña, paso 2: con el código correcto se guarda la contraseña nueva (cifrada).
+export async function restablecerPassword(correo: string, codigo: string, password: string, ip: string | null): Promise<boolean> {
+  const codigoCorrecto = await validarCodigo('RECUPERACION', correo, codigo);
+  if (!codigoCorrecto) return false;
+
+  const hash = await bcrypt.hash(password, 10);
+  const resultado = await pool.query(
+    "UPDATE usuario SET password_hash = $1 WHERE correo = $2 AND estado = 'ACTIVO' RETURNING id_usuario",
+    [hash, correo]
+  );
+  if (resultado.rows.length === 0) return false;
+
+  await pool.query(
+    `INSERT INTO auditoria (id_usuario, accion, entidad, id_entidad, descripcion, ip_origen)
+     VALUES ($1, 'RESTABLECER_PASSWORD', 'usuario', $1, 'Contraseña restablecida con un código enviado al correo', $2)`,
+    [resultado.rows[0].id_usuario, ip]
+  );
+  return true;
+}

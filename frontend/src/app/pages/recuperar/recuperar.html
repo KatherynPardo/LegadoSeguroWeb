@@ -1,0 +1,61 @@
+<div class="login">
+  <section class="panel-azul">
+    <app-logo class="escudo" [tamano]="64" />
+
+    <h1>LegadoSeguro</h1>
+    <p class="lema">Recupera el acceso a tu cuenta. Te enviaremos un código a tu correo para elegir una contraseña nueva.</p>
+
+    <p class="pie">© 2026 LegadoSeguro — Proyecto académico UTP</p>
+  </section>
+
+  <section class="panel-form">
+    @if (paso() === 1) {
+    <form (ngSubmit)="pedirCodigo()" autocomplete="off">
+      <h2>¿Olvidaste tu contraseña?</h2>
+      <p class="subtitulo">Escribe el correo de tu cuenta</p>
+
+      <label for="correo">Correo electrónico</label>
+      <input id="correo" name="correo" type="email" required autocomplete="off" [(ngModel)]="correo" />
+
+      @if (error()) {
+      <p class="error">{{ error() }}</p>
+      }
+
+      <button type="submit" class="boton" [disabled]="cargando() || !correo">
+        {{ cargando() ? 'Enviando...' : 'Enviar código' }}
+      </button>
+
+      <hr />
+
+      <p class="enlace gris"><a routerLink="/login"><strong>Volver a iniciar sesión</strong></a></p>
+    </form>
+    } @else {
+    <form (ngSubmit)="cambiar()" autocomplete="off">
+      <h2>Elige tu nueva contraseña</h2>
+      <p class="subtitulo">{{ aviso() }}</p>
+
+      <label for="codigo">Código de 6 dígitos</label>
+      <input id="codigo" name="codigo" required maxlength="6" inputmode="numeric" autocomplete="one-time-code" [(ngModel)]="codigo" />
+
+      <label for="password">Nueva contraseña</label>
+      <input id="password" name="password" type="password" required minlength="6" autocomplete="new-password" [(ngModel)]="password" />
+
+      <label for="confirmar">Confirmar contraseña</label>
+      <input id="confirmar" name="confirmar" type="password" required autocomplete="new-password" [(ngModel)]="confirmar" />
+
+      @if (error()) {
+      <p class="error">{{ error() }}</p>
+      }
+
+      <button type="submit" class="boton" [disabled]="cargando() || codigo.length !== 6 || password.length < 6">
+        {{ cargando() ? 'Guardando...' : 'Cambiar contraseña' }}
+      </button>
+
+      <hr />
+
+      <p class="enlace gris">¿No te llegó? <a href="javascript:void(0)" (click)="paso.set(1)"><strong>Pedir otro código</strong></a></p>
+      <p class="enlace gris">El código vence en 10 minutos.</p>
+    </form>
+    }
+  </section>
+</div>

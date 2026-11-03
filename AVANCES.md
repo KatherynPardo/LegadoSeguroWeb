@@ -30,10 +30,10 @@ Bitácora de lo construido, en orden cronológico.
 | 03/11/2026 | **Plan Básico gratuito con 2 herederos**: al llegar al límite, una ventana invita a mejorar el plan (backend y pantalla lo validan). El dinero registrado en Reportes se puede ocultar o mostrar con un ojito. |
 | 03/11/2026 | **Dashboard renovado**: portada con "Salud del legado" (círculo animado de 0 a 100), próximos pasos accionables, "Tu regla en acción" con barra de inactividad, alerta de proceso en curso y actividad con colores. |
 | 03/11/2026 | **Días de inactividad libres**: el usuario escribe los días que quiera (entre 7 y 3650) con atajos de 15, 30, 90, 180 y 365; el backend lo valida y la base lo controla con una restricción. |
+| 03/11/2026 | **Recuperar contraseña**: pantalla `/recuperar` con código por correo y contraseña nueva; queda en la auditoría. |
 
 ## Próximos pasos
 
-1. Recuperación de contraseña por correo.
-2. Portal del heredero (React) con código por correo en cada confirmación.
-3. Cobro del plan Premium con Culqi.
-4. Despliegue.
+1. Portal del heredero (React) con código por correo en cada confirmación.
+2. Cobro del plan Premium con Culqi.
+3. Despliegue.

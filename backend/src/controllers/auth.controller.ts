@@ -1,7 +1,9 @@
 // Controlador de autenticación.
 
 import { Request, Response } from 'express';
-import { iniciarSesion, registrarUsuario, confirmarCorreo, reenviarCodigoRegistro } from '../services/auth.service';
+import {
+  iniciarSesion, registrarUsuario, confirmarCorreo, reenviarCodigoRegistro, solicitarRecuperacion, restablecerPassword
+} from '../services/auth.service';
 import { obtenerIp } from '../utils/ip';
 import { consultarDni, ErrorConsultaDni } from '../services/reniec.service';
 
@@ -130,5 +132,47 @@ export async function reenviarCodigo(req: Request, res: Response) {
   } catch (error) {
     console.error('Error al reenviar el código:', error);
     res.status(500).json({ mensaje: 'Error al reenviar el código' });
+  }
+}
+
+export async function olvidePassword(req: Request, res: Response) {
+  const correo = typeof req.body.correo === 'string' ? req.body.correo.trim().toLowerCase() : '';
+  if (!correo.includes('@')) {
+    res.status(400).json({ mensaje: 'Ingresa un correo válido' });
+    return;
+  }
+
+  try {
+    await solicitarRecuperacion(correo);
+    // La respuesta es la misma exista o no el correo
+    res.json({ mensaje: 'Si el correo está registrado, te enviamos un código' });
+  } catch (error) {
+    console.error('Error al solicitar la recuperación:', error);
+    res.status(500).json({ mensaje: 'Error al enviar el código' });
+  }
+}
+
+export async function cambiarPasswordConCodigo(req: Request, res: Response) {
+  const { correo, codigo, password } = req.body;
+
+  if (typeof correo !== 'string' || typeof codigo !== 'string' || codigo.length !== 6 || isNaN(Number(codigo))) {
+    res.status(400).json({ mensaje: 'Ingresa el código de 6 dígitos' });
+    return;
+  }
+  if (typeof password !== 'string' || password.length < 6) {
+    res.status(400).json({ mensaje: 'La contraseña debe tener al menos 6 caracteres' });
+    return;
+  }
+
+  try {
+    const cambiada = await restablecerPassword(correo.trim().toLowerCase(), codigo, password, obtenerIp(req));
+    if (!cambiada) {
+      res.status(400).json({ mensaje: 'El código es incorrecto o ya venció' });
+      return;
+    }
+    res.json({ mensaje: 'Contraseña actualizada. Ya puedes iniciar sesión' });
+  } catch (error) {
+    console.error('Error al restablecer la contraseña:', error);
+    res.status(500).json({ mensaje: 'Error al cambiar la contraseña' });
   }
 }
