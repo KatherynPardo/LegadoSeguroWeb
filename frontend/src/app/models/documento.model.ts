@@ -41,6 +41,7 @@ export interface ChecklistHeredero {
     idBeneficiario: number;
     heredero: string;
     benefactor: string;
+    avisoEnviado: string | null; // fecha en que el heredero avisó que ya tiene todo
     documentos: DocumentoChecklist[];
 }
 

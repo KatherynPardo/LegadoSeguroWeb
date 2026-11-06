@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import {
-  pedirCodigoPortal, entrarPortal, verChecklist, marcar,
+  pedirCodigoPortal, entrarPortal, verChecklist, marcar, avisarListos,
   verSolicitudes, paso2Dni, paso3Selfie, confirmar, objetar
 } from '../controllers/portal.controller';
 import { verificarHeredero } from '../middlewares/portal.middleware';
@@ -17,6 +17,7 @@ router.get('/checklist', verificarHeredero, verChecklist);      // GET /api/port
 router.patch('/documentos/:idBeneficiario/:idRequisito', verificarHeredero, marcar); // PATCH /api/portal/documentos/:idBeneficiario/:idRequisito
 
 // Solicitudes de liberación: los tres pasos y la decisión del heredero
+router.post('/documentos/:idBeneficiario/listos', verificarHeredero, limitarPorMinuto(5), avisarListos); // POST /api/portal/documentos/:idBeneficiario/listos
 router.get('/solicitudes', verificarHeredero, verSolicitudes);                                          // GET /api/portal/solicitudes
 router.post('/solicitudes/:idProceso/:idBeneficiario/dni', verificarHeredero, limitarPorMinuto(10), paso2Dni); // validar el DNI
 router.post('/solicitudes/:idProceso/:idBeneficiario/selfie', verificarHeredero, paso3Selfie);          // enviar la selfie

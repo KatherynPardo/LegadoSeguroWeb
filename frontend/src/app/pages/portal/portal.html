@@ -88,6 +88,14 @@
         } @empty {
         <p class="vacio">No tienes documentos pendientes.</p>
         }
+
+        @if (l.avisoEnviado) {
+        <p class="aviso-enviado">Ya avisaste a {{ l.benefactor }} el {{ l.avisoEnviado | date: 'dd/MM/yyyy HH:mm' }}. Si cambias algo, puedes avisar de nuevo.</p>
+        }
+        <button type="button" class="boton boton-aviso" [disabled]="avisando() || !puedeAvisar(l)" (click)="avisar(l)">
+          {{ avisando() ? 'Enviando...' : (l.avisoEnviado ? 'Volver a avisar que tengo todo' : 'Avisar que ya tengo todo') }}
+        </button>
+        @if (!puedeAvisar(l)) { <p class="ayuda-aviso">Se activa cuando marques todos los documentos obligatorios.</p> }
       </section>
       } @empty {
       @if (cargado()) { <p class="vacio">Todavía no tienes documentos asignados.</p> }

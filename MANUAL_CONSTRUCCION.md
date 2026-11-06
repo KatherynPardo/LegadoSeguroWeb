@@ -84,6 +84,9 @@ Las comillas son obligatorias si la ruta tiene espacios: `cd "E:\UTP\CICLO 06\..
 
 ### Paso 1.2: Crear las tablas
 
+![Modelo entidad-relación (33 tablas)](docs/capturas/02-modelo-er.png)
+*Modelo entidad-relación (33 tablas)*
+
 En **SQL Editor → New query**, pega y ejecuta **en este orden** los archivos de `supabase/migrations/`:
 
 | Orden | Archivo | Resultado |
@@ -263,6 +266,9 @@ Este proyecto de Angular funciona **sin zone.js**. La pantalla solo se actualiza
 
 ### Paso 3.6: Probar el frontend
 
+![El sistema en vista de celular (diseño adaptable)](docs/capturas/40-responsive.png)
+*El sistema en vista de celular (diseño adaptable)*
+
 ```powershell
 cd frontend
 npm install
@@ -293,6 +299,9 @@ Abre `http://localhost:4200`.
 | Middleware | `backend/src/middlewares/auth.middleware.ts` | Exige un token válido |
 
 ### Paso 4.3: Usuario de prueba
+
+![Pantalla de inicio de sesión](docs/capturas/10-login.png)
+*Pantalla de inicio de sesión*
 
 | Campo | Valor |
 |---|---|
@@ -475,6 +484,9 @@ Esta fase explica, una por una, las piezas que protegen el sistema. Cada paso di
 
 ### Paso 8.1: Registro con el DNI verificado en RENIEC
 
+![Registro: el DNI se busca y valida en RENIEC](docs/capturas/11-registro-1.png)
+*Registro: el DNI se busca y valida en RENIEC*
+
 - **Qué es:** en `/registro` se escribe el DNI y se pulsa **Buscar**. Los nombres salen de RENIEC (servicio apiperu.dev) y no se pueden cambiar.
 - **Para qué sirve:** que nadie se registre con nombres inventados.
 - **Dónde está:** `backend/src/services/reniec.service.ts` y `controllers/auth.controller.ts`. Al crear la cuenta, el backend **vuelve a consultar** RENIEC y usa esos nombres, no los que mande el navegador.
@@ -494,6 +506,9 @@ Esta fase explica, una por una, las piezas que protegen el sistema. Cada paso di
 - **Cómo comprobarlo:** regístrate y mira la consola del backend (ver Paso 8.3).
 
 ### Paso 8.2b: Recuperar la contraseña
+
+![Recuperar contraseña con código por correo](docs/capturas/13-recuperar.png)
+*Recuperar contraseña con código por correo*
 
 - **Qué es:** en el login, el enlace "¿Olvidaste tu contraseña?" lleva a `/recuperar`. Se escribe el correo, llega un código de 6 dígitos y con él se elige una contraseña nueva.
 - **Cómo funciona:** `POST /api/auth/olvide-password` envía el código y `POST /api/auth/restablecer-password` lo valida y guarda la contraseña nueva cifrada con bcrypt. Usa la misma tabla `codigo_verificacion` (propósito `RECUPERACION`), con las mismas reglas: 10 minutos, 5 intentos y un solo uso.
@@ -516,6 +531,9 @@ SMTP_FROM=LegadoSeguro <tucorreo@gmail.com>
 - **Diseño del correo:** `correo.service.ts` convierte el texto en un correo HTML con la cabecera azul y dorada de LegadoSeguro, el código de 6 dígitos en una caja grande y un pie de aviso automático; el texto plano va como respaldo. Aplica a todos los correos del sistema.- **Probar con varios correos:** el correo del usuario es único (restricción en la base). Para pruebas usa el truco de Gmail: `tucorreo+prueba1@gmail.com`, `tucorreo+prueba2@gmail.com`... son distintos para el sistema y llegan a la misma bandeja.- **Hotmail/Outlook:** también puede enviar (`smtp-mail.outlook.com`, puerto 587), pero Microsoft suele bloquear el acceso SMTP con contraseña; Gmail es más fiable.
 
 ### Paso 8.4: Código para registrar a un heredero
+
+![Mis Herederos: tarjetas con el estado de verificación](docs/capturas/16-herederos.png)
+*Mis Herederos: tarjetas con el estado de verificación*
 
 - **Qué es:** al registrar un heredero, el sistema envía un código al **correo del heredero**. El dueño tiene que pedírselo al heredero y escribirlo para poder guardar.
 - **Para qué sirve:** evitar la **suplantación de identidad**. Si alguien pone un correo ajeno, no recibirá el código y no podrá registrarlo.
@@ -540,6 +558,12 @@ npm run cifrar
 
 ### Paso 8.6: Bancos y montos
 
+![Mis Activos](docs/capturas/14-activos.png)
+*Mis Activos*
+
+![Formulario de nuevo activo](docs/capturas/15-activo-formulario.png)
+*Formulario de nuevo activo*
+
 - **Bancos:** catálogo `entidad_financiera` (BCP, BBVA, Interbank, Scotiabank, Caja Cusco...). El botón **Nuevo banco** agrega uno; los que crea un usuario solo los ve él. El banco es obligatorio solo si el tipo lo pide (`tipo_activo.requiere_entidad`, hoy "Cuenta bancaria").
 - **Monto:** el check "Registrar el monto de este activo" sirve en **cualquier** activo (por ejemplo, una cuenta monetizada). En los financieros viene marcado. Se elige moneda (soles o dólares) y monto exacto.
 - **Historial de montos:** cada cambio de monto o moneda guarda una fila en `historial_monto` con fecha, usuario e IP (botón del reloj en la tabla). Si se desmarca el check, se borran el monto y su historial.
@@ -552,15 +576,27 @@ npm run cifrar
 
 ### Paso 8.8: Auditoría, IP e historial
 
+![Mi Historial](docs/capturas/27-historial.png)
+*Mi Historial*
+
+![Mi Perfil](docs/capturas/28-perfil.png)
+*Mi Perfil*
+
 - **IP:** se guarda en `usuario.ip_registro`, `actividad_usuario.ip_origen` y `auditoria.ip_origen`. En local aparece `::1` (la propia computadora).
 - **Mi Historial** (`/historial`): cada usuario ve sus propias acciones e ingresos con fecha e IP.
 - **Auditoría del administrador** (`/usuarios`): el administrador ve todas las acciones del sistema.
 
 ### Paso 8.9: Usuario administrador
 
+![Administración: usuarios y auditoría](docs/capturas/26-administracion.png)
+*Administración: usuarios y auditoría*
+
 La migración `006_usuario_admin.sql` crea `admin@legadoseguro.pe` (contraseña de prueba `Admin2026!`) con rol `ADMINISTRADOR`. El backend revisa el rol en la base en cada petición a `/api/admin` (`middlewares/admin.middleware.ts`) y el frontend oculta el menú y bloquea la ruta (`core/admin.guard.ts`). Un usuario desactivado ya no puede iniciar sesión.
 
 ### Paso 8.10: Suscripción
+
+![Suscripción y planes](docs/capturas/25-suscripcion.png)
+*Suscripción y planes*
 
 - **Qué es:** la pantalla muestra el plan actual, compara los planes (tabla `plan`) y lista los pagos (tabla `pago`). Si el usuario no tiene una suscripción activa, está en el plan **Gratuito**.
 - **Qué falta:** pagar el plan Premium. Hasta conectar **Culqi**, el botón está desactivado y el backend responde que el pago aún no está disponible. Solo se puede volver al plan gratuito, y el cambio queda en `suscripcion` y en la auditoría.
@@ -570,9 +606,15 @@ La migración `006_usuario_admin.sql` crea `admin@legadoseguro.pe` (contraseña 
 
 ### Paso 8.10a: Días de inactividad libres
 
+![Reglas de Liberación con días libres](docs/capturas/18-reglas.png)
+*Reglas de Liberación con días libres*
+
 En **Reglas de Liberación** el usuario escribe cuántos días de inactividad esperar (por ejemplo 15, 25 o 180), con atajos de un clic. El valor se valida en tres lugares: la pantalla, el controlador (`regla.controller.ts`) y la base de datos (restricción `ck_regla_dias_inactividad` de la migración 013, entre 7 y 3650 días). El monitoreo usa ese número tal cual para decidir cuándo iniciar el proceso.
 
 ### Paso 8.10b: Dashboard (el centro de mando)
+
+![Dashboard](docs/capturas/30-dashboard.png)
+*Dashboard*
 
 El Dashboard no repite los Reportes: muestra **cómo está tu legado hoy y qué hacer a continuación**.
 
@@ -583,6 +625,18 @@ El Dashboard no repite los Reportes: muestra **cómo está tu legado hoy y qué 
 - **Animación:** el círculo se dibuja y los números suben al abrir la pantalla.
 
 ### Paso 8.10c: Checklist de documentos y portal del heredero (tres roles)
+
+![Catálogo de documentos (administrador)](docs/capturas/24-catalogo-admin.png)
+*Catálogo de documentos (administrador)*
+
+![Documentos del heredero (propietario)](docs/capturas/23-documentos-propietario.png)
+*Documentos del heredero (propietario)*
+
+![Portal del heredero: ingreso](docs/capturas/21-portal-ingreso.png)
+*Portal del heredero: ingreso*
+
+![Portal del heredero: checklist y botón para avisar](docs/capturas/22-portal-checklist.png)
+*Portal del heredero: checklist y botón para avisar*
 
 El sistema maneja tres roles, guardados en la tabla `rol`: **ADMINISTRADOR**, **PROPIETARIO** (el benefactor) y **BENEFICIARIO** (el heredero).
 
@@ -598,6 +652,9 @@ El sistema maneja tres roles, guardados en la tabla `rol`: **ADMINISTRADOR**, **
 - **Qué no hace:** no se adjuntan archivos; es una lista de control.
 
 ### Paso 8.10d: Confirmación del heredero y liberación del legado
+
+![Lista de procesos de liberación](docs/capturas/19-procesos.png)
+*Lista de procesos de liberación*
 
 El proceso de liberación avanza por etapas. Las cumple el **heredero** desde su portal (pantalla del Figma 06) y el **motor** del backend.
 
@@ -622,6 +679,12 @@ En cualquier momento el propietario puede CANCELAR el proceso.
 
 ### Paso 8.10e: Documentos según el tipo de activo, indicaciones y tarjetas
 
+![Formulario de tarjeta de crédito](docs/capturas/33-activo-tarjeta.png)
+*Formulario de tarjeta de crédito*
+
+![Documentos según el activo que recibe el heredero](docs/capturas/34-documentos-por-activo.png)
+*Documentos según el activo que recibe el heredero*
+
 **Los documentos que debe reunir un heredero dependen de los activos que recibe.** No se eligen a mano:
 
 - Un requisito **sin tipos** aplica a todos los activos (el DNI y el certificado de defunción).
@@ -638,6 +701,9 @@ En cualquier momento el propietario puede CANCELAR el proceso.
 **Reglas alineadas al plan.** Las confirmaciones mínimas no pueden superar los herederos que tiene el propietario ni el límite de su plan (con el Básico, 2). La lista de la pantalla de Reglas ya solo ofrece esos valores y el backend también lo exige.
 
 ### Paso 8.10f: Monitoreo de inactividad con alerta previa
+
+![Monitoreo de inactividad (administrador)](docs/capturas/32-monitoreo-admin.png)
+*Monitoreo de inactividad (administrador)*
 
 El proceso de liberación ya no se abre de golpe. Ahora hay **dos etapas**:
 
@@ -659,6 +725,9 @@ El proceso de liberación ya no se abre de golpe. Ahora hay **dos etapas**:
 > Para repetir la demostración basta con borrar el proceso y la alerta de ese usuario demo, o volver a ejecutar la migración `020` en una base nueva.
 
 ### Paso 8.11: Reportes
+
+![Reportes](docs/capturas/31-reportes.png)
+*Reportes*
 
 - **Qué es:** un resumen del propio usuario (`services/reporte.service.ts`): activos por tipo, activos sin heredero, herederos verificados, dinero registrado por moneda y procesos por estado.
 - **Ojito:** la tarjeta de dinero registrado empieza oculta (•••••••) y se muestra u oculta con el ícono del ojo.

@@ -1,4 +1,5 @@
 import { Component, OnInit, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { PortalService } from '../../services/portal.service';
@@ -8,7 +9,7 @@ import { Logo } from '../../components/logo/logo';
 
 @Component({
   selector: 'app-portal',
-  imports: [FormsModule, RouterLink, Logo, Solicitud],
+  imports: [FormsModule, RouterLink, DatePipe, Logo, Solicitud],
   templateUrl: './portal.html',
   styleUrl: './portal.css'
 })
@@ -25,6 +26,7 @@ export class Portal implements OnInit {
   solicitudes = signal<DatosSolicitud[]>([]);
   listas = signal<ChecklistHeredero[]>([]);
   cargado = signal(false);
+  avisando = signal(false);
 
   constructor(protected portal: PortalService) {}
 
@@ -89,6 +91,28 @@ export class Portal implements OnInit {
 
   porcentaje(lista: ChecklistHeredero): number {
     return lista.documentos.length === 0 ? 0 : Math.round((this.entregados(lista) / lista.documentos.length) * 100);
+  }
+
+  // Se puede avisar cuando todos los obligatorios están marcados (o, si no hay obligatorios, todos)
+  puedeAvisar(lista: ChecklistHeredero): boolean {
+    const obligatorios = lista.documentos.filter(d => d.obligatorio);
+    const exigidos = obligatorios.length > 0 ? obligatorios : lista.documentos;
+    return exigidos.length > 0 && exigidos.every(d => d.estado === 'ENTREGADO');
+  }
+
+  avisar(lista: ChecklistHeredero): void {
+    this.error.set('');
+    this.avisando.set(true);
+    this.portal.avisarListos(lista.idBeneficiario).subscribe({
+      next: () => {
+        this.avisando.set(false);
+        this.cargarChecklist();
+      },
+      error: err => {
+        this.avisando.set(false);
+        this.error.set(err.error?.mensaje ?? 'No se pudo enviar el aviso');
+      }
+    });
   }
 
   alternar(lista: ChecklistHeredero, doc: DocumentoChecklist): void {

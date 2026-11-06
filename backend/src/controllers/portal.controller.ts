@@ -2,7 +2,7 @@
 
 import { Request, Response } from 'express';
 import { enviarCodigoPortal, entrarAlPortal } from '../services/portal.service';
-import { checklistDelHeredero, marcarDocumento } from '../services/documento.service';
+import { checklistDelHeredero, marcarDocumento, avisarDocumentosListos } from '../services/documento.service';
 import {
   solicitudesDelHeredero, validarDni, guardarSelfie, confirmarParticipacion, presentarObjecion, ReglaLiberacion
 } from '../services/liberacion.service';
@@ -72,6 +72,26 @@ export async function marcar(req: Request, res: Response) {
   } catch (error) {
     console.error('Error al marcar el documento:', error);
     res.status(500).json({ mensaje: 'Error al guardar' });
+  }
+}
+
+export async function avisarListos(req: Request, res: Response) {
+  const idBeneficiario = Number(req.params.idBeneficiario);
+  if (!Number.isInteger(idBeneficiario) || idBeneficiario <= 0) {
+    res.status(400).json({ mensaje: 'Datos no válidos' });
+    return;
+  }
+
+  try {
+    const motivo = await avisarDocumentosListos(idBeneficiario, res.locals.correoHeredero);
+    if (motivo) {
+      res.status(409).json({ mensaje: motivo });
+      return;
+    }
+    res.json({ mensaje: 'Avisamos a quien te designó' });
+  } catch (error) {
+    console.error('Error al avisar que los documentos están listos:', error);
+    res.status(500).json({ mensaje: 'No se pudo enviar el aviso' });
   }
 }
 

@@ -238,3 +238,19 @@ input:focus {
   color: #6B7280;
   text-align: center;
 }
+
+.boton-aviso {
+  margin-top: 16px;
+}
+
+.aviso-enviado {
+  margin: 14px 0 0;
+  color: var(--lg-exito);
+  font-weight: 600;
+}
+
+.ayuda-aviso {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--lg-texto-suave, #6b7280);
+}

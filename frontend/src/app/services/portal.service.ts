@@ -62,6 +62,10 @@ export class PortalService {
         return this.http.patch<{ mensaje: string }>(`${this.apiUrl}/documentos/${idBeneficiario}/${idRequisito}`, { entregado });
     }
 
+    avisarListos(idBeneficiario: number): Observable<{ mensaje: string }> {
+        return this.http.post<{ mensaje: string }>(`${this.apiUrl}/documentos/${idBeneficiario}/listos`, {});
+    }
+
     salir(): void {
         localStorage.removeItem(CLAVE_TOKEN);
         localStorage.removeItem(CLAVE_HEREDERO);

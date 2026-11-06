@@ -934,7 +934,7 @@ const hash = await bcrypt.hash(codigo, 10);               // se guarda cifrado
 - **Objetivo:** registrar y administrar los activos que se dejarán como legado.
 - **Requerimiento:** RF-03, RF-05, RNF-02.
 - **Archivos:** `services/activo.service.ts`, `controllers/activo.controller.ts`, `routes/activo.routes.ts`, `models/activo.model.ts`, `utils/cifrado.ts`, `utils/validar.ts`; `frontend/.../pages/activos`, `services/activo.service.ts`.
-- **Interfaz:** ![Mis Activos](docs/capturas/14-activos.png) ![Nuevo activo](docs/capturas/15-activo-formulario.png)
+- **Interfaz:** ![Mis Activos](docs/capturas/14-activos.png) ![Nuevo activo](docs/capturas/15-activo-formulario.png) ![Tarjeta de crédito](docs/capturas/33-activo-tarjeta.png)
 - **Código principal (cifrado de datos sensibles):**
 
 ```ts
@@ -1020,7 +1020,7 @@ WHERE r.estado = 'ACTIVA' AND u.estado = 'ACTIVO'
 - **Objetivo:** que cada heredero sepa qué documentos debe reunir cuando se le entregue el legado.
 - **Requerimiento:** RF-08, RF-09, RNF-03.
 - **Archivos:** `services/documento.service.ts`, `services/portal.service.ts`, `controllers/documento.controller.ts`, `controllers/portal.controller.ts`, `middlewares/portal.middleware.ts`; `frontend/.../pages/portal`, `services/portal.service.ts`, `pages/admin`, `pages/beneficiarios`.
-- **Interfaz:** ![Portal: ingreso](docs/capturas/21-portal-ingreso.png) ![Portal: checklist](docs/capturas/22-portal-checklist.png) ![Solicitud de liberación (Figma 06)](docs/capturas/29-solicitud-liberacion.png) ![Documentos del heredero](docs/capturas/23-documentos-propietario.png) ![Catálogo del administrador](docs/capturas/24-catalogo-admin.png)
+- **Interfaz:** ![Portal: ingreso](docs/capturas/21-portal-ingreso.png) ![Portal: checklist](docs/capturas/22-portal-checklist.png) ![Solicitud de liberación (Figma 06)](docs/capturas/29-solicitud-liberacion.png) ![Documentos del heredero](docs/capturas/23-documentos-propietario.png) ![Catálogo del administrador](docs/capturas/24-catalogo-admin.png) ![Documentos por activo](docs/capturas/34-documentos-por-activo.png)
 - **Tres roles, tres vistas:**
 
 | Rol | Qué hace |
@@ -1059,7 +1059,7 @@ if (datos.tipo === 'HEREDERO') {
 - **Objetivo:** control del sistema por el administrador, y transparencia y datos propios para cada usuario.
 - **Requerimiento:** RF-11, RF-12, RNF-05.
 - **Archivos:** `controllers/admin.controller.ts`, `services/admin.service.ts`, `middlewares/admin.middleware.ts`, `services/historial.service.ts`, `services/perfil.service.ts`; `frontend/.../pages/admin`, `pages/historial`, `pages/perfil`.
-- **Interfaz:** ![Administración](docs/capturas/26-administracion.png) ![Mi historial](docs/capturas/27-historial.png) ![Mi perfil](docs/capturas/28-perfil.png)
+- **Interfaz:** ![Administración](docs/capturas/26-administracion.png) ![Mi historial](docs/capturas/27-historial.png) ![Mi perfil](docs/capturas/28-perfil.png) ![Monitoreo de inactividad](docs/capturas/32-monitoreo-admin.png)
 - **Explicación:**
   - **Administración:** lista de usuarios con fecha de creación, IP de registro y último acceso; botón para activar o desactivar cuentas (un usuario desactivado ya no puede iniciar sesión); auditoría de las últimas acciones del sistema. El rol se valida **en la base de datos en cada pedido** (`soloAdmin`), no solo en la pantalla.
   - **Mi historial:** cada usuario ve sus propias acciones e ingresos con fecha e IP.

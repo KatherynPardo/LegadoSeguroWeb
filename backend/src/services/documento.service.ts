@@ -9,6 +9,10 @@
 //     solo le toca al heredero que recibe algún activo de esos tipos.
 
 import { pool } from '../config/database';
+import { notificar } from './notificacion.service';
+
+// Asunto del aviso que el propio heredero recibe como constancia; sirve también para saber si ya avisó
+const ASUNTO_CONSTANCIA = 'Avisaste que tus documentos están listos';
 
 // Errores de regla de negocio: el controlador los convierte en 400, 404 o 409
 export class ReglaDocumento extends Error {
@@ -164,14 +168,65 @@ export async function checklistDelHeredero(correo: string) {
 
   const listas = [];
   for (const h of herederos.rows) {
+    const aviso = await pool.query(
+      `SELECT MAX(fecha_envio) AS fecha FROM notificacion WHERE id_beneficiario_destinatario = $1 AND asunto = $2`,
+      [h.idBeneficiario, ASUNTO_CONSTANCIA]
+    );
     listas.push({
       idBeneficiario: h.idBeneficiario,
+      avisoEnviado: aviso.rows[0].fecha as Date | null,
       heredero: `${h.nombres} ${h.apellidos}`,
       benefactor: h.benefactor,
       documentos: await requisitosDelHeredero(h.idBeneficiario)
     });
   }
   return listas;
+}
+
+// El heredero avisa al propietario que ya reunió sus documentos obligatorios.
+// Devuelve un texto con el motivo si no se pudo, o null si el aviso salió.
+export async function avisarDocumentosListos(idBeneficiario: number, correo: string): Promise<string | null> {
+  const heredero = await pool.query(
+    `SELECT b.nombres, b.apellidos, b.id_usuario_propietario AS "idUsuario", u.correo AS "correoPropietario"
+     FROM beneficiario b JOIN usuario u ON u.id_usuario = b.id_usuario_propietario
+     WHERE b.id_beneficiario = $1 AND LOWER(b.correo) = $2 AND b.estado = 'ACTIVO' AND b.correo_verificado = TRUE`,
+    [idBeneficiario, correo]
+  );
+  if (heredero.rows.length === 0) return 'Heredero no encontrado';
+  const h = heredero.rows[0];
+
+  const documentos = await requisitosDelHeredero(idBeneficiario);
+  const obligatorios = documentos.filter(d => d.obligatorio);
+  const exigidos = obligatorios.length > 0 ? obligatorios : documentos;
+  if (exigidos.length === 0 || exigidos.some(d => d.estado !== 'ENTREGADO')) {
+    return 'Marca primero todos los documentos obligatorios';
+  }
+
+  const nombre = `${h.nombres} ${h.apellidos}`;
+  await notificar(
+    { idUsuario: h.idUsuario, correo: h.correoPropietario }, null,
+    `${nombre} ya tiene sus documentos listos`,
+    `Hola,
+
+Tu heredero ${nombre} avisó que ya reunió los documentos que se le piden para recibir tu legado. No tienes que hacer nada: es solo para que estés tranquilo.
+
+LegadoSeguro`
+  );
+  await notificar(
+    { idBeneficiario, correo }, null, ASUNTO_CONSTANCIA,
+    `Hola,
+
+Avisamos a quien te designó que ya tienes tus documentos listos. Gracias por mantenerlos al día.
+
+LegadoSeguro`
+  );
+
+  await pool.query(
+    `INSERT INTO auditoria (id_usuario, accion, entidad, id_entidad, descripcion)
+     VALUES (NULL, 'AVISO_DOCUMENTOS_LISTOS', 'beneficiario', $1, $2)`,
+    [idBeneficiario, `El heredero ${correo} avisó que sus documentos están listos`]
+  );
+  return null;
 }
 
 // El heredero marca (o desmarca) que ya tiene un documento. Solo puede tocar los suyos.
