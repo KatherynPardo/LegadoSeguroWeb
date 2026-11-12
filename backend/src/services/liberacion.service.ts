@@ -46,21 +46,26 @@ export async function avisarInicioProceso(idProceso: number): Promise<void> {
       'de liberación de tu legado. Si estás bien, inicia sesión y cancela el proceso desde la sección Procesos.'
   );
 
-  // Cada heredero verificado que participa recibe el aviso para entrar a su espacio
+  // Cada heredero que participa recibe el aviso. Si aún estaba pendiente de validar, el aviso es mínimo:
+  // no dice quién lo designó, porque el correo podría ser de otra persona.
   const herederos = await pool.query(
-    `SELECT DISTINCT b.id_beneficiario, b.nombres, b.correo
+    `SELECT DISTINCT b.id_beneficiario, b.nombres, b.correo, b.correo_verificado AS verificado
      FROM confirmacion_beneficiario c
      JOIN beneficiario b ON b.id_beneficiario = c.id_beneficiario
-     WHERE c.id_proceso = $1 AND b.estado = 'ACTIVO' AND b.correo_verificado = TRUE`,
+     WHERE c.id_proceso = $1 AND b.estado = 'ACTIVO'`,
     [idProceso]
   );
   for (const h of herederos.rows) {
+    const mensaje = h.verificado
+      ? `Hola ${h.nombres}, ${dueno.nombres} te designó como heredero. Entra a tu espacio de heredero en LegadoSeguro ` +
+        'para completar tus verificaciones y confirmar tu participación.'
+      : `Hola ${h.nombres}, tienes una solicitud pendiente en LegadoSeguro. Entra a tu espacio de heredero con este correo ` +
+        'y valida tu identidad para ver los detalles.';
     await notificar(
       { idBeneficiario: h.id_beneficiario, correo: h.correo },
       idProceso,
       'LegadoSeguro: tienes una solicitud de liberación de legado',
-      `Hola ${h.nombres}, ${dueno.nombres} te designó como heredero. Entra a tu espacio de heredero en LegadoSeguro ` +
-        'para completar tus verificaciones y confirmar tu participación.'
+      mensaje
     );
   }
 
@@ -110,7 +115,7 @@ async function buscarHeredero(db: Db, correo: string, idProceso: number, idBenef
      FROM beneficiario b
      JOIN proceso_liberacion p ON p.id_usuario_propietario = b.id_usuario_propietario
      WHERE b.id_beneficiario = $1 AND p.id_proceso = $2 AND LOWER(b.correo) = $3
-       AND b.estado = 'ACTIVO' AND b.correo_verificado = TRUE
+       AND b.estado = 'ACTIVO'
        AND EXISTS (SELECT 1 FROM confirmacion_beneficiario c WHERE c.id_proceso = p.id_proceso AND c.id_beneficiario = b.id_beneficiario)`,
     [idBeneficiario, idProceso, correo]
   );
@@ -128,7 +133,8 @@ function exigirProcesoAbierto(heredero: any) {
 export async function solicitudesDelHeredero(correo: string) {
   const r = await pool.query(
     `SELECT p.id_proceso AS "idProceso", b.id_beneficiario AS "idBeneficiario", p.estado, p.fecha_fin AS "fechaFin",
-            u.nombres || ' ' || u.apellidos AS benefactor,
+            CASE WHEN b.correo_verificado OR COALESCE(v.dni_validado, FALSE)
+                 THEN u.nombres || ' ' || u.apellidos END AS benefactor,
             rl.min_confirmaciones AS "minConfirmaciones", rl.dias_periodo_espera AS "diasEspera", p.fecha_espera AS "fechaEspera",
             COALESCE(v.dni_validado, FALSE) AS "dniValidado",
             (v.selfie_cifrada IS NOT NULL) AS "selfieTomada",
@@ -145,7 +151,7 @@ export async function solicitudesDelHeredero(correo: string) {
      JOIN proceso_liberacion p ON p.id_usuario_propietario = b.id_usuario_propietario
      JOIN regla_liberacion rl ON rl.id_regla = p.id_regla
      LEFT JOIN verificacion_beneficiario v ON v.id_proceso = p.id_proceso AND v.id_beneficiario = b.id_beneficiario
-     WHERE LOWER(b.correo) = $1 AND b.estado = 'ACTIVO' AND b.correo_verificado = TRUE
+     WHERE LOWER(b.correo) = $1 AND b.estado = 'ACTIVO'
        AND p.estado <> 'CANCELADO'
        AND EXISTS (SELECT 1 FROM confirmacion_beneficiario c3 WHERE c3.id_proceso = p.id_proceso AND c3.id_beneficiario = b.id_beneficiario)
      ORDER BY p.fecha_inicio DESC`,
@@ -185,7 +191,8 @@ export async function solicitudesDelHeredero(correo: string) {
   return solicitudes;
 }
 
-// Paso 2: el heredero escribe su DNI y se compara con el que registró el propietario
+// Paso 2: el heredero escribe su DNI y se compara con el que registró el propietario.
+// Con el código que recibió en su correo, esto completa su validación: deja de estar pendiente.
 export async function validarDni(correo: string, idProceso: number, idBeneficiario: number, dni: string) {
   const h = await buscarHeredero(pool, correo, idProceso, idBeneficiario);
   exigirProcesoAbierto(h);
@@ -197,6 +204,7 @@ export async function validarDni(correo: string, idProceso: number, idBeneficiar
      ON CONFLICT (id_proceso, id_beneficiario) DO UPDATE SET dni_validado = TRUE, fecha_dni = NOW()`,
     [idProceso, idBeneficiario]
   );
+  await pool.query('UPDATE beneficiario SET correo_verificado = TRUE WHERE id_beneficiario = $1', [idBeneficiario]);
   return { nombre: `${h.nombres} ${h.apellidos}`, dni: `****${h.dni.slice(-4)}` };
 }
 

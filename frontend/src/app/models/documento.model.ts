@@ -59,7 +59,7 @@ export interface Solicitud {
     idBeneficiario: number;
     estado: string;
     fechaFin: string | null;
-    benefactor: string;
+    benefactor: string | null; // null mientras el heredero no valide su DNI
     minConfirmaciones: number;
     confirmaron: number;
     diasEspera: number;

@@ -68,7 +68,7 @@
       <section class="lista">
         <div class="lista-cabecera">
           <div>
-            <h2>Designado por {{ l.benefactor }}</h2>
+            <h2>{{ l.benefactor ? 'Designado por ' + l.benefactor : 'Solicitud pendiente' }}</h2>
             <p class="sub">{{ entregados(l) }} de {{ l.documentos.length }} documentos listos</p>
           </div>
           <span class="porcentaje">{{ porcentaje(l) }}%</span>

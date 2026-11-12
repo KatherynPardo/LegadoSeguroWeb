@@ -15,6 +15,16 @@
   </div>
   }
 
+  @if (r.herederosPendientes > 0) {
+  <div class="alerta-proceso alerta-pendiente">
+    <div>
+      <strong>{{ r.herederosPendientes === 1 ? 'Tienes 1 heredero pendiente de validar' : 'Tienes ' + r.herederosPendientes + ' herederos pendientes de validar' }}</strong>
+      <span>Su designación sigue reservada: no reciben ningún aviso. Puedes verificar su correo cuando quieras.</span>
+    </div>
+    <a routerLink="/beneficiarios" class="btn btn-light">Ver herederos</a>
+  </div>
+  }
+
   <!-- Portada: saludo y salud del legado -->
   <div class="portada">
     <div class="portada-texto">

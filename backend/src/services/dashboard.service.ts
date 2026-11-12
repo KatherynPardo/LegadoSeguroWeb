@@ -67,7 +67,7 @@ export async function obtenerResumen(idUsuario: number): Promise<Dashboard> {
   const totalActivos: number = activos.rows[0].total;
   const sinHeredero: number = activos.rows[0].sinHeredero;
   const totalHerederos: number = herederos.rows[0].total;
-  const verificados: number = herederos.rows[0].verificados;
+  const pendientes: number = totalHerederos - herederos.rows[0].verificados;
   const reglaActiva = regla.rows.length > 0;
 
   // Salud del legado: 5 cosas que tiene que tener en orden, 20 puntos cada una
@@ -75,7 +75,7 @@ export async function obtenerResumen(idUsuario: number): Promise<Dashboard> {
     { texto: 'Registra tu primer activo digital', hecho: totalActivos > 0, ruta: '/activos' },
     { texto: sinHeredero > 0 ? `Asigna herederos a ${sinHeredero} ${sinHeredero === 1 ? 'activo' : 'activos'}` : 'Todos tus activos tienen heredero', hecho: totalActivos > 0 && sinHeredero === 0, ruta: '/activos' },
     { texto: 'Designa a tus herederos', hecho: totalHerederos > 0, ruta: '/beneficiarios' },
-    { texto: verificados < totalHerederos ? `Verifica a ${totalHerederos - verificados} ${totalHerederos - verificados === 1 ? 'heredero' : 'herederos'}` : 'Tus herederos están verificados', hecho: totalHerederos > 0 && verificados === totalHerederos, ruta: '/beneficiarios' },
+    { texto: pendientes === 1 ? '1 heredero pendiente de validar' : pendientes > 1 ? `${pendientes} herederos pendientes de validar` : 'Tus herederos están validados', hecho: totalHerederos > 0 && pendientes === 0, ruta: '/beneficiarios' },
     { texto: 'Activa tu regla de liberación', hecho: reglaActiva, ruta: '/reglas' }
   ];
   const puntaje = pasos.filter(p => p.hecho).length * 20;
@@ -90,6 +90,7 @@ export async function obtenerResumen(idUsuario: number): Promise<Dashboard> {
   return {
     activos: totalActivos,
     beneficiarios: totalHerederos,
+    herederosPendientes: pendientes,
     reglasActivas: reglaActiva ? 1 : 0,
     procesosEnCurso: procesos.rows[0].n,
     salud: { puntaje, pasos },

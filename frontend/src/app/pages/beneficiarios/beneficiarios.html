@@ -34,7 +34,7 @@
       <p class="dato recibe">@if (b.activos.length) { Recibe: {{ b.activos.map(a => a.nombre).join(', ') }} } @else { Todavía no recibe ningún activo }</p>
       <div class="pie-persona">
         @if (b.verificado) { <span class="insignia ok">Identidad verificada</span> }
-        @else { <span class="insignia pendiente">Pendiente de verificar</span> }
+        @else { <span class="insignia pendiente">Pendiente de validar</span> }
         <span class="acciones-persona">
           <button type="button" class="enlace" (click)="abrirDocumentos(b)">Documentos</button>
           <button type="button" class="enlace" (click)="abrirEditar(b)">Editar</button>
@@ -49,7 +49,7 @@
 
   <div class="aviso-info">
     <strong>Verificación de identidad de cada beneficiario</strong>
-    <p>Cada beneficiario debe confirmar su correo con un código que le enviamos antes de quedar registrado. Así nadie puede suplantarlo. Un beneficiario "pendiente de verificar" no podrá confirmar ninguna solicitud de liberación.</p>
+    <p>Puedes verificar el correo de un beneficiario con un código al registrarlo, o dejar su designación reservada. Un beneficiario "pendiente de validar" no recibe ningún aviso hasta que se abra un proceso de liberación; entonces debe entrar con el código de su correo y validar su DNI antes de ver los detalles.</p>
   </div>
 </section>
 
@@ -79,9 +79,19 @@
     <label for="correo">Correo electrónico</label>
     <input id="correo" name="correo" type="email" class="form-control" required autocomplete="off" [(ngModel)]="nuevo.correo" />
 
-    @if (necesitaCodigo()) {
+    @if (puedeVerificar()) {
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" id="verificarAhora" name="verificarAhora" [(ngModel)]="verificarAhora" />
+      <label class="form-check-label" for="verificarAhora">Avisar ahora al heredero y verificar su correo</label>
+    </div>
+    @if (!verificarAhora) {
+    <p class="aviso-dni">Si no lo marcas, la designación queda reservada: el heredero no recibe ningún aviso y figura como pendiente de validar hasta que se abra un proceso.</p>
+    }
+    }
+
+    @if (puedeVerificar() && verificarAhora) {
     <div class="caja-codigo">
-      <p class="aviso-dni">Para evitar suplantaciones, el heredero debe confirmar su correo: le enviamos un código y tú lo escribes aquí.</p>
+      <p class="aviso-dni">Le enviamos un código al correo del heredero y tú lo escribes aquí. Así nadie puede registrar un correo ajeno.</p>
       <button type="button" class="btn btn-outline-primary" [disabled]="enviandoCodigo() || !correoValido()" (click)="enviarCodigo()">
         {{ enviandoCodigo() ? 'Enviando...' : 'Enviar código al correo del heredero' }}
       </button>

@@ -1,16 +1,17 @@
 // Portal del heredero: entra con su correo y un código (sin contraseña).
-// Solo pueden entrar los herederos cuyo correo ya fue verificado por el propietario.
+// Puede entrar cualquier correo registrado como heredero, incluso si el propietario lo dejó pendiente de validar:
+// el código que llega al correo prueba que el buzón es suyo, y el DNI se pide después, dentro de cada solicitud.
 
 import jwt from 'jsonwebtoken';
 import { pool } from '../config/database';
 import { JWT_SECRET } from '../config/env';
 import { enviarCodigo, validarCodigo } from './verificacion.service';
 
-// Envía el código si el correo es de un heredero verificado. Si no lo es, no hace nada
+// Envía el código si el correo es de un heredero. Si no lo es, no hace nada
 // (el controlador responde igual en los dos casos, para no revelar qué correos son herederos).
 export async function enviarCodigoPortal(correo: string): Promise<void> {
   const heredero = await pool.query(
-    "SELECT 1 FROM beneficiario WHERE LOWER(correo) = $1 AND estado = 'ACTIVO' AND correo_verificado = TRUE LIMIT 1",
+    "SELECT 1 FROM beneficiario WHERE LOWER(correo) = $1 AND estado = 'ACTIVO' LIMIT 1",
     [correo]
   );
   if (heredero.rows.length === 0) return;
@@ -22,7 +23,7 @@ export async function entrarAlPortal(correo: string, codigo: string) {
   if (!(await validarCodigo('PORTAL', correo, codigo))) return null;
 
   const heredero = await pool.query(
-    "SELECT nombres FROM beneficiario WHERE LOWER(correo) = $1 AND estado = 'ACTIVO' AND correo_verificado = TRUE LIMIT 1",
+    "SELECT nombres FROM beneficiario WHERE LOWER(correo) = $1 AND estado = 'ACTIVO' LIMIT 1",
     [correo]
   );
   if (heredero.rows.length === 0) return null;

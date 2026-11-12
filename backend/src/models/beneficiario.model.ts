@@ -7,7 +7,7 @@ export type Beneficiario = {
   parentesco: string | null;
   correo: string;
   telefono: string | null;
-  verificado: boolean; // true si el heredero confirmó su correo con un código
+  verificado: boolean; // false = pendiente de validar (el heredero aún no probó que el correo es suyo)
   activos: { id: number; nombre: string }[]; // activos que recibirá
 };
 
@@ -19,7 +19,7 @@ export type NuevoBeneficiario = {
   correo: string;
   telefono: string;
   parentesco: string;
-  codigo: string; // código de 6 dígitos que le llegó al correo del heredero
+  codigo: string | null; // código del correo del heredero; sin código, la designación queda reservada
   activos: number[]; // activos que recibirá
 };
 
@@ -30,6 +30,6 @@ export type EdicionBeneficiario = {
   correo: string;
   telefono: string;
   parentesco: string;
-  codigo: string | null; // solo hace falta si cambia el correo
+  codigo: string | null; // opcional: con código el correo queda verificado
   activos: number[] | null; // si se envía, reemplaza los activos que recibe
 };

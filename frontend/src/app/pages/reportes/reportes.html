@@ -14,8 +14,8 @@
       <span class="etiqueta">Activos sin heredero</span>
     </div>
     <div class="cifra">
-      <span class="numero azul">{{ r.herederos.verificados }} de {{ r.herederos.total }}</span>
-      <span class="etiqueta">Herederos verificados</span>
+      <span class="numero" [class.naranja]="r.herederos.total > r.herederos.verificados" [class.verde]="r.herederos.total === r.herederos.verificados">{{ r.herederos.total - r.herederos.verificados }}</span>
+      <span class="etiqueta">Herederos pendientes de validar</span>
     </div>
     <div class="cifra">
       @for (d of r.dinero; track d.moneda) {

@@ -9,6 +9,7 @@ export type PasoSalud = {
 export type Dashboard = {
   activos: number;
   beneficiarios: number;
+  herederosPendientes: number; // herederos que aún no probaron que el correo es suyo
   reglasActivas: number;
   procesosEnCurso: number;
   salud: { puntaje: number; pasos: PasoSalud[] };

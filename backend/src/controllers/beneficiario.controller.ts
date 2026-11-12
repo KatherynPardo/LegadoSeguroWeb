@@ -39,6 +39,12 @@ function leerActivos(valor: unknown): number[] | null {
   return valor.every(v => Number.isInteger(v) && v > 0) ? (valor as number[]) : null;
 }
 
+// El código del correo es opcional: devuelve null si no vino, false si vino mal escrito
+function leerCodigo(valor: unknown): string | null | false {
+  if (valor === undefined || valor === null || valor === '') return null;
+  return typeof valor === 'string' && /^\d{6}$/.test(valor) ? valor : false;
+}
+
 export async function obtenerBeneficiarios(_req: Request, res: Response) {
   try {
     res.json(await listarBeneficiarios(res.locals.usuarioId));
@@ -78,14 +84,15 @@ export async function registrarBeneficiario(req: Request, res: Response) {
     res.status(400).json({ mensaje: 'El DNI debe tener 8 dígitos' });
     return;
   }
-  if (typeof req.body.codigo !== 'string' || !/^\d{6}$/.test(req.body.codigo)) {
-    res.status(400).json({ mensaje: 'Ingresa el código de 6 dígitos que recibió el heredero' });
+  const codigo = leerCodigo(req.body.codigo);
+  if (codigo === false) {
+    res.status(400).json({ mensaje: 'El código debe tener 6 dígitos' });
     return;
   }
 
   try {
     const id = await crearBeneficiario(
-      { ...campos, dni: req.body.dni, codigo: req.body.codigo, activos: activosElegidos },
+      { ...campos, dni: req.body.dni, codigo, activos: activosElegidos },
       res.locals.usuarioId
     );
     res.status(201).json({ id });
@@ -113,12 +120,18 @@ export async function editarBeneficiario(req: Request, res: Response) {
     return;
   }
 
+  const codigo = leerCodigo(req.body.codigo);
+  if (codigo === false) {
+    res.status(400).json({ mensaje: 'El código debe tener 6 dígitos' });
+    return;
+  }
+
   try {
     await actualizarBeneficiario(
       id,
       {
         ...campos,
-        codigo: req.body.codigo ? String(req.body.codigo) : null,
+        codigo,
         activos: req.body.activos === undefined ? null : activosEditados
       },
       res.locals.usuarioId

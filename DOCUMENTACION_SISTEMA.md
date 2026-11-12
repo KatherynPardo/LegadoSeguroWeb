@@ -51,7 +51,7 @@
 | | |
 |---|---|
 | **Sistema** | LegadoSeguro: plataforma web de gestión de legado y testamento digital |
-| **Autora / grupo** | Katheryn Pardo Acosta · Curso JavaScript Avanzado (UTP, 2026-02) |
+| **Autoras / grupo** | Katheryn Pardo Acosta, Fiorella Stefany Cabanillas Rojas · Curso JavaScript Avanzado (UTP, 2026-02) |
 | **Problema que resuelve** | Cuando una persona fallece o deja de estar disponible, sus cuentas, correos y datos digitales (incluidos los bancarios) quedan inaccesibles para su familia, o se pierden. No hay una forma ordenada, segura y legal de decidir de antemano quién recibe qué. |
 | **Usuarios principales** | El **propietario** (quien registra su legado), el **heredero** (quien lo recibe) y el **administrador** de la plataforma. |
 
@@ -63,7 +63,7 @@
 |---|---|
 | Registro e ingreso de usuarios con verificación de correo por código | Cobro real de planes con Culqi |
 | Activos digitales con tipo, banco, monto cifrado e historial | Despliegue público en Vercel |
-| Herederos verificados por código, con checklist de documentos | Subida de archivos (DNI, certificados) |
+| Herederos con verificación opcional por código (designación reservada) y checklist de documentos | Subida de archivos (DNI, certificados) |
 | Regla de liberación configurable y procesos de liberación automáticos | Comparación facial automática de la selfie |
 | Planes con límite de herederos | Notificaciones por SMS o llamada |
 | Dashboard, reportes, historial y auditoría | Aplicación móvil |
@@ -76,7 +76,7 @@
 | RF-01 | El usuario puede registrarse (con su DNI validado en RENIEC), confirmar su correo con un código e iniciar y cerrar sesión. |
 | RF-02 | El usuario puede recuperar su contraseña con un código enviado a su correo. |
 | RF-03 | El propietario puede registrar, listar, editar y eliminar activos digitales, indicando tipo, banco y (opcionalmente) el monto. |
-| RF-04 | El propietario puede designar, editar y eliminar herederos; cada heredero se verifica con un código enviado a su correo. |
+| RF-04 | El propietario puede designar, editar y eliminar herederos; la verificación del correo con un código es opcional (designación reservada). |
 | RF-05 | El propietario puede asignar uno o varios herederos a cada activo. |
 | RF-06 | El propietario define su regla de liberación: días de inactividad, confirmaciones mínimas, espera final y validador externo. |
 | RF-07 | El sistema detecta la inactividad y abre automáticamente un proceso de liberación; el propietario puede cancelarlo. |
@@ -105,7 +105,7 @@
 |---|---|---|
 | **ADMINISTRADOR** | Ver y activar o desactivar usuarios; ver la auditoría; mantener el catálogo de documentos | No puede desactivar su propia cuenta |
 | **PROPIETARIO** (benefactor) | Gestionar sus activos, herederos, regla, procesos, plan, reportes e historial | Solo ve y modifica **sus** datos; el plan Básico permite hasta 2 herederos |
-| **BENEFICIARIO** (heredero) | Entrar al portal y ver y marcar su checklist de documentos | Solo si su correo fue verificado; no ve nada del propietario salvo su nombre y su propia lista |
+| **BENEFICIARIO** (heredero) | Entrar al portal y ver y marcar su checklist de documentos | Entra con el código de su correo; hasta validar su DNI no ve quién lo designó. No ve nada del propietario salvo su nombre y su propia lista |
 
 ---
 
@@ -224,7 +224,7 @@ Herederos designados por cada propietario.
 | telefono | VARCHAR(20) | — | Puede ser vacío | Teléfono de contacto (9 dígitos). |
 | parentesco | VARCHAR(50) | — | Puede ser vacío | Relación con el propietario. |
 | estado | VARCHAR(20) | — | NOT NULL; Por defecto 'ACTIVO' | Estado del registro (por ejemplo ACTIVO o INACTIVO). |
-| correo_verificado | BOOLEAN | — | NOT NULL; Por defecto false | Si el heredero confirmó su correo con un código. |
+| correo_verificado | BOOLEAN | — | NOT NULL; Por defecto false | false = pendiente de validar; pasa a true con el código del propietario o al validar el DNI en un proceso. |
 
 Valores únicos adicionales: (id_usuario_propietario, dni) WHERE ((estado)::text = 'ACTIVO'::text).
 
@@ -974,10 +974,39 @@ if (limite !== null && cuenta.rows[0].n >= limite) {
 }
 ```
 
-- **Explicación:** al registrar un heredero, el sistema envía un **código al correo del heredero**; el propietario debe pedírselo y escribirlo. Así nadie registra un correo ajeno (evita la **suplantación de identidad**). El heredero aparece como "Identidad verificada" o "Pendiente de verificar". Al llegar al límite del plan, la pantalla muestra una ventana invitando a mejorar el plan, y el backend también lo exige (error 403 con código `LIMITE_PLAN`).
-- **Operaciones:** designar (con búsqueda de nombres por DNI), listar en tarjetas, editar (el DNI no cambia; si cambia el correo se pide un código nuevo), eliminar (queda `INACTIVO` y se le quitan los activos), ver y editar sus documentos.
-- **Validaciones:** todos los campos obligatorios; DNI de 8 dígitos y único por propietario (409); teléfono de 9 dígitos; correo válido; código correcto.
+- **Explicación:** al registrar un heredero, una **casilla desmarcada por defecto** ("Avisar ahora al heredero y verificar su correo") permite enviarle un **código al correo**; el propietario debe pedírselo y escribirlo. Así nadie registra un correo ajeno (evita la **suplantación de identidad**). Si no marca la casilla, la designación queda **reservada**: el heredero no recibe ningún aviso y aparece como "Pendiente de validar" (`correo_verificado = false`, sin cambios en la BD). Se ve así hasta que valide su DNI en un proceso de liberación. Al llegar al límite del plan, la pantalla muestra una ventana invitando a mejorar el plan, y el backend también lo exige (error 403 con código `LIMITE_PLAN`).
+- **Operaciones:** designar (con búsqueda de nombres por DNI), listar en tarjetas, editar (el DNI no cambia; si cambia el correo vuelve a "Pendiente de validar" salvo que se verifique con un código nuevo), eliminar (queda `INACTIVO` y se le quitan los activos), ver y editar sus documentos.
+- **Validaciones:** todos los campos obligatorios; DNI de 8 dígitos y único por propietario (409); teléfono de 9 dígitos; correo válido; si se envía código, debe ser correcto.
 - **Prueba:** casos P-17 a P-21.
+
+#### Designación reservada: cómo funciona
+
+| Situación | Qué hace el sistema |
+|---|---|
+| Heredero sin verificar (casilla desmarcada) | No se le envía nada. El dashboard muestra un recordatorio fijo ("Tienes N herederos pendientes de validar") y los reportes cuentan los pendientes |
+| Se abre un proceso de liberación | El heredero recibe un **aviso mínimo**: sin nombre del propietario ni detalles. Entra al portal con el código de su correo |
+| El heredero entra al portal | Ve "Solicitud pendiente". El nombre del propietario solo aparece **después de validar su DNI** |
+| El heredero valida su DNI | Coincide con el DNI que registró el propietario: pasa a "validado" (`correo_verificado = true`) |
+
+El límite del plan y las confirmaciones mínimas de la regla cuentan a los herederos pendientes igual que a los verificados.
+
+#### Protocolo para casos especiales
+
+| Caso | Qué pasa | Qué se hace |
+|---|---|---|
+| **Correo mal escrito** | El aviso no llega o llega a un desconocido | El desconocido no puede avanzar: no ve al propietario sin el DNI del heredero. El propietario corrige el correo en **Editar** (vuelve a pendiente) |
+| **Correo de otra persona** | Esa persona recibe un aviso sin datos | Sin el DNI correcto no pasa de "Solicitud pendiente"; el intento queda en `notificacion` |
+| **Heredero que no responde** | La solicitud queda sin confirmar | La regla pide un mínimo de confirmaciones; otros herederos pueden confirmar |
+| **Propietario fallecido y correo del heredero erróneo** | El propietario ya no puede corregirlo | Corresponde a un administrador, con evidencia y auditoría (herramienta prevista, aún no construida) |
+
+#### Niveles de validación de identidad
+
+| Nivel | Qué prueba | Estado |
+|---|---|---|
+| 1 | Controla el buzón de correo (código de 6 dígitos) | Hecho |
+| 2 | Conoce el DNI que registró el propietario | Hecho |
+| 3 | Selfie cifrada guardada como evidencia | Hecho; no se compara con el DNI |
+| 4 | Comparación facial con la foto del DNI, prueba de vida y comprobante de domicilio | Propuesto: necesita un proveedor externo y consentimiento expreso de datos biométricos (Ley 29733) |
 
 ### 7.6 Módulo: Reglas de liberación
 
@@ -1011,7 +1040,7 @@ WHERE r.estado = 'ACTIVA' AND u.estado = 'ACTIVO'
 - **Explicación:** al arrancar el backend, **cada hora** y **a pedido del administrador**, se revisa a cada usuario con regla activa. Si su última actividad (cada inicio de sesión se registra en `actividad_usuario`) es más antigua que los días de su regla y no tiene un proceso abierto, primero se le envía una **alerta por correo con un plazo de gracia** (`alerta_inactividad`); si no entra en ese plazo, se crea un `proceso_liberacion` en estado `DETECTADO`, con sus activos y las confirmaciones pendientes de los herederos asignados (todo en una transacción).
 - **Operaciones:** listar, ver detalle (activos, confirmaciones, objeciones, entregas) y **cancelar** (queda en la auditoría).
 - **Estados:** `DETECTADO`, `EN_CONFIRMACION`, `EN_ESPERA`, `LIBERADO`, `CANCELADO`.
-- **Etapas del heredero:** avisos por correo, tres verificaciones (código, DNI y selfie cifrada), confirmar participación o presentar objeción, espera final y liberación con entregas (pantalla del Figma 06). Detalle en el Paso 8.10d de [MANUAL_CONSTRUCCION.md](MANUAL_CONSTRUCCION.md).
+- **Etapas del heredero:** avisos por correo, tres verificaciones (código, DNI y selfie cifrada), confirmar participación o presentar objeción, espera final y liberación con entregas (pantalla del Figma 06). Detalle en el procedimiento 7.14.2 de [MANUAL_CONSTRUCCION.md](MANUAL_CONSTRUCCION.md).
 - **Limitación actual:** la selfie se guarda cifrada como evidencia, **sin comparación facial automática**; y el portal del validador externo (que aprobaría las entregas de activos financieros) no está hecho.
 - **Prueba:** casos P-25 a P-27.
 
@@ -1039,7 +1068,7 @@ if (datos.tipo === 'HEREDERO') {
 }
 ```
 
-- **Explicación:** el token del heredero lleva `tipo: HEREDERO` y el backend lo rechaza en las pantallas del propietario; y el token del propietario se rechaza en el portal. Solo pueden entrar herederos con correo verificado; si el correo no es de un heredero, la respuesta es la misma y no se envía código. Un heredero solo puede marcar **sus** documentos.
+- **Explicación:** el token del heredero lleva `tipo: HEREDERO` y el backend lo rechaza en las pantallas del propietario; y el token del propietario se rechaza en el portal. Puede entrar cualquier correo registrado como heredero (incluso pendiente de validar), pero el checklist de documentos y el aviso de "documentos listos" exigen correo verificado; si el correo no es de un heredero, la respuesta es la misma y no se envía código. Un heredero solo puede marcar **sus** documentos.
 - **Alcance:** es una lista de control; **no se adjuntan archivos**.
 - **Prueba:** casos P-28 a P-32 (incluye pruebas de seguridad entre roles).
 - **Error encontrado:** el marcado de documentos devolvía error 500 por un parámetro SQL con tipos inconsistentes (ver sección 11).
@@ -1117,6 +1146,7 @@ if (datos.tipo === 'HEREDERO') {
 | **Tu regla en acción** | Días desde el ingreso anterior frente al límite de la regla | `actividad_usuario`, `regla_liberacion` | Cuánto margen queda antes de que se inicie un proceso |
 | **Cifras** | Activos, herederos, regla activa y procesos en curso | Conteos de cada tabla | Panorama rápido |
 | **Alerta de proceso** | Aviso si hay un proceso en curso | `proceso_liberacion` | Decidir si cancelarlo |
+| **Herederos pendientes de validar** | Recordatorio fijo si hay designaciones reservadas | `beneficiario.correo_verificado` | Verificar su correo cuando convenga |
 | **Actividad reciente** | Últimas acciones | `auditoria`, `actividad_usuario`, `activo_digital` | Revisar qué pasó últimamente |
 
 **Fórmula de la salud del legado:** 5 pasos de **20 puntos** cada uno. Puntaje = 20 × (pasos cumplidos).
@@ -1124,7 +1154,7 @@ if (datos.tipo === 'HEREDERO') {
 1. Tiene al menos un activo digital.
 2. Todos sus activos tienen heredero asignado.
 3. Tiene al menos un heredero designado.
-4. Todos sus herederos están verificados.
+4. Ninguno de sus herederos está pendiente de validar.
 5. Tiene una regla de liberación activa.
 
 **Consulta principal** (en `services/dashboard.service.ts`): cuenta los activos sin heredero con `COUNT(*) FILTER (WHERE NOT EXISTS (...))`, los herederos verificados con `COUNT(*) FILTER (WHERE correo_verificado)` y busca la regla activa.
@@ -1136,7 +1166,7 @@ if (datos.tipo === 'HEREDERO') {
 | Reporte | Qué muestra | De dónde sale | Decisión que permite |
 |---|---|---|---|
 | Activos registrados / sin heredero | Cuántos activos hay y cuántos no tienen heredero | `activo_digital`, `activo_beneficiario` | Asignar herederos pendientes |
-| Herederos verificados | "X de Y" | `beneficiario.correo_verificado` | Verificar a quienes faltan |
+| Herederos pendientes de validar | Cantidad (en naranja si es mayor que 0) | `beneficiario.correo_verificado` | Verificar a quienes faltan |
 | Dinero registrado | Suma por moneda, con ojito para ocultarlo | `activo_digital.monto_cifrado` (se descifra y suma en el backend) | Ver el patrimonio declarado |
 | Activos por tipo | Barras por tipo (los financieros en rojo) | `activo_digital`, `tipo_activo` | Ver cómo se reparte el legado |
 | Procesos por estado | Conteo por estado | `proceso_liberacion` | Seguimiento de procesos |
@@ -1170,7 +1200,8 @@ Las pruebas del backend se hicieron contra la base real (con datos temporales qu
 | P-15 | Editar sin cambiar el monto | No agrega fila | No agregó | Aprobado |
 | P-16 | Desmarcar "registrar monto" | Monto e historial borrados | Historial vacío | Aprobado |
 | P-17 | Heredero con teléfono de 3 dígitos | 400 | 400 | Aprobado |
-| P-18 | Heredero sin código de verificación | 400 | 400 | Aprobado |
+| P-18 | Heredero con código falso | 400 | 400 | Aprobado |
+| P-18b | Heredero sin código (designación reservada) | 201, queda pendiente de validar | 201, `verificado = false` | Aprobado |
 | P-19 | Heredero con código correcto | 201 | 201 | Aprobado |
 | P-20 | Mismo DNI dos veces | 409 | 409 | Aprobado |
 | P-20b | Tres pedidos idénticos a la vez (doble clic en Guardar) | Solo 1 heredero | [201, 409, 409] y 1 en la base | Aprobado |
@@ -1339,8 +1370,8 @@ npx ng serve
 
 1. Ve a **Mis Herederos** y pulsa **+ Designar Beneficiario**.
 2. Escribe el DNI y pulsa **Buscar**; completa correo, teléfono y parentesco.
-3. Pulsa **Enviar código al correo del heredero**, pídele el código de 6 dígitos y escríbelo.
-4. Pulsa **Guardar**. Verás su tarjeta con "Identidad verificada".
+3. Opcional: marca **Avisar ahora al heredero y verificar su correo**, pulsa **Enviar código al correo del heredero**, pídele el código de 6 dígitos y escríbelo. Si no la marcas, la designación queda reservada.
+4. Pulsa **Guardar**. Verás su tarjeta con "Identidad verificada", o con "Pendiente de validar" si lo dejaste reservado.
 5. Con **Documentos** eliges qué papeles deberá reunir.
 6. Si llegas al límite de tu plan, aparece un aviso con el botón **Ver planes**.
 

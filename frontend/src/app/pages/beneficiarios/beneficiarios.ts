@@ -37,8 +37,9 @@ export class Beneficiarios implements OnInit {
   limite = signal<number | null>(null);
   avisoPlan = signal(false);
 
-  // Código de verificación que recibe el heredero en su correo
-  correoOriginal = ''; // al editar, solo se pide código si el correo cambia o aún no está verificado
+  // Verificar el correo es opcional: sin hacerlo, la designación queda reservada (pendiente de validar)
+  verificarAhora = false; // casilla del formulario, desmarcada por defecto
+  correoOriginal = ''; // al editar, la casilla solo aparece si el correo cambia o aún no está verificado
   verificadoOriginal = false;
   guardando = signal(false); // evita que un doble clic envíe el formulario dos veces
   enviandoCodigo = signal(false);
@@ -107,6 +108,7 @@ export class Beneficiarios implements OnInit {
     this.editandoId = null;
     this.correoOriginal = '';
     this.verificadoOriginal = false;
+    this.verificarAhora = false;
     this.nuevo = this.vacio();
     this.error.set('');
     this.avisoDni.set('');
@@ -129,6 +131,7 @@ export class Beneficiarios implements OnInit {
     };
     this.correoOriginal = b.correo ?? '';
     this.verificadoOriginal = b.verificado;
+    this.verificarAhora = false;
     this.error.set('');
     this.avisoDni.set('');
     this.avisoCodigo.set('');
@@ -166,8 +169,8 @@ export class Beneficiarios implements OnInit {
     this.nuevo.activos = a.includes(id) ? a.filter(x => x !== id) : [...a, id];
   }
 
-  // Hay que pedir código al crear un heredero, o al editar si cambió el correo
-  necesitaCodigo(): boolean {
+  // La casilla de verificar aparece al crear un heredero, o al editar uno pendiente o con el correo cambiado
+  puedeVerificar(): boolean {
     return this.editandoId === null || !this.verificadoOriginal
       || this.nuevo.correo.trim().toLowerCase() !== this.correoOriginal.toLowerCase();
   }
@@ -200,6 +203,7 @@ export class Beneficiarios implements OnInit {
     this.guardando.set(true);
     this.error.set('');
     const editando = this.editandoId !== null;
+    if (!this.verificarAhora) this.nuevo.codigo = ''; // sin verificar, no se envía código
 
     const peticion: Observable<unknown> = editando
       ? this.beneficiarioService.actualizarBeneficiario(this.editandoId!, this.nuevo)

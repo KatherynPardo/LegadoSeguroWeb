@@ -66,7 +66,7 @@ const CAMPOS: Record<string, string> = {
   requiere_entidad: 'Si el tipo de activo exige elegir un banco.', ubicacion_referencia: 'Referencia de dónde está el activo.',
   moneda: 'PEN (soles) o USD (dólares).', monto: 'Monto sin cifrar (queda vacío: el monto va en monto_cifrado).',
   monto_cifrado: 'Monto cifrado con AES-256.', registrar_monto: 'Si el usuario decidió registrar el monto del activo.',
-  parentesco: 'Relación con el propietario.', correo_verificado: 'Si el heredero confirmó su correo con un código.',
+  parentesco: 'Relación con el propietario.', correo_verificado: 'false = pendiente de validar; pasa a true con el código del propietario o al validar el DNI en un proceso.',
   prioridad: 'Orden de prioridad del heredero en el activo.', dias_inactividad: 'Días sin actividad antes de iniciar el proceso (7 a 3650).',
   min_confirmaciones: 'Herederos que deben confirmar como mínimo.', dias_periodo_espera: 'Días de espera final antes de liberar.',
   requiere_validador: 'Si se exige validador externo para activos financieros.', motivo: 'Motivo o razón.',

@@ -18,6 +18,13 @@
   display: block;
 }
 
+/* Recordatorio de herederos pendientes de validar: mismo diseño, en rojo */
+.alerta-pendiente {
+  background: #FBE4E4;
+  border-color: #EDB4B4;
+  color: #9B2C2C;
+}
+
 /* ---- Portada con la salud del legado ---- */
 .portada {
   display: flex;

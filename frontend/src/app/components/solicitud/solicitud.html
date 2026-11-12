@@ -2,7 +2,8 @@
   <div class="aviso">
     <h2>Solicitud de liberación de legado digital</h2>
     <p>
-      Has sido designado beneficiario por <strong>{{ solicitud().benefactor }}</strong>.
+      @if (solicitud().benefactor) { Has sido designado beneficiario por <strong>{{ solicitud().benefactor }}</strong>. }
+      @else { Tienes una solicitud pendiente. Al validar tu DNI verás quién te designó. }
       @if (!solicitud().confirmado && solicitud().estado !== 'LIBERADO') {
       Para continuar, debes completar las tres verificaciones de identidad que se indican a continuación.
       }
@@ -75,7 +76,7 @@
     <span class="circulo">2</span>
     <div class="paso-texto">
       <strong>2. Validación de DNI</strong>
-      <span>Escribe tu DNI para compararlo con el que registró {{ solicitud().benefactor }}.</span>
+      <span>Escribe tu DNI para compararlo con el que registró {{ solicitud().benefactor ?? 'quien te designó' }}.</span>
       <div class="fila-entrada">
         <input name="dni" maxlength="8" inputmode="numeric" placeholder="Tu DNI de 8 dígitos" [(ngModel)]="dni" />
         <button type="button" class="btn-primario" [disabled]="cargando() || dni.length !== 8" (click)="validarDni()">Validar</button>

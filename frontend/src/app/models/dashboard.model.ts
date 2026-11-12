@@ -9,6 +9,7 @@ export interface PasoSalud {
 export interface Dashboard {
     activos: number;
     beneficiarios: number;
+    herederosPendientes: number;
     reglasActivas: number;
     procesosEnCurso: number;
     salud: { puntaje: number; pasos: PasoSalud[] };

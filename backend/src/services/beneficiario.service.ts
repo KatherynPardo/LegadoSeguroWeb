@@ -44,6 +44,11 @@ async function revisarLimite(idUsuario: number): Promise<void> {
   }
 }
 
+// Comprueba el código que el heredero recibió en su correo. Si no coincide, corta con un error.
+async function exigirCodigo(correo: string, codigo: string): Promise<void> {
+  if (!(await validarCodigo('HEREDERO', correo, codigo))) throw new ReglaHeredero('El código es incorrecto o ya venció', 400);
+}
+
 // Comprueba que los activos elegidos existen y son del propietario
 async function validarActivosPropios(ids: number[], idUsuario: number): Promise<void> {
   const unicos = [...new Set(ids)];
@@ -113,16 +118,17 @@ async function crearBeneficiarioSeguro(datos: NuevoBeneficiario, idUsuario: numb
 
   await validarActivosPropios(datos.activos, idUsuario);
 
-  // El heredero tiene que haber recibido el código en su correo: así nadie registra un correo ajeno
-  const codigoOk = await validarCodigo('HEREDERO', datos.correo, datos.codigo);
-  if (!codigoOk) throw new ReglaHeredero('El código es incorrecto o ya venció', 400);
+  // El código es opcional: sin él, la designación queda reservada (pendiente de validar) y el heredero
+  // no recibe ningún aviso. Con código, se comprueba que el correo es suyo.
+  if (datos.codigo) await exigirCodigo(datos.correo, datos.codigo);
+  const verificado = datos.codigo !== null;
 
   const resultado = await pool.query(
     `INSERT INTO beneficiario
        (id_usuario_propietario, nombres, apellidos, dni, correo, telefono, parentesco, correo_verificado)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, TRUE)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
      RETURNING id_beneficiario AS id`,
-    [idUsuario, datos.nombres, datos.apellidos, datos.dni, datos.correo, datos.telefono, datos.parentesco]
+    [idUsuario, datos.nombres, datos.apellidos, datos.dni, datos.correo, datos.telefono, datos.parentesco, verificado]
   );
   await asignarActivosAHeredero(resultado.rows[0].id, datos.activos, idUsuario);
 
@@ -137,20 +143,18 @@ export async function actualizarBeneficiario(id: number, datos: EdicionBeneficia
   );
   if (actual.rows.length === 0) throw new ReglaHeredero('Heredero no encontrado', 404);
 
-  // Si cambia el correo, o el correo todavía no está verificado, hace falta el código
-  const pideCodigo = actual.rows[0].correo !== datos.correo || !actual.rows[0].correo_verificado;
-  if (pideCodigo) {
-    const codigoOk = datos.codigo ? await validarCodigo('HEREDERO', datos.correo, datos.codigo) : false;
-    if (!codigoOk) throw new ReglaHeredero('Ingresa el código que le llegó al correo del heredero para verificarlo', 400);
-  }
+  // Con código se verifica el correo. Sin código, sigue verificado solo si el correo no cambió;
+  // si cambió, vuelve a quedar pendiente de validar.
+  if (datos.codigo) await exigirCodigo(datos.correo, datos.codigo);
+  const mismoCorreo = actual.rows[0].correo === datos.correo;
+  const verificado = datos.codigo !== null || (mismoCorreo && actual.rows[0].correo_verificado);
 
   const resultado = await pool.query(
     `UPDATE beneficiario
-     SET nombres = $1, apellidos = $2, correo = $3, telefono = $4, parentesco = $5,
-         correo_verificado = TRUE
-     WHERE id_beneficiario = $6 AND id_usuario_propietario = $7 AND estado = 'ACTIVO'
+     SET nombres = $1, apellidos = $2, correo = $3, telefono = $4, parentesco = $5, correo_verificado = $6
+     WHERE id_beneficiario = $7 AND id_usuario_propietario = $8 AND estado = 'ACTIVO'
      RETURNING id_beneficiario`,
-    [datos.nombres, datos.apellidos, datos.correo, datos.telefono, datos.parentesco, id, idUsuario]
+    [datos.nombres, datos.apellidos, datos.correo, datos.telefono, datos.parentesco, verificado, id, idUsuario]
   );
   if (resultado.rows.length === 0) throw new ReglaHeredero('Heredero no encontrado', 404);
 

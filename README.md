@@ -2,7 +2,7 @@
 
 Plataforma web de gestión de legado y testamento digital. Proyecto del curso **JavaScript Avanzado** (UTP, 2026-02).
 
-**Autora:** Katheryn Pardo Acosta.
+**Autoras:** Katheryn Pardo Acosta, Fiorella Stefany Cabanillas Rojas.
 
 ## Tecnologías
 
