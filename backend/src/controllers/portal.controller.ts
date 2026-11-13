@@ -8,6 +8,7 @@ import {
 } from '../services/liberacion.service';
 import { texto } from '../utils/validar';
 import { esCorreo } from '../utils/validar';
+import { obtenerIp } from '../utils/ip';
 
 export async function pedirCodigoPortal(req: Request, res: Response) {
   const correo = typeof req.body.correo === 'string' ? req.body.correo.trim().toLowerCase() : '';
@@ -149,7 +150,7 @@ export async function paso3Selfie(req: Request, res: Response) {
   }
 
   try {
-    await guardarSelfie(res.locals.correoHeredero, ids.idProceso, ids.idBeneficiario, req.body.imagen);
+    await guardarSelfie(res.locals.correoHeredero, ids.idProceso, ids.idBeneficiario, req.body.imagen, req.body.consentimiento === true, obtenerIp(req));
     res.json({ mensaje: 'Foto guardada' });
   } catch (error) {
     responderError(error, res, 'guardar la foto');

@@ -46,8 +46,8 @@ export class PortalService {
         return this.http.post<{ nombre: string; dni: string }>(`${this.apiUrl}/solicitudes/${s.idProceso}/${s.idBeneficiario}/dni`, { dni });
     }
 
-    enviarSelfie(s: Solicitud, imagen: string): Observable<{ mensaje: string }> {
-        return this.http.post<{ mensaje: string }>(`${this.apiUrl}/solicitudes/${s.idProceso}/${s.idBeneficiario}/selfie`, { imagen });
+    enviarSelfie(s: Solicitud, imagen: string, consentimiento: boolean): Observable<{ mensaje: string }> {
+        return this.http.post<{ mensaje: string }>(`${this.apiUrl}/solicitudes/${s.idProceso}/${s.idBeneficiario}/selfie`, { imagen, consentimiento });
     }
 
     confirmarParticipacion(s: Solicitud): Observable<{ estadoProceso: string }> {

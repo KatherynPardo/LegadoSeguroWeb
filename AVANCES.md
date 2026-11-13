@@ -38,9 +38,18 @@ Bitácora de lo construido, en orden cronológico.
 | 03/11/2026 | **Monto opcional y sin duplicados**: el monto ya no bloquea el botón Guardar; la línea de crédito de las tarjetas pasó a ser el monto del activo (una sola casilla, opcional, con historial) y se quitó la columna duplicada. |
 | 03/11/2026 | **Doble clic protegido**: el botón Guardar se desactiva mientras se envía, el backend atiende en fila los pedidos de un mismo usuario, el código de verificación solo se puede usar una vez y la base exige un DNI único por propietario (migración 018). |
 | 03/11/2026 | **Alerta previa y monitoreo a pedido**: antes de abrir un proceso se envía una alerta al propietario con un plazo de gracia configurable (si entra, no pasa nada); el administrador puede ejecutar el monitoreo al instante, ver las alertas y adelantar un plazo para probar. Incluye un propietario y un heredero de demostración. |
+| 06/11/2026 | **Capturas del portal y documentación enlazada**: se toman las capturas del portal del heredero y se actualiza el manual en Word. |
+| 12/11/2026 | **Designación reservada del heredero**: la verificación del correo con código es opcional; sin código, el heredero queda **pendiente de validar** (etiqueta roja en Herederos, recordatorio fijo en el Dashboard y tarjeta en Reportes). El heredero pendiente puede entrar al portal con el código de su correo, pero no ve el nombre del propietario hasta validar su DNI en un proceso. El aviso por correo al pendiente es mínimo. Sin migración nueva: se usa `beneficiario.correo_verificado`. Protocolo de casos especiales y niveles de validación documentados. |
+| 12/11/2026 | **Manual de construcción reescrito como tutorial replicable**, con el formato obligatorio del esquema del curso (tabla de 10 filas por procedimiento, Times New Roman, estilo APA). Secciones 1 a 17: presentación y análisis, diseño (diagramas ER por módulo y diccionario de las 33 tablas), entorno, creación del proyecto, Git, Supabase, 16 módulos con código real y `ng generate`, integraciones, dashboard y reportes, pruebas, errores, despliegue (pendiente), puesta en marcha, manual de usuario, instalación y checklist. |
+| 13/11/2026 | **Manual v6 con todas las evidencias**: capturas propias integradas (cuentas, Supabase, `.env`, correo, estructura del backend), captura de tablet para las pruebas responsive, referencias con año y archivos de `docs/capturas` renombrados. |
+| 13/11/2026 | **Consentimiento para la selfie del heredero (Ley 29733), IP real y clave de sesión**: el paso 3 del portal muestra un texto de consentimiento con casilla; sin marcarla no se puede tomar la foto y el backend rechaza el pedido (400). Se guarda la fecha y la IP de la aceptación (migración 022). Con la variable `TRUST_PROXY` el backend registra la IP real detrás de un proxy (despliegue). `JWT_SECRET` ya está configurado en el `.env`. Todo se reflejó de forma retroactiva en el manual (procedimientos 7.2.2, 7.14.1 a 7.14.3 y 7.15.3, pruebas P-63 a P-65, RNF-09 y diccionario). |
 
 ## Próximos pasos
 
-1. Portal del validador externo (aprobar las entregas financieras).
+1. Despliegue (frontend en Vercel y backend en un servicio aparte) y su sección 12 del manual.
 2. Cobro del plan Premium con Culqi.
-3. Despliegue.
+3. Portal del validador externo (aprobar las entregas financieras).
+4. Opción para revocar el consentimiento biométrico y borrar la selfie.
+5. Sugerir el dominio correcto cuando el correo del heredero está mal escrito.
+6. Línea de recordatorio en los correos y herramienta del administrador para corregir correos.
+7. Guardar en el repositorio los generadores del Word y de los diagramas del manual.

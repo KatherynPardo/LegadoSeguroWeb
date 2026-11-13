@@ -87,6 +87,7 @@ Tabla: Requerimientos no funcionales
 | RNF-06 | Integridad de datos | Llaves foráneas y restricciones (`CHECK`, `UNIQUE`) en la propia base |
 | RNF-07 | Diseño responsive | Bootstrap y reglas propias para pantallas pequeñas |
 | RNF-08 | Usabilidad | Interfaz basada en el diseño de Figma, con mensajes de error claros |
+| RNF-09 | Protección de datos personales (Ley N.° 29733) | La selfie del heredero solo se guarda con su consentimiento expreso, cifrada y con la fecha y la IP de la aceptación |
 
 ### 1.8 Roles de usuario
 
@@ -176,7 +177,7 @@ Las 24 tablas originales se crearon en la primera migración; las otras 9 se agr
 El diccionario describe cada campo de cada tabla: su tipo, si es llave primaria o foránea, sus restricciones y su significado. Se genera desde la base real: si cambia la base de datos, se ejecuta `npm run diccionario` en la carpeta `backend` y esta sección se reescribe.
 
 
-**Generado automáticamente desde la base de datos el 3/11/2026** · 33 tablas.
+**Generado automáticamente desde la base de datos el 13/11/2026** · 33 tablas.
 
 #### actividad_usuario
 
@@ -635,6 +636,8 @@ Persona de confianza que aprueba la liberación de activos financieros.
 | fecha_dni | TIMESTAMPTZ | — | Puede ser vacío | — |
 | selfie_cifrada | TEXT | — | Puede ser vacío | — |
 | fecha_selfie | TIMESTAMPTZ | — | Puede ser vacío | — |
+| fecha_consentimiento | TIMESTAMPTZ | — | Puede ser vacío | Fecha y hora en que el heredero aceptó el tratamiento de su selfie (Ley 29733). |
+| ip_consentimiento | VARCHAR(45) | — | Puede ser vacío | Dirección IP desde la que el heredero aceptó el tratamiento de su selfie. |
 
 #### Relaciones entre tablas
 
@@ -740,7 +743,7 @@ frontend/src/app/
 
 ## 3. Preparación del entorno de desarrollo
 
-Antes de escribir código se instalan las herramientas y se crean las cuentas que usa el proyecto. Node.js es el entorno que ejecuta JavaScript fuera del navegador y trae el administrador de paquetes npm (OpenJS Foundation, s. f.); Git guarda el historial de cambios (Git, s. f.); y Visual Studio Code es el editor de código (Microsoft, s. f.-a).
+Antes de escribir código se instalan las herramientas y se crean las cuentas que usa el proyecto. Node.js es el entorno que ejecuta JavaScript fuera del navegador y trae el administrador de paquetes npm (OpenJS Foundation, 2026); Git guarda el historial de cambios (Git, 2026); y Visual Studio Code es el editor de código (Microsoft, 2026a).
 
 ### 3.1 Herramientas de desarrollo
 
@@ -836,7 +839,7 @@ Verificación: Las tres respuestas son números de versión, sin mensajes de err
 :::
 
 :::paso 3.1.5 Instalar el CLI de Angular
-Objetivo: Disponer del comando `ng`, que crea y ejecuta proyectos Angular (Angular, s. f.).
+Objetivo: Disponer del comando `ng`, que crea y ejecuta proyectos Angular (Angular, 2026).
 Acción:
 1. Abrir una terminal.
 2. Instalar el CLI de forma global.
@@ -848,9 +851,9 @@ ng version
 ```
 Explicación: `npm install` descarga el paquete y la opción `-g` lo instala en todo el equipo, no solo en un proyecto. `ng version` muestra la versión del CLI, de Node.js y de npm.
 Evidencia:
-![Comando de instalación de Angular CLI](docs/capturas/02_instalar_clic_angular.png)
-![Resultado de la instalación de Angular CLI](docs/capturas/02_instalar_clic_angular_b.png)
-![Versión de Angular CLI con ng version](docs/capturas/02_instalar_clic_angular_version.png)
+![Comando de instalación de Angular CLI](docs/capturas/2-1-5_angular_cli_instalar.png)
+![Resultado de la instalación de Angular CLI](docs/capturas/2-1-5_angular_cli_resultado.png)
+![Versión de Angular CLI con ng version](docs/capturas/2-1-5_angular_cli_version.png)
 Resultado esperado: La instalación termina con `added 5 packages` y `ng version` muestra el logotipo de Angular CLI con su versión.
 Error frecuente: PowerShell no deja ejecutar `ng` porque la política de ejecución bloquea los scripts.
 Solución: Ejecutar una vez en PowerShell: `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned`. También se puede usar `npx ng ...` o el Símbolo del sistema.
@@ -862,7 +865,7 @@ Objetivo: Facilitar la escritura de código con ayudas del editor.
 Acción:
 1. Abrir Visual Studio Code y entrar al panel **Extensiones** (Ctrl + Shift + X).
 2. Buscar cada extensión y pulsar **Instalar**.
-Explicación: Las extensiones agregan funciones al editor. Extensión utilizada: **Angular Language Service** (`angular.ng-template`), la que recomienda el propio `ng new` en `.vscode/extensions.json`; da autocompletado y errores dentro de las plantillas HTML de Angular. ==COMPLETAR con las demás extensiones que usó el grupo==.
+Explicación: Las extensiones agregan funciones al editor. Extensión utilizada: **Angular Language Service** (`angular.ng-template`), la que recomienda el propio `ng new` en `.vscode/extensions.json`; da autocompletado y errores dentro de las plantillas HTML de Angular. También están instaladas **Auto Rename Tag** (al cambiar una etiqueta HTML de apertura, renombra la de cierre) y **Bootstrap 5 Quick Snippets** (atajos para escribir clases de Bootstrap). Ninguna es obligatoria para ejecutar el proyecto.
 Evidencia:
 ![Extensiones instaladas en Visual Studio Code](docs/capturas/2-1-6_extensiones.png)
 Resultado esperado: Las extensiones aparecen en la lista **Instaladas**.
@@ -876,7 +879,7 @@ Objetivo: Tener un lugar en la nube donde guardar el código y trabajar en equip
 Acción:
 1. Entrar a la página de registro de GitHub y completar correo, contraseña y nombre de usuario.
 2. Confirmar el correo con el código que llega a la bandeja.
-Explicación: GitHub aloja los repositorios de Git (GitHub, s. f.). El mismo usuario sirve después para entrar a Supabase y a Vercel.
+Explicación: GitHub aloja los repositorios de Git (GitHub, 2026). El mismo usuario sirve después para entrar a Supabase y a Vercel.
 Evidencia:
 ![Perfil de la cuenta de GitHub](docs/capturas/2-2-1_github_cuenta.png)
 Resultado esperado: El perfil de GitHub abre con el nombre de usuario elegido.
@@ -888,7 +891,7 @@ Objetivo: Disponer de la base de datos PostgreSQL en la nube.
 Acción:
 1. Entrar a la página de Supabase y pulsar **Start your project**.
 2. Elegir **Continue with GitHub** y autorizar el acceso.
-Explicación: Supabase ofrece una base de datos PostgreSQL gratuita y un panel web para administrarla (Supabase, s. f.). Entrar con GitHub evita crear otra contraseña.
+Explicación: Supabase ofrece una base de datos PostgreSQL gratuita y un panel web para administrarla (Supabase, 2026). Entrar con GitHub evita crear otra contraseña.
 Evidencia:
 ![Panel principal de Supabase](docs/capturas/2-2-2_supabase_cuenta.png)
 Resultado esperado: Se abre el panel de Supabase con la lista de proyectos (vacía al inicio).
@@ -900,7 +903,7 @@ Objetivo: Preparar la cuenta donde se publicará el frontend.
 Acción:
 1. Entrar a la página de Vercel y pulsar **Sign Up**.
 2. Elegir **Continue with GitHub**.
-Explicación: Vercel publica aplicaciones web a partir de un repositorio de GitHub (Vercel, s. f.). La cuenta se crea ahora; el despliegue queda como mejora pendiente del proyecto.
+Explicación: Vercel publica aplicaciones web a partir de un repositorio de GitHub (Vercel, 2026). La cuenta se crea ahora; el despliegue queda como mejora pendiente del proyecto.
 Evidencia:
 ![Panel principal de Vercel](docs/capturas/2-2-3_vercel_cuenta.png)
 Resultado esperado: Se abre el panel de Vercel.
@@ -928,7 +931,8 @@ Acción:
 3. Copiar la clave de 16 caracteres.
 Explicación: Gmail no acepta la contraseña normal desde un programa; exige una contraseña de aplicación, que se puede revocar sin cambiar la contraseña de la cuenta. Sin esta configuración, el sistema muestra los correos en la consola del backend y funciona igual para pruebas.
 Evidencia:
-![Contraseña de aplicación de Google (valor oculto)](docs/capturas/2-2-5_gmail_clave_app.png)
+![Verificación en dos pasos activa en la cuenta de Google](docs/capturas/2-2-5_gmail_clave_app_dos_pasos.png)
+![Contraseñas de aplicación de Google (valor oculto)](docs/capturas/2-2-5_gmail_clave_app.png)
 Resultado esperado: Google muestra la clave de 16 caracteres una sola vez.
 Error frecuente: Hotmail y Outlook suelen bloquear el acceso SMTP con contraseña.
 Solución: Usar Gmail, que es más fiable para este fin.
@@ -954,7 +958,7 @@ git init
 ```
 Explicación: `mkdir` crea la carpeta, `cd` entra en ella y `git init` crea el repositorio local (la carpeta oculta `.git`). La ruta de tu equipo puede ser otra; si tiene espacios, escríbela entre comillas.
 Evidencia:
-![Creación de la carpeta del proyecto e inicio de Git](docs/capturas/crear_carpeta_proyecto.png)
+![Creación de la carpeta del proyecto e inicio de Git](docs/capturas/3-1-1_carpeta_proyecto.png)
 Resultado esperado: Git responde `Initialized empty Git repository`.
 Error frecuente: `cd` falla porque la ruta tiene espacios.
 Solución: Escribir la ruta entre comillas, por ejemplo `cd "E:\UTP\CICLO 06\LegadoSeguroWeb"`.
@@ -1019,14 +1023,14 @@ npm install express cors pg dotenv bcryptjs jsonwebtoken nodemailer
 npm install -D typescript tsx @types/node @types/express @types/cors @types/pg @types/jsonwebtoken @types/nodemailer
 ```
 Explicación: El primer comando instala las librerías que el servidor necesita para funcionar y el segundo, con `-D`, las que solo se usan al programar.
-- `express`: servidor web y rutas (Express, s. f.).
+- `express`: servidor web y rutas (Express, 2026).
 - `cors`: permite que Angular (puerto 4200) llame a la API (puerto 5000).
 - `pg`: conexión a PostgreSQL.
 - `dotenv`: lee el archivo `.env`.
 - `bcryptjs`: cifra las contraseñas.
 - `jsonwebtoken`: crea y valida las sesiones (JWT).
 - `nodemailer`: envía correos.
-- `typescript` y `tsx`: lenguaje TypeScript y ejecutor con recarga automática (Microsoft, s. f.-b).
+- `typescript` y `tsx`: lenguaje TypeScript y ejecutor con recarga automática (Microsoft, 2026b).
 - `@types/...`: descripciones de tipos para que TypeScript entienda cada librería.
 Evidencia:
 resultado: Resultado de los dos comandos npm install del backend (carpeta limpia de verificación)
@@ -1112,6 +1116,7 @@ backend/src/
 ```
 Explicación: Cada pedido sigue el camino **ruta → controlador → servicio → base de datos**. La ruta recibe la URL, el controlador valida y responde, y el servicio contiene el SQL. Las consultas usan parámetros (`$1`, `$2`) en lugar de pegar los valores en el texto, para evitar la inyección SQL. Las carpetas se van llenando módulo por módulo; al inicio solo se crean las que se usan.
 Evidencia:
+![Estructura de carpetas del backend en el explorador de VS Code](docs/capturas/4-2-4_estructura_backend.png)
 resultado: Subcarpetas de backend/src (carpeta real del proyecto)
 ```resultado
 > ls -d backend/src/*/
@@ -1362,7 +1367,7 @@ Comando:
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 ```
-Explicación: El primer enlace descarga la fuente Inter de Google Fonts y el segundo carga Bootstrap 5.3.3, una biblioteca de estilos (Bootstrap, s. f.) que da botones, formularios y una cuadrícula adaptable a celulares.
+Explicación: El primer enlace descarga la fuente Inter de Google Fonts y el segundo carga Bootstrap 5.3.3, una biblioteca de estilos (Bootstrap, 2026) que da botones, formularios y una cuadrícula adaptable a celulares.
 Evidencia:
 resultado: Líneas de index.html con la fuente Inter y Bootstrap (grep)
 ```resultado
@@ -1449,7 +1454,7 @@ Verificación: Las cinco carpetas existen dentro de `frontend/src/app`.
 
 ## 5. Git y GitHub
 
-Git guarda el historial del proyecto en el equipo y GitHub lo respalda en la nube (GitHub, s. f.). En esta sección se prepara el repositorio, se hace el primer commit y se sube a GitHub. A partir de aquí, cada módulo del manual termina con un commit.
+Git guarda el historial del proyecto en el equipo y GitHub lo respalda en la nube (GitHub, 2026). En esta sección se prepara el repositorio, se hace el primer commit y se sube a GitHub. A partir de aquí, cada módulo del manual termina con un commit.
 
 :::paso 5.1 Excluir archivos que no deben subirse
 Objetivo: Evitar que secretos y archivos pesados lleguen a GitHub.
@@ -1566,7 +1571,7 @@ Verificación: En GitHub, la pestaña **Commits** lista los mismos mensajes.
 
 ## 6. Base de datos en Supabase
 
-La base de datos se crea en Supabase a partir del modelo entidad-relación y de los scripts SQL de la carpeta `supabase/migrations`. Cada script se ejecuta una sola vez y en orden; en este manual cada migración se ejecuta en el módulo que la necesita (Supabase, s. f.).
+La base de datos se crea en Supabase a partir del modelo entidad-relación y de los scripts SQL de la carpeta `supabase/migrations`. Cada script se ejecuta una sola vez y en orden; en este manual cada migración se ejecuta en el módulo que la necesita (Supabase, 2026).
 
 :::paso 6.1 Crear el proyecto en Supabase
 Objetivo: Obtener una base de datos PostgreSQL vacía en la nube.
@@ -1588,7 +1593,7 @@ Objetivo: Tener claro qué tablas y relaciones se van a crear antes de escribir 
 Acción: Revisar el diagrama del modelo entidad-relación.
 Explicación: El modelo muestra cada tabla con sus llaves primarias (PK), foráneas (FK), relaciones y cardinalidades. Las 24 tablas originales se crean de una vez; las 9 restantes se agregan en los módulos siguientes, hasta completar 33. Las tablas principales son `usuario`, `activo_digital`, `beneficiario`, `regla_liberacion` y `proceso_liberacion`.
 Evidencia:
-![Modelo entidad-relación (33 tablas)](docs/capturas/02-modelo-er.png)
+![Modelo entidad-relación de activos y herederos (los demás diagramas están en la sección 2.1)](docs/capturas/2-1_er_activos.png)
 Resultado esperado: El diagrama coincide con las tablas que se crean en la base.
 Verificación: Al terminar la sección 6.3, las tablas del Table Editor coinciden con el modelo.
 :::
@@ -1879,7 +1884,7 @@ Verificación: La consulta anterior devuelve una fila.
 :::paso 7.2.2 Validar la contraseña y proteger las rutas en el backend
 Objetivo: Iniciar sesión comparando la contraseña con el hash y entregar un token JWT; exigir ese token en las rutas protegidas.
 Acción:
-1. Agregar `JWT_SECRET` al `.env` (una cadena larga y secreta) y exportarlo desde `config/env.ts`.
+1. Agregar `JWT_SECRET` al `.env`: una cadena larga y secreta, generada al azar con `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`, y exportarlo desde `config/env.ts`. Sin esta variable el backend usa una clave de desarrollo y lo avisa en la consola: nunca se debe desplegar así.
 2. Crear `iniciarSesion` en `services/auth.service.ts`.
 3. Crear el middleware `verificarToken`.
 4. Registrar `POST /api/auth/login` y aplicar `verificarToken` a las rutas protegidas.
@@ -2887,12 +2892,16 @@ Verificación: Marcar un documento en el portal actualiza el avance que ve el pr
 
 ### 7.14 Módulo: Solicitud de liberación del heredero
 
-**Objetivo del módulo:** que el heredero verifique su identidad en tres pasos, confirme su participación o presente una objeción. **Requerimiento que atiende:** RF-06. **Archivos modificados:** `services/liberacion.service.ts`, `controllers/portal.controller.ts` y `routes/portal.routes.ts` en el backend; `components/solicitud` y `pages/portal` en el frontend.
+**Objetivo del módulo:** que el heredero verifique su identidad en tres pasos, confirme su participación o presente una objeción. **Requerimiento que atiende:** RF-06. **Archivos modificados:** `services/liberacion.service.ts`, `controllers/portal.controller.ts` y `routes/portal.routes.ts` en el backend; `components/solicitud` y `pages/portal` en el frontend; y la migración `supabase/migrations/022_consentimiento_biometrico.sql`.
 
 :::paso 7.14.1 Registrar las verificaciones del heredero
 Objetivo: Guardar el DNI validado y la selfie cifrada de cada heredero en cada proceso.
-Acción: Ejecutar `015_confirmacion_heredero.sql` si aún no se hizo (módulo 7.5).
-Explicación: La tabla `verificacion_beneficiario` guarda, por proceso y heredero, si el DNI fue validado y la selfie (cifrada). La selfie se guarda como evidencia; no se compara automáticamente con el DNI.
+Acción: Ejecutar `015_confirmacion_heredero.sql` si aún no se hizo (módulo 7.5) y `022_consentimiento_biometrico.sql`.
+Comando:
+```
+022_consentimiento_biometrico.sql   -- agrega fecha_consentimiento e ip_consentimiento
+```
+Explicación: La tabla `verificacion_beneficiario` guarda, por proceso y heredero, si el DNI fue validado y la selfie (cifrada). La selfie se guarda como evidencia; no se compara automáticamente con el DNI. Desde la migración 022 también guarda cuándo y desde qué IP el heredero aceptó el tratamiento de su selfie (Ley N.° 29733; se usa en el procedimiento 7.14.3).
 Evidencia:
 resultado: Columnas de la tabla verificacion_beneficiario (consulta a la base)
 ```resultado
@@ -2903,9 +2912,11 @@ resultado: Columnas de la tabla verificacion_beneficiario (consulta a la base)
  fecha_dni        timestamp with time zone
  selfie_cifrada   text
  fecha_selfie     timestamp with time zone
+ fecha_consentimiento  timestamp with time zone
+ ip_consentimiento     character varying
 ```
-Resultado esperado: La tabla existe con esas seis columnas.
-Verificación: La consulta devuelve las seis filas.
+Resultado esperado: La tabla existe con esas ocho columnas.
+Verificación: La consulta devuelve las ocho filas.
 :::
 
 :::paso 7.14.2 Validar el DNI, tomar la selfie y confirmar
@@ -2920,13 +2931,14 @@ ng generate component components/solicitud --skip-tests
 // Paso 2: el DNI escrito se compara con el que registró el propietario
 if (h.dni !== dni) throw new ReglaLiberacion('El DNI no coincide con el registrado', 400);
 
-// Paso 3: la selfie se guarda cifrada como evidencia
-await pool.query('UPDATE verificacion_beneficiario SET selfie_cifrada = $3, fecha_selfie = NOW() WHERE ...', [..., cifrar(imagen)]);
+// Paso 3: sin consentimiento expreso no se guarda la selfie (procedimiento 7.14.3); si lo hay, se guarda cifrada
+if (!consentimiento) throw new ReglaLiberacion('Debes aceptar el tratamiento de tu foto para continuar', 400);
+await pool.query('UPDATE verificacion_beneficiario SET selfie_cifrada = $3, fecha_selfie = NOW(), fecha_consentimiento = NOW(), ip_consentimiento = $4 WHERE ...', [..., cifrar(imagen), ip]);
 
 // Confirmar exige haber pasado las tres verificaciones
 if (!v.rows[0]?.dni_validado || !v.rows[0]?.selfie) throw new ReglaLiberacion('Completa las tres verificaciones primero', 409);
 ```
-Explicación: El paso 1 (código de acceso) ya se cumplió al entrar. El paso 2 compara el DNI escrito con el registrado por el propietario; al validarlo, el heredero queda **validado** (`correo_verificado = true`). El paso 3 guarda una foto cifrada. Al confirmar, el sistema reevalúa el proceso: cuando confirman las personas que pide la regla, empieza la espera final. Una objeción deja sin efecto la confirmación del heredero y obliga al propietario a resolverla.
+Explicación: El paso 1 (código de acceso) ya se cumplió al entrar. El paso 2 compara el DNI escrito con el registrado por el propietario; al validarlo, el heredero queda **validado** (`correo_verificado = true`). El paso 3 guarda una foto cifrada, solo si el heredero marcó antes el consentimiento (procedimiento 7.14.3). Al confirmar, el sistema reevalúa el proceso: cuando confirman las personas que pide la regla, empieza la espera final. Una objeción deja sin efecto la confirmación del heredero y obliga al propietario a resolverla.
 Evidencia:
 resultado: Piezas creadas con Angular CLI en el procedimiento 7.14.2 (carpeta limpia de verificación)
 ```resultado
@@ -2943,7 +2955,84 @@ Solución: El backend responde 409 "Completa las tres verificaciones primero". C
 Verificación: Con el heredero de prueba (`heredero.demo@example.com`, DNI `12345670`) se puede recorrer el flujo completo.
 :::
 
-:::paso 7.14.3 Liberar el legado al terminar la espera
+:::paso 7.14.3 Pedir el consentimiento antes de guardar la selfie
+Objetivo: Cumplir la Ley N.° 29733 (Protección de Datos Personales): la imagen del rostro es un dato personal sensible, así que solo se guarda si el heredero lo autoriza de forma expresa, y queda constancia de la fecha y la IP de su aceptación.
+Acción:
+1. Ejecutar `022_consentimiento_biometrico.sql` (ya indicado en el procedimiento 7.14.1), que agrega a `verificacion_beneficiario` las columnas `fecha_consentimiento` e `ip_consentimiento`.
+2. En `guardarSelfie`, recibir el consentimiento y la IP, y rechazar el pedido si no hay consentimiento.
+3. En el controlador, leer `req.body.consentimiento === true` y obtener la IP con `obtenerIp(req)`.
+4. En el frontend, mostrar el texto del consentimiento con una casilla, apagar el botón **Tomar selfie** hasta que se marque y enviar el valor junto con la foto.
+Comando:
+```
+-- supabase/migrations/022_consentimiento_biometrico.sql
+ALTER TABLE verificacion_beneficiario
+  ADD COLUMN IF NOT EXISTS fecha_consentimiento TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS ip_consentimiento VARCHAR(45);
+
+// backend/src/services/liberacion.service.ts (fragmento)
+export async function guardarSelfie(correo, idProceso, idBeneficiario, imagen, consentimiento: boolean, ip: string | null) {
+  ...
+  if (!consentimiento) throw new ReglaLiberacion('Debes aceptar el tratamiento de tu foto para continuar', 400);
+  ...
+  await pool.query(
+    `UPDATE verificacion_beneficiario
+     SET selfie_cifrada = $3, fecha_selfie = NOW(), fecha_consentimiento = NOW(), ip_consentimiento = $4
+     WHERE id_proceso = $1 AND id_beneficiario = $2`,
+    [idProceso, idBeneficiario, cifrar(imagen), ip]
+  );
+}
+
+// backend/src/controllers/portal.controller.ts (fragmento)
+await guardarSelfie(res.locals.correoHeredero, ids.idProceso, ids.idBeneficiario, req.body.imagen,
+                    req.body.consentimiento === true, obtenerIp(req));
+
+<!-- frontend/src/app/components/solicitud/solicitud.html (fragmento) -->
+<label class="consentimiento">
+  <input type="checkbox" [checked]="acepta()" (change)="cambiarConsentimiento($event)" />
+  <span>
+    <strong>Consentimiento para el tratamiento de tu imagen</strong>
+    Autorizo el uso de mi foto, que es un dato personal sensible, únicamente para verificar mi identidad ...
+  </span>
+</label>
+<label class="btn-primario" [class.apagado]="cargando() || !acepta()">
+  Tomar selfie
+  <input type="file" accept="image/*" capture="user" hidden [disabled]="cargando() || !acepta()" (change)="elegirFoto($event)" />
+</label>
+
+// frontend/src/app/components/solicitud/solicitud.ts (fragmento)
+acepta = signal(false); // consentimiento expreso para guardar la selfie (Ley 29733)
+
+cambiarConsentimiento(evento: Event): void {
+  this.acepta.set((evento.target as HTMLInputElement).checked);
+}
+// ... y al enviar: this.portal.enviarSelfie(this.solicitud(), imagen, this.acepta())
+```
+Explicación: La selfie del heredero es un dato biométrico, por lo que no basta con pedirla: el heredero debe aceptar de forma expresa y antes de tomarla. El texto aclara para qué se usa (solo verificar su identidad en ese proceso), que se guarda cifrada y que no se comparte. El botón **Tomar selfie** permanece apagado mientras la casilla esté vacía, pero esa regla de la pantalla no basta: el backend vuelve a exigir el consentimiento y responde 400 si falta, de modo que no se puede guardar una foto saltándose la pantalla. Cuando se guarda la foto también se guardan la fecha y la IP de la aceptación, como constancia.
+Evidencia:
+![Paso 3 con el consentimiento visible y el botón Tomar selfie apagado](docs/capturas/7-14_consentimiento_biometrico.png)
+resultado: Respuestas reales del backend al enviar la selfie sin consentimiento y con consentimiento (heredero de prueba, DNI ya validado)
+```resultado
+> POST /api/portal/solicitudes/:idProceso/:idBeneficiario/selfie  (sin el campo consentimiento)
+400 {"mensaje":"Debes aceptar el tratamiento de tu foto para continuar"}
+
+> POST /api/portal/solicitudes/:idProceso/:idBeneficiario/selfie  (consentimiento: false)
+400 {"mensaje":"Debes aceptar el tratamiento de tu foto para continuar"}
+
+> POST /api/portal/solicitudes/:idProceso/:idBeneficiario/selfie  (consentimiento: true)
+200 {"mensaje":"Foto guardada"}
+```
+resultado: Constancia guardada en la base tras aceptar (consulta a la base)
+```resultado
+> SELECT LEFT(selfie_cifrada, 4) AS selfie, fecha_consentimiento IS NOT NULL AS tiene_fecha, ip_consentimiento FROM verificacion_beneficiario WHERE id_beneficiario = (SELECT id_beneficiario FROM beneficiario WHERE correo = 'heredero.demo@example.com');
+ enc: | true | ::1
+```
+Resultado esperado: Sin consentimiento no se guarda ninguna foto; con consentimiento, la foto queda cifrada (`enc:`) junto con la fecha y la IP de la aceptación.
+Error frecuente: El botón **Tomar selfie** aparece apagado y no deja elegir la foto.
+Solución: Marcar primero la casilla del consentimiento; el botón se activa al marcarla.
+Verificación: Con la casilla vacía el backend responde 400 aunque se envíe la foto directamente; con la casilla marcada responde 200 y la consulta anterior devuelve `enc:`, `true` y la IP.
+:::
+
+:::paso 7.14.4 Liberar el legado al terminar la espera
 Objetivo: Entregar los activos a los herederos que confirmaron cuando termina la espera final.
 Acción: Crear `liberarProcesosListos` (se ejecuta dentro del monitoreo, módulo 7.5) y `liberar`, que crea las entregas.
 Explicación: Cuando el período de espera termina y no hay objeciones abiertas, el proceso pasa a `LIBERADO` y se crea una entrega por cada activo y heredero que confirmó. Los activos financieros quedan en `PENDIENTE_VALIDADOR` si la regla exige un validador externo (pendiente de construir); el resto pasa a `AUTORIZADA`. Todo ocurre en una transacción y después se avisa por correo a cada heredero.
@@ -2966,7 +3055,7 @@ Verificación: Un proceso en espera con el plazo vencido pasa a `LIBERADO` en la
 
 ### 7.15 Módulo: Protección contra doble clic y abuso
 
-**Objetivo del módulo:** evitar registros duplicados por doble clic y limitar el abuso de las rutas públicas. **Requerimiento que atiende:** RNF-01. **Archivos creados:** `utils/bloqueo.ts` y `middlewares/limite.middleware.ts`.
+**Objetivo del módulo:** evitar registros duplicados por doble clic, limitar el abuso de las rutas públicas y registrar la IP real del usuario. **Requerimiento que atiende:** RNF-01 y RNF-05. **Archivos creados o modificados:** `utils/bloqueo.ts`, `middlewares/limite.middleware.ts`, `config/env.ts` y `app.ts`.
 
 :::paso 7.15.1 Atender en fila los pedidos de cada usuario
 Objetivo: Que dos pedidos del mismo usuario no se ejecuten a la vez.
@@ -3023,6 +3112,39 @@ HTTP/1.1 429 Too Many Requests
 ```
 Resultado esperado: Después de los 5 pedidos permitidos en un minuto, el backend responde 429.
 Verificación: Después de un minuto, la IP vuelve a poder consultar.
+:::
+
+:::paso 7.15.3 Registrar la IP real detrás de un proxy
+Objetivo: Que la auditoría y el límite de consultas usen la IP real del usuario cuando el backend se despliega en la nube.
+Acción:
+1. Leer `TRUST_PROXY` en `config/env.ts` (por defecto 0).
+2. En `app.ts`, activar `trust proxy` solo si `TRUST_PROXY` es mayor que 0.
+3. Agregar `TRUST_PROXY=0` a `.env.example`; al desplegar en un servicio con un proxy delante (Render, Railway, Vercel), ponerlo en `1`.
+Comando:
+```
+// backend/src/config/env.ts (fragmento)
+export const TRUST_PROXY = Number(process.env.TRUST_PROXY) || 0;
+
+// backend/src/app.ts (fragmento)
+if (TRUST_PROXY > 0) app.set('trust proxy', TRUST_PROXY);
+
+# backend/.env.example (fragmento)
+TRUST_PROXY=0
+```
+Explicación: En la nube, las peticiones llegan al backend a través de un proxy, y sin esta configuración `req.ip` sería siempre la IP del proxy: toda la auditoría mostraría la misma IP y el límite por minuto contaría a todos los usuarios como uno solo. Con `trust proxy`, Express lee la IP real del encabezado `X-Forwarded-For`. Por eso se activa solo con la variable `TRUST_PROXY` y no de forma fija: en tu computadora no hay proxy, y si se confiara siempre en ese encabezado, cualquiera podría falsearlo para saltarse el límite por IP.
+Evidencia:
+resultado: Mismo pedido con el encabezado X-Forwarded-For: 203.0.113.7, con y sin TRUST_PROXY (IP guardada en ip_consentimiento)
+```resultado
+TRUST_PROXY=0 (por defecto): el encabezado se ignora
+ip_consentimiento = ::1
+
+TRUST_PROXY=1: el backend confía en el proxy
+ip_consentimiento = 203.0.113.7
+```
+Resultado esperado: En local se guarda la IP de la conexión; detrás de un proxy y con `TRUST_PROXY=1`, la IP del encabezado.
+Error frecuente: En producción todos los registros de auditoría muestran la misma IP.
+Solución: Agregar `TRUST_PROXY=1` en las variables de entorno del servicio donde corre el backend.
+Verificación: Enviar un pedido con `X-Forwarded-For: 203.0.113.7` y comprobar que la IP guardada es esa solo cuando `TRUST_PROXY=1`.
 :::
 
 ### 7.16 Módulo: Designación reservada y validación del heredero
@@ -3217,16 +3339,384 @@ Tabla: Reportes del propietario
 | Procesos por estado | Conteo por estado | `proceso_liberacion` | Seguimiento de procesos |
 
 
+## 10. Pruebas del sistema
+
+Las pruebas del backend se hicieron contra la base real (con datos temporales que se borraron después) usando `curl` en un puerto alterno. Cada caso se identifica con un código (P-01, P-02…) que también aparece en la documentación del sistema.
+
+### 10.1 Pruebas funcionales
+
+Tabla: Pruebas funcionales del backend
+| Caso | Entrada | Esperado | Obtenido | Estado |
+|---|---|---|---|---|
+| P-01 | Login con credenciales correctas | 200 con token y rol | 200 con token y rol | Aprobado |
+| P-02 | Login con contraseña incorrecta | 401 con mensaje genérico | 401 | Aprobado |
+| P-03 | Login antes de confirmar el correo | 401 | 401 | Aprobado |
+| P-04 | Registro con DNI de 3 dígitos | 400 | 400 "El DNI debe tener 8 dígitos" | Aprobado |
+| P-05 | Registro con correo ya existente | 409 | 409 | Aprobado |
+| P-06 | Registro válido | 201 y código por consola | 201 y código | Aprobado |
+| P-07 | Confirmar con código incorrecto | 400 | 400 | Aprobado |
+| P-08 | Confirmar con el código correcto y reusarlo | 200; el segundo uso, 400 | 200 y 400 | Aprobado |
+| P-09 | Recuperar con correo inexistente | Misma respuesta y sin código | 200 y 0 códigos enviados | Aprobado |
+| P-10 | Restablecer con código; probar clave vieja y nueva | Vieja 401, nueva 200 | 401 y 200 | Aprobado |
+| P-11 | Crear activo sin descripción | 400 | 400 | Aprobado |
+| P-12 | Cuenta bancaria sin banco | 400 | 400 "Elige el banco" | Aprobado |
+| P-13 | Monto negativo / sin moneda | 400 | 400 | Aprobado |
+| P-14 | Crear activo con S/ 2000 y editar a US$ 2500 | Historial con 2 filas | 2 filas | Aprobado |
+| P-15 | Editar sin cambiar el monto | No agrega fila | No agregó | Aprobado |
+| P-16 | Desmarcar "registrar monto" | Monto e historial borrados | Historial vacío | Aprobado |
+| P-17 | Heredero con teléfono de 3 dígitos | 400 | 400 | Aprobado |
+| P-18 | Heredero con código falso | 400 | 400 | Aprobado |
+| P-18b | Heredero sin código (designación reservada) | 201, queda pendiente de validar | 201, `verificado = false` | Aprobado |
+| P-19 | Heredero con código correcto | 201 | 201 | Aprobado |
+| P-20 | Mismo DNI dos veces | 409 | 409 | Aprobado |
+| P-20b | Tres pedidos idénticos a la vez (doble clic en Guardar) | Solo 1 heredero | [201, 409, 409] y 1 en la base | Aprobado |
+| P-21 | Heredero por encima del límite del plan | 403 `LIMITE_PLAN` | 403 | Aprobado |
+| P-22 | Días de inactividad 5, 5000 y 15.5 | 400 | 400 | Aprobado |
+| P-23 | Días de inactividad 15 y 25 | 200 | 200 | Aprobado |
+| P-24 | La base rechaza 3 días aunque se salte el backend | Error de restricción | `ck_regla_dias_inactividad` | Aprobado |
+| P-25 | Listar procesos | El proceso de prueba | Lo devolvió | Aprobado |
+| P-26 | Proceso inexistente / id inválido | 404 / 400 | 404 / 400 | Aprobado |
+| P-27 | Cancelar un proceso abierto | `CANCELADO` y auditoría | Verificado en una transacción revertida | Aprobado |
+| P-28 | Heredero verificado pide código y entra | Token de heredero | Token | Aprobado |
+| P-29 | Correo que no es heredero pide código | Misma respuesta y sin código | 200 y 0 códigos | Aprobado |
+| P-30 | Heredero marca y desmarca un documento | Cambia de estado | Cambió | Aprobado |
+| P-31 | Heredero marca un documento ajeno | 404 | 404 | Aprobado |
+| P-32 | Propietario agrega y quita carta poder | Los obligatorios no se quitan | Quedaron 2 | Aprobado |
+| P-33 | Ver suscripción | Plan y límite | Devolvió el plan y el límite | Aprobado |
+| P-34 | Pagar el Premium | 409 (Culqi pendiente) | 409 | Aprobado |
+| P-35 | Admin lista usuarios y auditoría | 200 | 200 | Aprobado |
+| P-36 | Admin desactiva y activa un usuario | 200 y auditoría con IP | Verificado | Aprobado |
+| P-37 | Mi historial | Acciones e ingresos | Devolvió registros | Aprobado |
+| P-38 | El monitoreo detecta inactividad y abre el proceso | Proceso EN_CONFIRMACION y 3 avisos (dueño y 2 herederos) | Los 3 avisos guardados | Aprobado |
+| P-39 | Heredero confirma o manda la selfie sin cumplir los pasos | 409 | 409 | Aprobado |
+| P-40 | DNI que no coincide / DNI correcto | 400 / 200 con DNI enmascarado | 400 / 200 (`****1111`) | Aprobado |
+| P-41 | Selfie que no es JPEG / selfie correcta | 400 / 200 y cifrada en la base | 400 / 200 y `enc:...` | Aprobado |
+| P-42 | Un heredero actúa por otro / el propietario usa el portal | 404 / 401 | 404 / 401 | Aprobado |
+| P-43 | Heredero objeta; se intenta liberar con objeción abierta | No se libera | 0 liberados | Aprobado |
+| P-44 | El propietario resuelve la objeción y confirman los dos herederos | EN_ESPERA | EN_ESPERA | Aprobado |
+| P-45 | Termina la espera | LIBERADO y 4 entregas (2 activos × 2 herederos) | LIBERADO y 4 entregas | Aprobado |
+| P-46 | Validador exigido por la regla | Activo financiero PENDIENTE_VALIDADOR; el otro AUTORIZADA | Correcto | Aprobado |
+| P-47 | El heredero ve su entrega | Descripción descifrada solo en las autorizadas | Correcto | Aprobado |
+| P-48 | Confirmar un proceso terminado | 409 | 409 | Aprobado |
+| P-49 | Tarjeta de crédito sin datos / con últimos 4 inválidos / sin fechas / día de pago 40 | 400 | 400 con mensaje claro | Aprobado |
+| P-49b | Tarjeta de crédito sin monto ni línea | 201 (el monto es opcional) | 201 | Aprobado |
+| P-50 | Tarjeta de crédito completa y de débito con 4 dígitos | 201 | 201 | Aprobado |
+| P-51 | Una red social con datos de tarjeta | 400 | 400 | Aprobado |
+| P-52 | La base no guarda número completo, CVV ni clave | Sin columnas para ellos | Verificado en `detalle_tarjeta` | Aprobado |
+| P-53 | Indicaciones y línea de crédito en la base | Valores `enc:...` | `enc:...` | Aprobado |
+| P-54 | Heredero con tarjetas vs. heredero con un correo | 5 documentos vs. 2 | 5 y 2 | Aprobado |
+| P-55 | Reasignar activos al editar un heredero | Cambian sus documentos | De 2 a 5 | Aprobado |
+| P-56 | El administrador crea un requisito para tarjetas de crédito | Solo les aparece a quienes las reciben | Correcto | Aprobado |
+| P-58 | Un propietario intenta ejecutar el monitoreo | 403 | 403 | Aprobado |
+| P-59 | Monitoreo con un usuario inactivo | 1 alerta, sin proceso; no repite la alerta dentro del plazo | 1 alerta; 2.ª ejecución sin cambios | Aprobado |
+| P-60 | El propietario entra durante el plazo | La alerta pasa a RESUELTA y no se abre proceso | RESUELTA | Aprobado |
+| P-61 | Se adelanta el plazo (administrador) y se vuelve a ejecutar | Se abre el proceso EN_CONFIRMACION y se avisa al heredero | Correcto; la alerta pasa a VENCIDA | Aprobado |
+| P-62 | Días de gracia 0 / 10 | 400 / 200 | 400 / 200 | Aprobado |
+| P-57 | Pedir 3 confirmaciones con 2 herederos o con plan Básico | 400 | 400 | Aprobado |
+| P-63 | Selfie sin consentimiento (campo ausente o `false`) | 400 y la foto no se guarda | 400 "Debes aceptar el tratamiento de tu foto para continuar"; sin foto en la base | Aprobado |
+| P-64 | Selfie con consentimiento | 200; la foto queda cifrada con fecha e IP | 200; `enc:`, fecha registrada e IP `::1` | Aprobado |
+| P-65 | Pedido con `X-Forwarded-For: 203.0.113.7` con y sin `TRUST_PROXY` | Sin la variable se ignora; con `TRUST_PROXY=1` se registra | `::1` y `203.0.113.7` | Aprobado |
+
+### 10.2 Pruebas de integración (Frontend → Backend → Supabase)
+
+Tabla: Pruebas de integración
+| Prueba | Resultado |
+|---|---|
+| Compilación del frontend (`ng build`) | Sin errores |
+| Compilación del backend (`tsc --noEmit`) | Sin errores |
+| Pantallas de login, registro, activos, herederos y reglas funcionando en el navegador contra la base real | Funcionan; ver las figuras siguientes |
+
+![Login funcionando contra la base real](docs/capturas/10-login.png)
+
+![Mis Activos con los datos de Supabase](docs/capturas/14-activos.png)
+
+![Mis Herederos con los datos de Supabase](docs/capturas/16-herederos.png)
+
+![Reglas de liberación guardadas en la base](docs/capturas/18-reglas.png)
+
+### 10.3 Pruebas de seguridad
+
+Tabla: Pruebas de seguridad
+| Prueba | Esperado | Obtenido |
+|---|---|---|
+| Ruta protegida sin sesión | 401 | 401 |
+| Usuario normal en `/api/admin` | 403 | 403 |
+| Token de heredero en pantallas del propietario | 401 | 401 |
+| Token de propietario en el portal | 401 | 401 |
+| Activo o heredero de otro usuario | 404 | 404 |
+| Contraseñas y claves | Cifradas / ocultas | bcrypt en la base; `.env` ignorado por Git |
+| Descripción y monto en la base | Ilegibles | Valores `enc:...` |
+| Abuso de rutas públicas | 429 al pasar el límite | 429 |
+| Foto del heredero sin consentimiento | 400 y no se guarda | 400; la base no guarda la foto |
+| `X-Forwarded-For` falseado sin proxy configurado | Se ignora | Se guarda la IP real de la conexión |
+
+### 10.4 Pruebas responsive
+
+El sistema tiene reglas para pantallas pequeñas: el menú pasa a la parte superior y las tarjetas se reorganizan. Se comprobó con las herramientas del navegador (F12, modo dispositivo). Faltan las vistas de tablet y de PC completa para cerrar la prueba.
+
+![Vista de PC: dashboard](docs/capturas/30-dashboard.png)
+
+![Vista de tablet (768 px): dashboard](docs/capturas/10-4_responsive_tablet.png)
+
+![Vista de celular (390 px): dashboard](docs/capturas/40-responsive.png)
+
+
+## 11. Registro de errores y soluciones
+
+Tabla: Errores encontrados y cómo se solucionaron
+| # | Error | Causa | Solución | Resultado |
+|---|---|---|---|---|
+| 1 | `ETIMEDOUT` al conectar con la base | Una VPN o la red bloqueaba el puerto 5432, o el proyecto de Supabase estaba pausado | Apagar la VPN, probar otra red (`Test-NetConnection`) o pulsar **Restore** en Supabase | El backend se conectó y respondió `/api/salud` |
+| 2 | `EADDRINUSE :::5000` | Había otro backend encendido en el mismo puerto | Cerrar la terminal vieja (`Ctrl+C`) o todas las terminales | El backend arrancó |
+| 3 | `ng` / `tsx` "no se reconoce" | No se había ejecutado `npm install` en esa carpeta (o falta el CLI de Angular) | `npm install` en la carpeta, y `npx ng serve` | Frontend y backend arrancaron |
+| 4 | La pantalla de Perfil salía vacía | Angular sin zone.js solo actualiza con signals y los datos estaban en propiedades normales | Guardar los datos en un `signal` (`cargado`) | Los datos aparecieron |
+| 5 | `TS6059` en el backend | El `tsconfig.json` incluía un archivo de otra carpeta | Dejar `"include": ["src"]` | Compiló |
+| 6 | El navegador rellenó el correo y la clave del heredero con los del login | Autocompletado de Chrome | `autocomplete="off"` y `"new-password"` en el formulario | Los campos quedaron vacíos |
+| 7 | `El token '&&' no es un separador válido` | PowerShell antiguo no entiende `&&` | Ejecutar un comando por línea | Los comandos corrieron |
+| 8 | Error 500 al marcar un documento del heredero | PostgreSQL no podía deducir el tipo del parámetro `$3` usado dos veces | Escribir `$3::varchar` en ambos usos | Respondió 200 |
+| 9 | `NG5002 Unexpected closing tag "td"` | Una etiqueta de la plantilla quedó mal cerrada al editar | Restaurar el `@else` que faltaba en la celda | Compiló |
+| 10 | La descripción cifrada no entraba en la columna | `VARCHAR(300)` es corto para el texto cifrado | Cambiar la columna a `TEXT` (migración 009) | Se guardaron descripciones cifradas |
+| 11 | Un doble clic en "Guardar" creó dos herederos idénticos y superó el límite del plan | Dos pedidos llegaron a la vez y ambos pasaron las revisiones antes de que el primero guardara | Botón desactivado mientras se guarda; los pedidos de un usuario se atienden en fila; índice único en la base (migración 018) | Tres pedidos simultáneos crean un solo heredero |
+
+
+## 12. Despliegue en Vercel
+
+> **ESTADO: PENDIENTE.** El sistema todavía **no está desplegado**: hoy funciona en `localhost`. Esta sección se completará al desplegar. Antes hay que decidir cómo se publica el backend, porque Vercel está pensado para el frontend y funciones sin estado: el backend Express (con su monitoreo cada hora) normalmente se aloja aparte (por ejemplo en Render o Railway).
+
+Pasos previstos:
+
+1. Crear o ingresar a la cuenta de Vercel.
+2. Vincular GitHub.
+3. Importar el repositorio y elegir la carpeta `frontend`.
+4. Cambiar `API_URL` (`frontend/src/app/core/api.config.ts`) para que apunte al backend publicado.
+5. Configurar las variables de entorno del backend en su servicio de alojamiento (**no** en el repositorio).
+6. Poner `TRUST_PROXY=1` en las variables de entorno del backend para que la IP registrada sea la real (el código ya lo admite; ver el procedimiento 7.15.3).
+7. Ejecutar el despliegue y corregir errores de build.
+8. Verificar la URL pública.
+
+URL pública: *(pendiente)*
+
+
+## 13. Puesta en marcha
+
+Se necesitan **dos terminales** abiertas a la vez.
+
+**Terminal 1: backend**
+
+```
+cd backend
+npm install
+npm run dev
+```
+
+**Terminal 2: frontend**
+
+```
+cd frontend
+npm install
+npx ng serve
+```
+
+**Comprobaciones**
+
+Tabla: Comprobaciones de la puesta en marcha
+| Qué se comprueba | Cómo | Estado |
+|---|---|---|
+| Conexión con la base | `http://localhost:5000/api/salud` muestra `"estado":"ok"` | Verificado |
+| Login y cierre de sesión | Ingresar con `carlos.ramirez@example.com` y cerrar sesión | Verificado |
+| Registros, consultas, modificaciones y eliminaciones | Activos y herederos (crear, editar, eliminar) | Verificado |
+| Dashboard y reportes | Muestran datos reales | Verificado (ver la sección 9) |
+| Pagos o servicios externos | Consulta de DNI y correos funcionan; **Culqi pendiente** | Parcial |
+| Acceso desde Internet | **Pendiente** (depende del despliegue, sección 12) | Pendiente |
+
+
+## 14. Manual de usuario
+
+Esta sección explica, con instrucciones sencillas y capturas, las operaciones principales del sistema.
+
+### 14.1 Cómo crear tu cuenta e iniciar sesión
+
+1. Abre el sistema y pulsa **Regístrate**.
+2. Escribe tu DNI y pulsa **Buscar**: tus nombres aparecen solos.
+3. Completa correo, teléfono y contraseña, y pulsa **Crear cuenta**.
+4. Revisa tu correo, escribe el código de 6 dígitos y pulsa **Confirmar y entrar**.
+5. La próxima vez, usa **Iniciar Sesión** con tu correo y contraseña. Si la olvidaste, pulsa **¿Olvidaste tu contraseña?**.
+
+![Pantalla de inicio de sesión](docs/capturas/10-login.png)
+
+![Registro: datos del usuario](docs/capturas/11-registro-1.png)
+
+![Registro: código recibido por correo](docs/capturas/12-registro-2.png)
+
+![Recuperar contraseña](docs/capturas/13-recuperar.png)
+
+### 14.2 Cómo registrar un activo
+
+1. Ve a **Mis Activos** y pulsa **+ Nuevo Activo**.
+2. Escribe el nombre y la descripción, y elige el tipo (si es cuenta bancaria, elige el banco).
+3. Si quieres, marca "Registrar el monto" y escribe la moneda y la cantidad.
+4. Marca a los herederos que lo recibirán y pulsa **Guardar**.
+5. Para cambiarlo después, usa los íconos de cada fila: herederos, historial de montos, editar y eliminar.
+
+![Lista de Mis Activos](docs/capturas/14-activos.png)
+
+![Formulario de un activo nuevo](docs/capturas/15-activo-formulario.png)
+
+### 14.3 Cómo designar a un heredero
+
+1. Ve a **Mis Herederos** y pulsa **+ Designar Beneficiario**.
+2. Escribe el DNI y pulsa **Buscar**; completa correo, teléfono y parentesco.
+3. Opcional: marca **Avisar ahora al heredero y verificar su correo**, pulsa **Enviar código al correo del heredero**, pídele el código de 6 dígitos y escríbelo. Si no la marcas, la designación queda reservada.
+4. Pulsa **Guardar**. Verás su tarjeta con "Identidad verificada", o con "Pendiente de validar" si lo dejaste reservado.
+5. Con **Documentos** eliges qué papeles deberá reunir.
+6. Si llegas al límite de tu plan, aparece un aviso con el botón **Ver planes**.
+
+![Mis Herederos](docs/capturas/16-herederos.png)
+
+![Aviso de límite del plan](docs/capturas/17-aviso-plan.png)
+
+### 14.4 Cómo configurar tu regla de liberación
+
+1. Ve a **Reglas de Liberación**.
+2. Escribe cuántos días sin entrar deben pasar antes de iniciar el proceso (o usa un atajo).
+3. Elige cuántos herederos deben confirmar y la espera final.
+4. Activa el validador externo si quieres protección extra para tus activos financieros.
+5. Pulsa **Guardar cambios**.
+
+![Reglas de liberación](docs/capturas/18-reglas.png)
+
+### 14.5 Cómo consultar el dashboard, los reportes y el historial
+
+- **Dashboard:** tu salud del legado, los pasos pendientes y cuánto margen tienes.
+- **Reportes:** resumen de tus activos; el ojito oculta o muestra el dinero.
+- **Historial:** ábrelo desde Reportes para ver tus acciones e ingresos.
+
+![Dashboard](docs/capturas/30-dashboard.png)
+
+![Reportes](docs/capturas/31-reportes.png)
+
+![Mi historial](docs/capturas/27-historial.png)
+
+### 14.6 Si eres heredero
+
+1. Entra a `/portal` (desde el login: **Entra a tu espacio**).
+2. Escribe el correo con el que te designaron y pide tu código.
+3. Escribe el código de 6 dígitos.
+4. Marca cada documento cuando ya lo tengas.
+
+![Ingreso al portal del heredero](docs/capturas/21-portal-ingreso.png)
+
+![Checklist del heredero](docs/capturas/22-portal-checklist.png)
+
+### 14.7 Cómo cerrar sesión
+
+Pulsa **Cerrar sesión** abajo a la izquierda, bajo tu nombre. Tu nombre abre tu **perfil**, donde puedes cambiar tus datos y tu contraseña.
+
+![Mi perfil](docs/capturas/28-perfil.png)
+
+
+## 15. Instalación del proyecto en otra computadora
+
+```
+git clone https://github.com/KatherynPardo/LegadoSeguroWeb.git
+cd LegadoSeguroWeb
+cd backend
+npm install
+copy .env.example .env
+```
+
+Abrir `backend/.env` y completar:
+
+| Variable | Qué poner |
+|---|---|
+| `DATABASE_URL` | La conexión de **su** proyecto de Supabase (o la compartida, enviada por un canal privado, nunca por GitHub) |
+| `JWT_SECRET` | Una cadena larga al azar (se genera como en el procedimiento 7.2.2); sin ella el backend usa una clave de desarrollo |
+| `TRUST_PROXY` | Opcional: `0` en local y `1` al desplegar detrás de un proxy |
+| `ENCRYPTION_KEY` | Una frase larga; **no cambiarla después** |
+| `DNI_PROVIDER` / `DNI_API_TOKEN` | Opcionales; sin token, los nombres se escriben a mano |
+| `SMTP_*` | Opcionales; sin ellos, los códigos salen en la consola del backend |
+
+Preparar la base de datos (si usa su propio proyecto): ejecutar en **SQL Editor** las migraciones `001` a `022` de `supabase/migrations/`, en orden.
+
+Encender el backend y, en otra terminal, el frontend:
+
+```
+npm run dev
+```
+
+```
+cd ..
+cd frontend
+npm install
+npx ng serve
+```
+
+**Cómo comprobar que quedó bien**
+
+1. `http://localhost:5000/api/salud` responde `"estado":"ok"`.
+2. `http://localhost:4200` muestra el login.
+3. Ingresar con `carlos.ramirez@example.com` / contraseña de prueba (ver `supabase/migrations/004_usuario_demo.sql`) lleva al dashboard.
+
+Cuentas externas necesarias: Supabase (obligatoria); apiperu.dev y una cuenta de correo (opcionales). Cómo crear cada una está en la sección 3.2.
+
+
+## 16. Cierre del proyecto
+
+**Resultados obtenidos.** Módulos terminados: login, registro con verificación, recuperación de contraseña, activos (con bancos, montos cifrados e historial), herederos (con verificación y límite de plan), reglas de liberación, procesos con monitoreo automático, checklist de documentos con portal del heredero, suscripción, dashboard, reportes, historial, administración y perfil. Base de datos de **33 tablas** con 22 migraciones documentadas.
+
+- **URL pública:** pendiente de despliegue.
+- **GitHub:** https://github.com/KatherynPardo/LegadoSeguroWeb
+
+**Limitaciones**
+- No está desplegado públicamente.
+- El cobro con Culqi no está conectado.
+- El consentimiento de la selfie se pide y se registra, pero todavía no hay una opción en pantalla para revocarlo y borrar la foto.
+- La selfie del heredero se guarda como evidencia, pero no se compara automáticamente con su DNI.
+- El portal del validador externo (que aprobaría las entregas de activos financieros) no está hecho.
+- No se adjuntan archivos.
+- Los correos reales requieren configurar una cuenta SMTP.
+- Las pruebas responsive cubren celular y PC; falta la captura de tablet.
+
+**Mejoras futuras**
+- Portal del validador externo y comparación facial de la selfie.
+- Indicaciones por activo que viajan al heredero cuando se libera el proceso.
+- Cobro con Culqi y despliegue en la nube.
+- Notificaciones por SMS o llamada, y autenticador (TOTP).
+- Subida de documentos con Supabase Storage.
+
+**Conclusiones del grupo.** *(Se completan al cierre del curso.)*
+
+
+## 17. Checklist final antes de entregar
+
+Tabla: Lista de verificación final
+| | Elemento | Estado |
+|---|---|---|
+| [x] | El documento inicia desde el análisis y llega hasta la puesta en marcha | Sí |
+| [ ] | El documento termina con el sistema **desplegado** | **No: falta el despliegue (sección 12)** |
+| [x] | El modelo ER coincide con la base de datos implementada | Sí: el diccionario se genera desde la base real |
+| [x] | Cada módulo tiene explicación, código y prueba | Sí |
+| [ ] | Cada módulo tiene evidencia (capturas) | **Casi: faltan 11 capturas (cuentas, configuración, correo recibido y tablet), resaltadas en amarillo** |
+| [x] | Los comandos pueden copiarse y ejecutarse | Sí (uno por línea) |
+| [x] | Las claves y datos sensibles están ocultos | Sí |
+| [x] | GitHub contiene el proyecto actualizado | Sí (cada avance tiene su commit) |
+| [ ] | La URL de Vercel funciona | **No: pendiente** |
+| [ ] | El sistema fue probado en producción | **No: pendiente** |
+| [x] | Existe una sección de errores y soluciones | Sí (11 errores) |
+| [x] | Otro estudiante podría reproducir el proyecto siguiendo esta guía | Sí, hasta la puesta en marcha local |
+
+**Criterio central de evaluación:** una persona que no participó en el proyecto debe poder comprender cómo fue construido y repetir el proceso paso a paso.
+
 ## Referencias
 
-ref: Angular. (s. f.). *Angular CLI*. https://angular.dev/tools/cli
-ref: Bootstrap. (s. f.). *Bootstrap 5.3 documentation*. https://getbootstrap.com/docs/5.3/
-ref: Express. (s. f.). *Express: Node.js web application framework*. https://expressjs.com/
-ref: Git. (s. f.). *Git documentation*. https://git-scm.com/doc
-ref: GitHub. (s. f.). *GitHub Docs*. https://docs.github.com/
-ref: Microsoft. (s. f.-a). *Visual Studio Code documentation*. https://code.visualstudio.com/docs
-ref: Microsoft. (s. f.-b). *TypeScript documentation*. https://www.typescriptlang.org/docs/
-ref: Nodemailer. (s. f.). *Nodemailer documentation*. https://nodemailer.com/
-ref: OpenJS Foundation. (s. f.). *Node.js documentation*. https://nodejs.org/docs/latest/api/
-ref: Supabase. (s. f.). *Supabase documentation*. https://supabase.com/docs
-ref: Vercel. (s. f.). *Vercel documentation*. https://vercel.com/docs
+ref: Angular. (2026). *Angular CLI*. https://angular.dev/tools/cli
+ref: Bootstrap. (2026). *Bootstrap 5.3 documentation*. https://getbootstrap.com/docs/5.3/
+ref: Express. (2026). *Express: Node.js web application framework*. https://expressjs.com/
+ref: Git. (2026). *Git documentation*. https://git-scm.com/doc
+ref: GitHub. (2026). *GitHub Docs*. https://docs.github.com/
+ref: Microsoft. (2026a). *Visual Studio Code documentation*. https://code.visualstudio.com/docs
+ref: Microsoft. (2026b). *TypeScript documentation*. https://www.typescriptlang.org/docs/
+ref: Nodemailer. (2026). *Nodemailer documentation*. https://nodemailer.com/
+ref: OpenJS Foundation. (2026). *Node.js documentation*. https://nodejs.org/docs/latest/api/
+ref: Supabase. (2026). *Supabase documentation*. https://supabase.com/docs
+ref: Vercel. (2026). *Vercel documentation*. https://vercel.com/docs

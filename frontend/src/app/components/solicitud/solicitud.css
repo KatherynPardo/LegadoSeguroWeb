@@ -119,6 +119,36 @@
   color: #1F2937;
 }
 
+/* Consentimiento para la selfie: visible antes de poder tomarla */
+.consentimiento {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-top: 14px;
+  padding: 14px 16px;
+  background: #EEF3FA;
+  border: 1px solid #C9D6EA;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #374151;
+  cursor: pointer;
+}
+
+.consentimiento input {
+  margin-top: 4px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: #1A4E8A;
+}
+
+.consentimiento strong {
+  display: block;
+  color: #1A4E8A;
+  margin-bottom: 2px;
+}
+
 .btn-primario {
   height: 46px;
   min-width: 150px;

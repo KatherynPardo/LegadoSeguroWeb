@@ -19,6 +19,7 @@ export class Solicitud {
   dniEnmascarado = signal('');
   nombre = signal('');
   vistaPrevia = signal('');
+  acepta = signal(false); // consentimiento expreso para guardar la selfie (Ley 29733)
   error = signal('');
   cargando = signal(false);
 
@@ -47,10 +48,14 @@ export class Solicitud {
     });
   }
 
-  // Paso 3: la foto se reduce a un tamaño pequeño y se envía
+  cambiarConsentimiento(evento: Event): void {
+    this.acepta.set((evento.target as HTMLInputElement).checked);
+  }
+
+  // Paso 3: con el consentimiento marcado, la foto se reduce a un tamaño pequeño y se envía
   async elegirFoto(evento: Event): Promise<void> {
     const archivo = (evento.target as HTMLInputElement).files?.[0];
-    if (!archivo) return;
+    if (!archivo || !this.acepta()) return;
 
     this.error.set('');
     this.cargando.set(true);
@@ -58,7 +63,7 @@ export class Solicitud {
     try {
       const imagen = await this.reducir(archivo);
       this.vistaPrevia.set(imagen);
-      this.portal.enviarSelfie(this.solicitud(), imagen).subscribe({
+      this.portal.enviarSelfie(this.solicitud(), imagen, this.acepta()).subscribe({
         next: () => {
           this.cargando.set(false);
           this.cambio.emit();

@@ -209,9 +209,12 @@ export async function validarDni(correo: string, idProceso: number, idBeneficiar
 }
 
 // Paso 3: la selfie se guarda cifrada como evidencia. No se compara automáticamente con el DNI.
-export async function guardarSelfie(correo: string, idProceso: number, idBeneficiario: number, imagen: string) {
+// La imagen del rostro es un dato sensible (Ley 29733): sin consentimiento expreso no se guarda, y el consentimiento queda con su fecha e IP.
+export async function guardarSelfie(correo: string, idProceso: number, idBeneficiario: number, imagen: string, consentimiento: boolean, ip: string | null) {
   const h = await buscarHeredero(pool, correo, idProceso, idBeneficiario);
   exigirProcesoAbierto(h);
+
+  if (!consentimiento) throw new ReglaLiberacion('Debes aceptar el tratamiento de tu foto para continuar', 400);
 
   if (!imagen.startsWith('data:image/jpeg;base64,') || imagen.length > TAMANO_MAXIMO_SELFIE) {
     throw new ReglaLiberacion('La foto debe ser una imagen JPEG pequeña', 400);
@@ -221,8 +224,10 @@ export async function guardarSelfie(correo: string, idProceso: number, idBenefic
   if (!v.rows[0]?.dni_validado) throw new ReglaLiberacion('Primero valida tu DNI', 409);
 
   await pool.query(
-    'UPDATE verificacion_beneficiario SET selfie_cifrada = $3, fecha_selfie = NOW() WHERE id_proceso = $1 AND id_beneficiario = $2',
-    [idProceso, idBeneficiario, cifrar(imagen)]
+    `UPDATE verificacion_beneficiario
+     SET selfie_cifrada = $3, fecha_selfie = NOW(), fecha_consentimiento = NOW(), ip_consentimiento = $4
+     WHERE id_proceso = $1 AND id_beneficiario = $2`,
+    [idProceso, idBeneficiario, cifrar(imagen), ip]
   );
 }
 

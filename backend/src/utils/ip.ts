@@ -1,5 +1,5 @@
 // Obtiene la IP desde la que llega la petición, sin el prefijo IPv6 "::ffff:" de las IPv4.
-// Si el backend se despliega detrás de un proxy, hay que activar "trust proxy" en app.ts.
+// Si el backend se despliega detrás de un proxy, se activa con TRUST_PROXY en el .env (ver app.ts).
 
 import { Request } from 'express';
 

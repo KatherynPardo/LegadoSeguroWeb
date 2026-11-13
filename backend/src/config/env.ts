@@ -9,6 +9,10 @@ dotenv.config(); // carga el archivo .env
 export const PORT = Number(process.env.PORT) || 5000;
 export const DATABASE_URL = process.env.DATABASE_URL;
 
+// Cuántos proxies hay delante del backend (0 en local; 1 en Render, Railway o Vercel). Con proxies, la IP real
+// llega en el encabezado X-Forwarded-For; con 0, ese encabezado se ignora para que nadie pueda falsearlo.
+export const TRUST_PROXY = Number(process.env.TRUST_PROXY) || 0;
+
 // Clave con la que se firman las sesiones (JWT). En producción debe venir del .env.
 export const JWT_SECRET = process.env.JWT_SECRET || 'clave-solo-para-desarrollo-cambiala';
 

@@ -98,6 +98,7 @@
 | RNF-06 | Integridad de datos | Llaves foráneas y restricciones (`CHECK`, `UNIQUE`) en la propia base |
 | RNF-07 | Diseño responsive | Bootstrap y reglas propias para pantallas pequeñas (verificación pendiente, ver sección 10) |
 | RNF-08 | Usabilidad | Interfaz basada en el diseño de Figma, con mensajes de error claros |
+| RNF-09 | Protección de datos personales (Ley N.° 29733) | La selfie del heredero solo se guarda con su consentimiento expreso, cifrada y con la fecha y la IP de la aceptación |
 
 ### Roles de usuario
 
@@ -127,7 +128,27 @@ Las 24 tablas originales se crearon en la primera migración; las otras 9 se agr
 
 El diagrama entidad-relación por módulos está en Lucidchart (ver el enlace en la presentación del proyecto). Las relaciones, con sus cardinalidades, se listan al final del diccionario de datos (2.2), generadas desde la base real.
 
-![Modelo entidad-relación](docs/capturas/02-modelo-er.png)
+![MER: Usuarios y seguridad](docs/capturas/2-1_er_seguridad.png)
+
+![MER: Actividad y auditoría](docs/capturas/2-1_er_actividad.png)
+
+![MER: Activos](docs/capturas/2-1_er_activos.png)
+
+![MER: Herederos](docs/capturas/2-1_er_herederos.png)
+
+![MER: Documentos](docs/capturas/2-1_er_documentos.png)
+
+![MER: Regla de liberación](docs/capturas/2-1_er_regla.png)
+
+![MER: Proceso (1)](docs/capturas/2-1_er_proceso.png)
+
+![MER: Proceso (2)](docs/capturas/2-1_er_proceso2.png)
+
+![MER: Validador externo](docs/capturas/2-1_er_validacion.png)
+
+![MER: Orientación legal](docs/capturas/2-1_er_legal.png)
+
+![MER: Suscripciones y pagos](docs/capturas/2-1_er_suscripcion.png)
 
 ### 2.2 Diccionario de datos
 
@@ -135,7 +156,7 @@ Se genera automáticamente. Si cambia la base de datos, se ejecuta `npm run dicc
 
 <!-- DICCIONARIO:INICIO -->
 
-**Generado automáticamente desde la base de datos el 3/11/2026** · 33 tablas.
+**Generado automáticamente desde la base de datos el 13/11/2026** · 33 tablas.
 
 #### actividad_usuario
 
@@ -594,6 +615,8 @@ Persona de confianza que aprueba la liberación de activos financieros.
 | fecha_dni | TIMESTAMPTZ | — | Puede ser vacío | — |
 | selfie_cifrada | TEXT | — | Puede ser vacío | — |
 | fecha_selfie | TIMESTAMPTZ | — | Puede ser vacío | — |
+| fecha_consentimiento | TIMESTAMPTZ | — | Puede ser vacío | Fecha y hora en que el heredero aceptó el tratamiento de su selfie (Ley 29733). |
+| ip_consentimiento | VARCHAR(45) | — | Puede ser vacío | Dirección IP desde la que el heredero aceptó el tratamiento de su selfie. |
 
 #### Relaciones entre tablas
 
@@ -1248,6 +1271,9 @@ Las pruebas del backend se hicieron contra la base real (con datos temporales qu
 | P-61 | Se adelanta el plazo (administrador) y se vuelve a ejecutar | Se abre el proceso EN_CONFIRMACION y se avisa al heredero | Correcto; la alerta pasa a VENCIDA | Aprobado |
 | P-62 | Días de gracia 0 / 10 | 400 / 200 | 400 / 200 | Aprobado |
 | P-57 | Pedir 3 confirmaciones con 2 herederos o con plan Básico | 400 | 400 | Aprobado |
+| P-63 | Selfie sin consentimiento (campo ausente o `false`) | 400 y la foto no se guarda | 400 "Debes aceptar el tratamiento de tu foto para continuar"; sin foto en la base | Aprobado |
+| P-64 | Selfie con consentimiento | 200; la foto queda cifrada con fecha e IP | 200; `enc:`, fecha registrada e IP `::1` | Aprobado |
+| P-65 | Pedido con `X-Forwarded-For: 203.0.113.7` con y sin `TRUST_PROXY` | Sin la variable se ignora; con `TRUST_PROXY=1` se registra | `::1` y `203.0.113.7` | Aprobado |
 
 ### 10.2 Pruebas de integración (Frontend → Backend → Supabase)
 
@@ -1269,6 +1295,8 @@ Las pruebas del backend se hicieron contra la base real (con datos temporales qu
 | Contraseñas y claves | Cifradas / ocultas | bcrypt en la base; `.env` ignorado por Git |
 | Descripción y monto en la base | Ilegibles | Valores `enc:...` |
 | Abuso de rutas públicas | 429 al pasar el límite | 429 |
+| Foto del heredero sin consentimiento | 400 y no se guarda | 400; la base no guarda la foto |
+| `X-Forwarded-For` falseado sin proxy configurado | Se ignora | Se guarda la IP real de la conexión |
 
 ### 10.4 Pruebas responsive
 
@@ -1305,7 +1333,7 @@ Pasos previstos:
 3. Importar el repositorio y elegir la carpeta `frontend`.
 4. Cambiar `API_URL` (`frontend/src/app/core/api.config.ts`) para que apunte al backend publicado.
 5. Configurar las variables de entorno del backend en su servicio de alojamiento (**no** en el repositorio).
-6. Activar `trust proxy` en `backend/src/app.ts` para que la IP registrada sea la real.
+6. Poner `TRUST_PROXY=1` en las variables de entorno del backend para que la IP registrada sea la real (el código ya lo admite).
 7. Ejecutar el despliegue y corregir errores de build.
 8. Verificar la URL pública.
 
@@ -1417,12 +1445,13 @@ Abrir `backend/.env` y completar:
 | Variable | Qué poner |
 |---|---|
 | `DATABASE_URL` | La conexión de **su** proyecto de Supabase (o la compartida, enviada por un canal privado, nunca por GitHub) |
-| `JWT_SECRET` | Una frase larga cualquiera |
+| `JWT_SECRET` | Una cadena larga al azar; sin ella el backend usa una clave de desarrollo |
+| `TRUST_PROXY` | Opcional: `0` en local y `1` al desplegar detrás de un proxy |
 | `ENCRYPTION_KEY` | Una frase larga; **no cambiarla después** |
 | `DNI_PROVIDER` / `DNI_API_TOKEN` | Opcionales; sin token, los nombres se escriben a mano |
 | `SMTP_*` | Opcionales; sin ellos, los códigos salen en la consola del backend |
 
-Preparar la base de datos (si usa su propio proyecto): ejecutar en **SQL Editor** las migraciones `001` a `021` de `supabase/migrations/`, en orden.
+Preparar la base de datos (si usa su propio proyecto): ejecutar en **SQL Editor** las migraciones `001` a `022` de `supabase/migrations/`, en orden.
 
 Encender el backend y, en otra terminal, el frontend:
 
@@ -1449,7 +1478,7 @@ Cuentas externas necesarias: Supabase (obligatoria); apiperu.dev y una cuenta de
 
 ## 16. Cierre del proyecto
 
-**Resultados obtenidos.** Módulos terminados: login, registro con verificación, recuperación de contraseña, activos (con bancos, montos cifrados e historial), herederos (con verificación y límite de plan), reglas de liberación, procesos con monitoreo automático, checklist de documentos con portal del heredero, suscripción, dashboard, reportes, historial, administración y perfil. Base de datos de **33 tablas** con 21 migraciones documentadas.
+**Resultados obtenidos.** Módulos terminados: login, registro con verificación, recuperación de contraseña, activos (con bancos, montos cifrados e historial), herederos (con verificación y límite de plan), reglas de liberación, procesos con monitoreo automático, checklist de documentos con portal del heredero, suscripción, dashboard, reportes, historial, administración y perfil. Base de datos de **33 tablas** con 22 migraciones documentadas.
 
 | | |
 |---|---|
@@ -1459,6 +1488,7 @@ Cuentas externas necesarias: Supabase (obligatoria); apiperu.dev y una cuenta de
 **Limitaciones**
 - No está desplegado públicamente.
 - El cobro con Culqi no está conectado.
+- El consentimiento de la selfie se pide y se registra, pero todavía no hay una opción en pantalla para revocarlo y borrar la foto.
 - La selfie del heredero se guarda como evidencia, pero no se compara automáticamente con su DNI.
 - El portal del validador externo (que aprobaría las entregas de activos financieros) no está hecho.
 - No se adjuntan archivos.

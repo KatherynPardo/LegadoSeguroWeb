@@ -92,7 +92,7 @@
     <span class="circulo hecho">✓</span>
     <div class="paso-texto">
       <strong>3. Verificación facial</strong>
-      <span>Tu foto fue enviada y quedó guardada como evidencia.</span>
+      <span>Tu foto fue enviada con tu consentimiento y quedó guardada, cifrada, como evidencia.</span>
     </div>
     @if (vistaPrevia()) { <img class="foto" [src]="vistaPrevia()" alt="Tu selfie" /> }
     <span class="estado ok">Completado</span>
@@ -103,11 +103,20 @@
     <div class="paso-texto">
       <strong>3. Verificación facial</strong>
       <span>Toma una selfie para confirmar que eres tú. Asegúrate de estar en un lugar bien iluminado.</span>
+      <label class="consentimiento">
+        <input type="checkbox" [checked]="acepta()" (change)="cambiarConsentimiento($event)" />
+        <span>
+          <strong>Consentimiento para el tratamiento de tu imagen</strong>
+          Autorizo el uso de mi foto, que es un dato personal sensible, únicamente para verificar mi identidad en este proceso de
+          liberación, conforme a la Ley N.° 29733 (Protección de Datos Personales). La foto se guarda cifrada, no se comparte
+          con terceros y se registran la fecha y la IP de mi aceptación.
+        </span>
+      </label>
       <div class="fila-entrada">
-        <div class="archivo">{{ vistaPrevia() ? 'Foto lista' : 'Ningún archivo seleccionado' }}</div>
-        <label class="btn-primario" [class.apagado]="cargando()">
+        <div class="archivo">{{ vistaPrevia() ? 'Foto lista' : acepta() ? 'Ningún archivo seleccionado' : 'Marca la casilla para continuar' }}</div>
+        <label class="btn-primario" [class.apagado]="cargando() || !acepta()">
           Tomar selfie
-          <input type="file" accept="image/*" capture="user" hidden [disabled]="cargando()" (change)="elegirFoto($event)" />
+          <input type="file" accept="image/*" capture="user" hidden [disabled]="cargando() || !acepta()" (change)="elegirFoto($event)" />
         </label>
       </div>
     </div>

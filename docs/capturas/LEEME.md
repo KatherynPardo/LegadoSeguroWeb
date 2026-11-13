@@ -1,43 +1,23 @@
-# Capturas de pantalla pendientes
+# Capturas pendientes del manual
 
-El documento [DOCUMENTACION_SISTEMA.md](../../DOCUMENTACION_SISTEMA.md) ya apunta a estos archivos. Cuando guardes cada captura aquí **con el nombre exacto**, aparecerá sola en el documento (mientras no exista, se ve el nombre de la imagen).
+Guarda cada captura aquí **con el nombre exacto**. Luego se regenera el Word y aparece sola. En el Word, cada una está resaltada en amarillo como `[CAPTURA PENDIENTE: …]`.
 
 **Antes de capturar**
-- **Nunca captures el archivo `.env` ni la consola con contraseñas.** Si una captura muestra una clave, tápala o vuelve a tomarla.
-- Usa el usuario de prueba (`carlos.ramirez@example.com`), no tus datos reales.
-- Formato PNG. Basta con la pantalla del navegador a 80 % de zoom.
+- Tapa contraseñas, tokens, claves y cadenas de conexión. Nunca captures el `.env` con valores reales.
+- Formato PNG. Usa el usuario de prueba (`carlos.ramirez@example.com`).
 
-| Archivo | Qué capturar | Sección |
+| Archivo | Qué capturar | Procedimiento |
 |---|---|---|
-| `02-modelo-er.png` | El modelo entidad-relación (Lucidchart) | 2.1 |
-| `03-versiones.png` | Terminal con `node -v`, `npm -v` y `git --version` | 3 |
-| `04-backend-iniciado.png` | Consola con "Servidor LegadoSeguroWeb en http://localhost:5000" | 4.1 |
-| `05-estructura.png` | Carpetas del proyecto en VS Code | 4.2 |
-| `06-github.png` | El repositorio en GitHub con sus commits | 5 |
-| `07-supabase-tablas.png` | Table Editor de Supabase con las tablas | 6.1 |
-| `10-login.png` | Pantalla de login | 7.1 |
-| `11-registro-1.png` | Registro, paso 1 (con el DNI buscado) | 7.2 |
-| `12-registro-2.png` | Registro, paso 2 (código) | 7.2 |
-| `13-recuperar.png` | Recuperar contraseña | 7.3 |
-| `14-activos.png` | Lista de Mis Activos | 7.4 |
-| `15-activo-formulario.png` | Formulario de nuevo activo (cuenta bancaria con banco y monto) | 7.4 |
-| `16-herederos.png` | Tarjetas de Mis Herederos | 7.5 |
-| `17-aviso-plan.png` | Ventana "Llegaste al límite de tu plan" | 7.5 |
-| `18-reglas.png` | Reglas de Liberación con días libres | 7.6 |
-| `19-procesos.png` | Lista de procesos | 7.7 |
-| `20-proceso-detalle.png` | Detalle de un proceso | 7.7 |
-| `21-portal-ingreso.png` | Portal del heredero, ingreso | 7.8 |
-| `22-portal-checklist.png` | Portal del heredero, checklist con avance | 7.8 |
-| `23-documentos-propietario.png` | Ventana "Documentos del heredero" | 7.8 |
-| `24-catalogo-admin.png` | Catálogo de documentos en Administración | 7.8 |
-| `29-solicitud-liberacion.png` | Solicitud de liberación del heredero (los tres pasos y los botones) | 7.8 |
-| `25-suscripcion.png` | Pantalla de Suscripción | 7.9 |
-| `26-administracion.png` | Administración (usuarios y auditoría) | 7.10 |
-| `27-historial.png` | Mi Historial | 7.10 |
-| `28-perfil.png` | Mi Perfil | 7.10 |
-| `30-dashboard.png` | Dashboard completo | 9.1 |
-| `31-reportes.png` | Reportes (con el ojito) | 9.2 |
-| `40-responsive.png` | El sistema en vista de celular (F12 → modo dispositivo) | 10.4 |
-| `32-monitoreo-admin.png` | Administración: tarjeta "Monitoreo de inactividad" con el resumen y la tabla de alertas | 7.10 |
-| `33-activo-tarjeta.png` | Formulario de una tarjeta de crédito (últimos 4, día de pago y cierre) | 7.4 |
-| `34-documentos-por-activo.png` | Ventana "Documentos del heredero" mostrando "Por: activo" | 7.8 |
+| `2-1-6_extensiones.png` | Extensiones instaladas en VS Code | 3.1.6 |
+| `2-2-1_github_cuenta.png` | Tu perfil de GitHub | 3.2.1 |
+| `2-2-2_supabase_cuenta.png` | Panel principal de Supabase | 3.2.2 |
+| `2-2-3_vercel_cuenta.png` | Panel principal de Vercel | 3.2.3 |
+| `2-2-4_token_dni.png` | Token de la API de DNI (valor tapado) | 3.2.4 |
+| `2-2-5_gmail_clave_app.png` | Contraseña de aplicación de Google (valor tapado) | 3.2.5 |
+| `5-1_supabase_nuevo_proyecto.png` | Formulario de nuevo proyecto (contraseña tapada) | 6.1 |
+| `5-5_cadena_conexion.png` | Pestaña Connection string (valores tapados) | 6.5 |
+| `5-6_env_oculto.png` | El `.env` con los valores tapados | 6.6 |
+| `7-3_correo_recibido.png` | Correo con el código en tu bandeja | 8.3 |
+| `10-4_responsive_tablet.png` | Dashboard en tablet (F12, modo dispositivo, 768 px) | 10.4 |
+
+Opcional: las salidas de Git Bash, de la terminal de VS Code y del SQL Editor de Supabase del manual son texto real con el formato de cada herramienta; puedes reemplazarlas por capturas tuyas.
