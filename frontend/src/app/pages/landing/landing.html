@@ -1,0 +1,127 @@
+<header class="nav">
+  <a class="marca" routerLink="/" aria-label="LegadoSeguro, inicio">
+    <app-logo [tamano]="28" />
+    <span>LegadoSeguro</span>
+  </a>
+  <nav class="enlaces" aria-label="Secciones">
+    <a href="#como-funciona" (click)="ir($event, 'como-funciona')">Cómo funciona</a>
+    <a href="#seguridad" (click)="ir($event, 'seguridad')">Seguridad</a>
+    <a href="#planes" (click)="ir($event, 'planes')">Planes</a>
+    <a href="#contacto" (click)="ir($event, 'contacto')">Contáctenos</a>
+  </nav>
+  <a class="entrar" routerLink="/login">Ingresar</a>
+</header>
+
+<section class="portada">
+  <div class="portada-texto">
+    <p class="etiqueta">Testamento digital</p>
+    <h1>Tu legado digital, protegido y entregado a quien tú decidas</h1>
+    <p class="bajada">Registra tus cuentas y activos, designa herederos y define una regla. Si dejas de entrar, LegadoSeguro abre el proceso de entrega por ti.</p>
+    <div class="botones">
+      <a class="boton coral" routerLink="/registro">Crear cuenta gratis</a>
+      <a class="boton borde" href="#como-funciona" (click)="ir($event, 'como-funciona')">Ver cómo funciona</a>
+    </div>
+  </div>
+
+  <div class="ejemplo" aria-label="Ejemplo de la pantalla de salud del legado">
+    <p class="ejemplo-titulo">Salud del legado <span>Ejemplo</span></p>
+    <div class="ejemplo-cuerpo">
+      <div class="anillo"><span>60</span></div>
+      <ul>
+        <li><svg class="ic ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>8 activos registrados</li>
+        <li><svg class="ic ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>2 herederos designados</li>
+        <li><svg class="ic aviso" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>1 por validar</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="como-funciona" class="seccion blanca">
+  <h2>Cómo funciona</h2>
+  <div class="rejilla tres">
+    <article class="paso">
+      <svg class="ic grande" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+      <h3>1. Registra</h3>
+      <p>Tus cuentas, correos y tarjetas, con las indicaciones para quien los reciba.</p>
+    </article>
+    <article class="paso">
+      <svg class="ic grande" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <h3>2. Designa</h3>
+      <p>Elige a tus herederos y qué recibe cada uno.</p>
+    </article>
+    <article class="paso">
+      <svg class="ic grande" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <h3>3. Define tu regla</h3>
+      <p>Los días de inactividad que tú decidas antes de abrir el proceso.</p>
+    </article>
+  </div>
+</section>
+
+<section id="seguridad" class="seccion">
+  <h2>Seguridad y privacidad</h2>
+  <div class="rejilla dos">
+    <article class="seguro">
+      <svg class="ic grande" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <span>Datos sensibles cifrados con AES-256</span>
+    </article>
+    <article class="seguro">
+      <svg class="ic grande" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+      <span>Identidad validada con el DNI en RENIEC</span>
+    </article>
+    <article class="seguro">
+      <svg class="ic grande" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      <span>Selfie del heredero revisada con visión por computador</span>
+    </article>
+    <article class="seguro">
+      <svg class="ic grande" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span>Consentimiento expreso según la Ley N.° 29733</span>
+    </article>
+  </div>
+</section>
+
+<section id="planes" class="seccion blanca">
+  <h2>Planes</h2>
+  @if (planes().length > 0) {
+  <div class="rejilla dos planes">
+    @for (p of planes(); track p.id) {
+    <article class="plan" [class.destacado]="p.tipo === 'PREMIUM'">
+      <h3>{{ p.nombre }}</h3>
+      <p class="precio">
+        @if (p.precio === 0) { Gratis } @else { S/ {{ p.precio | number:'1.2-2' }} <small>/ mes</small> }
+      </p>
+      <p class="detalle">{{ p.descripcion }}</p>
+      <a class="boton" [class.coral]="p.tipo === 'PREMIUM'" [class.borde]="p.tipo !== 'PREMIUM'" routerLink="/registro">
+        {{ p.precio === 0 ? 'Empezar gratis' : 'Crear cuenta y mejorar' }}
+      </a>
+    </article>
+    }
+  </div>
+  <p class="nota">El plan Premium se paga con tarjeta Visa desde tu cuenta, en un formulario seguro de Niubiz.</p>
+  } @else {
+  <p class="nota">Crea tu cuenta gratis y conoce los planes disponibles.</p>
+  }
+</section>
+
+<section class="llamado">
+  <h2>Ordena tu legado digital hoy</h2>
+  <p>Crear tu cuenta es gratis y toma unos minutos.</p>
+  <a class="boton coral" routerLink="/registro">Crear cuenta gratis</a>
+</section>
+
+<footer id="contacto" class="pie">
+  <div>
+    <h3>Contáctenos</h3>
+    <p>Correo: {{ contacto.correo }}<br>Teléfono: {{ contacto.telefono }}<br>Dirección: {{ contacto.direccion }}</p>
+  </div>
+  <div>
+    <h3>LegadoSeguro</h3>
+    <p>Plataforma web de gestión de legado y testamento digital.<br>Esta tienda está autorizada por Visa para realizar transacciones electrónicas.</p>
+    <img class="logo-pago" src="niubiz.png" alt="Pagos procesados por Niubiz" />
+  </div>
+  <nav class="legales" aria-label="Información legal">
+    <a routerLink="/terminos">Términos y condiciones</a>
+    <a routerLink="/privacidad">Política de privacidad</a>
+    <a routerLink="/reclamaciones">Libro de reclamaciones</a>
+  </nav>
+  <p class="derechos">© {{ anio }} LegadoSeguro. Todos los derechos reservados.</p>
+</footer>

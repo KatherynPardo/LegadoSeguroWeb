@@ -1,6 +1,6 @@
 .tarjeta-solicitud {
-  background: #fff;
-  border: 1px solid #E3E7ED;
+  background: var(--bg-card);
+  border: 1px solid var(--borde);
   border-radius: 16px;
   box-shadow: 0 6px 24px rgba(15, 35, 80, 0.1);
   padding: 32px;
@@ -9,8 +9,8 @@
 
 /* Aviso naranja de arriba */
 .aviso {
-  background: #FFF4E8;
-  border: 1px solid #F0D3A0;
+  background: var(--bg-aviso);
+  border: 1px solid var(--borde);
   border-radius: 12px;
   padding: 18px 22px;
   margin-bottom: 20px;
@@ -18,14 +18,14 @@
 
 .aviso h2 {
   margin: 0 0 6px;
-  font-size: 19px;
+  font-size: 1.1875rem;
   font-weight: 700;
-  color: #8A5A12;
+  color: var(--tx-aviso);
 }
 
 .aviso p {
   margin: 0;
-  color: #374151;
+  color: var(--tx-2);
   line-height: 1.5;
 }
 
@@ -37,21 +37,21 @@
   padding: 18px 22px;
   margin-bottom: 14px;
   border-radius: 12px;
-  border: 1px solid #D9D9D9;
+  border: 1px solid var(--borde);
 }
 
 .paso.hecho {
-  background: #E8F5EC;
-  border-color: #B7DEC2;
+  background: var(--bg-exito);
+  border-color: var(--borde);
   align-items: center;
 }
 
 .paso.activo {
-  border: 2px solid #1A4E8A;
+  border: 2px solid var(--azul-tx);
 }
 
 .paso.pendiente {
-  background: #F7F8FA;
+  background: var(--bg-suave);
   color: #9CA3AF;
 }
 
@@ -63,7 +63,7 @@
   background: #1A4E8A;
   color: #fff;
   font-weight: 700;
-  font-size: 18px;
+  font-size: 1.125rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -82,18 +82,18 @@
 }
 
 .paso-texto > span {
-  color: #6B7280;
-  font-size: 14px;
+  color: var(--tx-suave);
+  font-size: 0.875rem;
 }
 
 .estado {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
   white-space: nowrap;
 }
 
 .estado.ok { color: var(--lg-exito); }
-.estado.curso { color: #1A4E8A; }
+.estado.curso { color: var(--azul-tx); }
 
 .fila-entrada {
   display: flex;
@@ -108,15 +108,33 @@
   padding: 0 14px;
   display: flex;
   align-items: center;
-  background: #F7F8FA;
-  border: 1px solid #D9D9D9;
+  background: var(--bg-suave);
+  border: 1px solid var(--borde);
   border-radius: 8px;
-  font-size: 15px;
-  color: #6B7280;
+  font-size: 0.9375rem;
+  color: var(--tx-suave);
 }
 
 .fila-entrada input {
-  color: #1F2937;
+  color: var(--tx);
+}
+
+/* Botón para eliminar la foto si el heredero se equivocó */
+.eliminar-foto {
+  margin-top: 8px;
+  padding: 6px 14px;
+  background: var(--bg-card);
+  color: var(--lg-error);
+  border: 1px solid var(--lg-error);
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.eliminar-foto:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 /* Consentimiento para la selfie: visible antes de poder tomarla */
@@ -126,12 +144,12 @@
   align-items: flex-start;
   margin-top: 14px;
   padding: 14px 16px;
-  background: #EEF3FA;
-  border: 1px solid #C9D6EA;
+  background: var(--bg-suave);
+  border: 1px solid var(--borde);
   border-radius: 10px;
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.5;
-  color: #374151;
+  color: var(--tx-2);
   cursor: pointer;
 }
 
@@ -145,7 +163,7 @@
 
 .consentimiento strong {
   display: block;
-  color: #1A4E8A;
+  color: var(--azul-tx);
   margin-bottom: 2px;
 }
 
@@ -188,7 +206,7 @@
 .btn-objecion {
   height: 50px;
   padding: 0 24px;
-  background: #fff;
+  background: var(--bg-card);
   color: var(--lg-error);
   font-weight: 700;
   border: 1px solid var(--lg-error);
@@ -219,8 +237,8 @@
 }
 
 .nota {
-  color: #6B7280;
-  font-size: 14px;
+  color: var(--tx-suave);
+  font-size: 0.875rem;
 }
 
 /* Resultados */
@@ -236,20 +254,20 @@
 }
 
 .resultado.ok {
-  background: #E8F5EC;
-  border: 1px solid #B7DEC2;
+  background: var(--bg-exito);
+  border: 1px solid var(--borde);
   color: var(--lg-exito);
 }
 
 .resultado.aviso-obj {
-  background: #FDF1DE;
-  border: 1px solid #F0D3A0;
-  color: #8A5A12;
+  background: var(--bg-aviso);
+  border: 1px solid var(--borde);
+  color: var(--tx-aviso);
 }
 
 .entrega {
   padding: 14px 4px;
-  border-top: 1px solid #F0F2F5;
+  border-top: 1px solid var(--borde);
 }
 
 .entrega-cabecera {
@@ -259,30 +277,30 @@
 }
 
 .tipo {
-  color: #6B7280;
-  font-size: 14px;
+  color: var(--tx-suave);
+  font-size: 0.875rem;
 }
 
 .indicacion {
   margin: 8px 0 0;
   padding: 10px 14px;
-  background: #F7F8FA;
+  background: var(--bg-suave);
   border-radius: 8px;
 }
 
 .etiqueta {
   padding: 3px 10px;
   border-radius: 999px;
-  background: #E2F3E7;
+  background: var(--bg-exito);
   color: var(--lg-exito);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
 }
 
 .etiqueta.espera {
-  background: #FDF1DE;
-  color: #8A5A12;
+  background: var(--bg-aviso);
+  color: var(--tx-aviso);
 }
 
 @media (max-width: 576px) {

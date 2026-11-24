@@ -156,7 +156,7 @@ Se genera automáticamente. Si cambia la base de datos, se ejecuta `npm run dicc
 
 <!-- DICCIONARIO:INICIO -->
 
-**Generado automáticamente desde la base de datos el 13/11/2026** · 33 tablas.
+**Generado automáticamente desde la base de datos el 17/11/2026** · 33 tablas.
 
 #### actividad_usuario
 
@@ -405,7 +405,7 @@ Qué guía legal se entregó por cada activo en un proceso.
 
 #### pago
 
-Pagos de las suscripciones (se llenará al conectar Culqi).
+Pagos de las suscripciones con Niubiz: un intento de cobro por fila, con su número de pedido y el resultado.
 
 | Campo | Tipo | PK/FK | Restricción | Descripción |
 |---|---|---|---|---|
@@ -414,7 +414,14 @@ Pagos de las suscripciones (se llenará al conectar Culqi).
 | monto | NUMERIC(10,2) | — | NOT NULL | Monto sin cifrar (queda vacío: el monto va en monto_cifrado). |
 | fecha_pago | TIMESTAMPTZ | — | NOT NULL; Por defecto now() | Fecha y hora del pago. |
 | estado | VARCHAR(20) | — | NOT NULL; Por defecto 'COMPLETADO' | Estado del registro (por ejemplo ACTIVO o INACTIVO). |
-| referencia_pago_externa | VARCHAR(100) | — | Puede ser vacío | Código de operación de la pasarela de pago (Culqi). |
+| referencia_pago_externa | VARCHAR(100) | — | Puede ser vacío | Código de operación de la pasarela de pago (Niubiz). |
+| numero_pedido | INT | — | Puede ser vacío | Número de pedido enviado a Niubiz (único, numérico, máximo 9 dígitos). |
+| id_transaccion | VARCHAR(30) | — | Puede ser vacío | Identificador único de la transacción en Niubiz. |
+| tarjeta_enmascarada | VARCHAR(25) | — | Puede ser vacío | Tarjeta con solo el inicio y los 4 últimos dígitos. |
+| codigo_accion | VARCHAR(5) | — | Puede ser vacío | Código de acción de Niubiz (000 = aprobado). |
+| descripcion_accion | VARCHAR(200) | — | Puede ser vacío | Descripción del código de acción o motivo por el que el pago quedó en revisión. |
+
+Valores únicos adicionales: (numero_pedido) WHERE (numero_pedido IS NOT NULL).
 
 #### plan
 
@@ -696,6 +703,7 @@ Usuario ──► Frontend (Angular, puerto 4200) ──HTTP/JSON──► Backe
 | Datos sensibles | AES-256-GCM (módulo `crypto` de Node) | Cifrado reversible con llave |
 | Sesiones | jsonwebtoken (JWT) | Identificar al usuario en cada pedido |
 | Correos | nodemailer | Códigos de verificación |
+| Visión por computador | MediaPipe Face Detector (`@mediapipe/tasks-vision`) | Revisar en el navegador que la selfie sea de una persona y esté bien encuadrada |
 | DNI | apiperu.dev (a través del backend) | Validar nombres con RENIEC |
 
 **Decisión de diseño:** Angular **nunca** habla con la base de datos. Solo el backend tiene las credenciales, y valida el rol de quien hace cada pedido.
@@ -1274,6 +1282,8 @@ Las pruebas del backend se hicieron contra la base real (con datos temporales qu
 | P-63 | Selfie sin consentimiento (campo ausente o `false`) | 400 y la foto no se guarda | 400 "Debes aceptar el tratamiento de tu foto para continuar"; sin foto en la base | Aprobado |
 | P-64 | Selfie con consentimiento | 200; la foto queda cifrada con fecha e IP | 200; `enc:`, fecha registrada e IP `::1` | Aprobado |
 | P-65 | Pedido con `X-Forwarded-For: 203.0.113.7` con y sin `TRUST_PROXY` | Sin la variable se ignora; con `TRUST_PROXY=1` se registra | `::1` y `203.0.113.7` | Aprobado |
+| P-66 | Eliminar la selfie y repetir la operación | 200 y se borran la foto y el consentimiento; la segunda vez, 409 | 200, `selfie = false` y `consentimiento = false`; después 409 | Aprobado |
+| P-67 | Subir por la pantalla una foto de un gato, un rostro muy pequeño, uno descentrado, dos rostros y un retrato de frente | Las cuatro primeras se rechazan con su mensaje; el retrato se acepta | 4 rechazos ("No se detecta ningún rostro", "Centra tu rostro en la foto", "Se detecta más de un rostro") y 1 aceptación | Aprobado |
 
 ### 10.2 Pruebas de integración (Frontend → Backend → Supabase)
 
@@ -1488,8 +1498,8 @@ Cuentas externas necesarias: Supabase (obligatoria); apiperu.dev y una cuenta de
 **Limitaciones**
 - No está desplegado públicamente.
 - El cobro con Culqi no está conectado.
-- El consentimiento de la selfie se pide y se registra, pero todavía no hay una opción en pantalla para revocarlo y borrar la foto.
-- La selfie del heredero se guarda como evidencia, pero no se compara automáticamente con su DNI.
+- El heredero puede eliminar su foto (y con ella su consentimiento) hasta que confirma su participación; después de confirmar, la foto no se puede retirar desde la pantalla.
+- La selfie del heredero se guarda como evidencia, pero no se compara automáticamente con su DNI. La pantalla solo revisa que haya un rostro bien encuadrado, y esa revisión depende de descargar el modelo por internet; no la valida el backend.
 - El portal del validador externo (que aprobaría las entregas de activos financieros) no está hecho.
 - No se adjuntan archivos.
 - Los correos reales requieren configurar una cuenta SMTP.

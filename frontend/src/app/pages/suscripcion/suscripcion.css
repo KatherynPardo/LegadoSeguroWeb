@@ -14,21 +14,21 @@
 
 .etiqueta {
   margin: 0;
-  color: #6B7280;
-  font-size: 14px;
+  color: var(--tx-suave);
+  font-size: 0.875rem;
 }
 
 .plan-actual {
   margin: 4px 0;
-  font-size: 28px;
+  font-size: 1.75rem;
   font-weight: 700;
-  color: #1A4E8A;
+  color: var(--azul-tx);
 }
 
 .ayuda {
   margin: 4px 0 0;
-  color: #6B7280;
-  font-size: 14px;
+  color: var(--tx-suave);
+  font-size: 0.875rem;
 }
 
 .uso {
@@ -38,13 +38,13 @@
 
 .uso strong {
   display: block;
-  font-size: 28px;
-  color: #1A4E8A;
+  font-size: 1.75rem;
+  color: var(--azul-tx);
 }
 
 .uso span {
-  color: #6B7280;
-  font-size: 14px;
+  color: var(--tx-suave);
+  font-size: 0.875rem;
 }
 
 .planes {
@@ -55,8 +55,8 @@
 }
 
 .plan {
-  background: #fff;
-  border: 1px solid #E3E7ED;
+  background: var(--bg-card);
+  border: 1px solid var(--borde);
   border-radius: 12px;
   box-shadow: 0 2px 6px rgba(15, 35, 80, 0.06);
   padding: 24px;
@@ -67,26 +67,26 @@
 }
 
 .plan.actual {
-  border: 2px solid #1A4E8A;
+  border: 2px solid var(--azul-tx);
 }
 
 .plan h3 {
   margin: 0;
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 700;
 }
 
 .precio {
   margin: 0;
-  font-size: 30px;
+  font-size: 1.875rem;
   font-weight: 700;
-  color: #1A4E8A;
+  color: var(--azul-tx);
 }
 
 .precio small {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 400;
-  color: #6B7280;
+  color: var(--tx-suave);
 }
 
 .plan .btn,
@@ -97,25 +97,25 @@
 .insignia {
   padding: 4px 12px;
   border-radius: 999px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 
 .insignia.ok {
-  background: #E2F3E7;
+  background: var(--bg-exito);
   color: var(--lg-exito);
 }
 
 .aviso-info {
-  background: #E8F1FA;
-  border: 1px solid #C9DDF2;
+  background: var(--bg-info);
+  border: 1px solid var(--borde);
   border-radius: 12px;
   padding: 18px 22px;
   margin-bottom: 32px;
 }
 
 .aviso-info strong {
-  color: #1A4E8A;
+  color: var(--azul-tx);
 }
 
 .aviso-info p {
@@ -123,13 +123,85 @@
 }
 
 .subtitulo {
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 700;
   margin: 0 0 12px;
 }
 
 .uso small {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 400;
-  color: #6B7280;
+  color: var(--tx-suave);
 }
+
+.idiomas { display: flex; gap: 6px; margin-bottom: 10px; }
+.idiomas button { padding: 3px 12px; background: var(--bg-card); border: 1px solid var(--borde); border-radius: 999px; color: var(--tx); font-size: 0.8125rem; font-weight: 600; cursor: pointer; }
+.idiomas button.activo { background: #1A4E8A; border-color: #1A4E8A; color: #fff; }
+.caja-terminos { max-height: 200px; padding: 4px 14px 10px; overflow-y: auto; background: var(--bg-pagina); border: 1px solid var(--borde); border-radius: 8px; }
+.acepto { display: flex; align-items: center; gap: 8px; margin: 12px 0 0; font-weight: 600; }
+
+.logo-niubiz { display: block; height: 34px; width: auto; margin-bottom: 8px; border-radius: 6px; }
+
+.pago-oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+
+/* Ventana de compra */
+.compra { display: flex; flex-direction: column; gap: 18px; }
+.compra-resumen { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; padding: 16px 18px; background: var(--bg-info); border: 1px solid var(--borde); border-radius: 10px; }
+.compra-resumen h3 { margin: 2px 0 0; font-size: 1.375rem; font-weight: 700; color: var(--azul-tx); }
+.compra-total { text-align: right; }
+.compra-total strong { display: block; font-size: 1.75rem; color: var(--azul-tx); line-height: 1.1; }
+.compra-titulo { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; }
+.compra-titulo h4 { margin: 0; font-size: 1rem; font-weight: 700; }
+.compra .idiomas { margin: 0; }
+.compra .caja-terminos { max-height: 220px; }
+.compra-pie { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; padding-top: 14px; border-top: 1px solid var(--borde); }
+.seguro { display: flex; align-items: center; gap: 10px; color: var(--tx-suave); font-size: 0.8125rem; max-width: 360px; }
+.seguro .logo-niubiz { height: 28px; margin: 0; flex: none; }
+.compra-botones { display: flex; gap: 10px; flex-wrap: wrap; }
+.compra-espera { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; padding: 12px 0 4px; }
+.compra-espera .logo-niubiz { height: 44px; margin-bottom: 10px; }
+.compra-espera p { margin: 0; }
+.compra-espera .compra-botones { margin-top: 16px; justify-content: center; }
+@media (max-width: 576px) { .compra-total { text-align: left; } .compra-botones, .compra-botones .btn { width: 100%; } }
+
+/* Tipo de comprobante en la compra */
+.tipos-comprobante { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+.tipos-comprobante label { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1px solid var(--borde); border-radius: 10px; cursor: pointer; }
+.tipos-comprobante label.activo { border-color: var(--azul-tx); background: var(--bg-info); }
+.tipos-comprobante span { display: flex; flex-direction: column; }
+.tipos-comprobante small { color: var(--tx-suave); font-size: 0.8125rem; }
+.datos-factura { display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-top: 12px; }
+.datos-factura label { display: flex; flex-direction: column; gap: 4px; font-weight: 600; font-size: 0.875rem; }
+@media (max-width: 576px) { .datos-factura { grid-template-columns: 1fr; } }
+
+/* Historial */
+.acciones-pago { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.enlace-btn { background: none; border: none; padding: 0; color: var(--azul-tx); font-weight: 600; font-size: 0.875rem; cursor: pointer; text-decoration: underline; }
+.enlace-btn:disabled { opacity: 0.5; cursor: default; }
+.estado { padding: 2px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; background: var(--bg-aviso); color: var(--tx-aviso); }
+.estado[data-estado="COMPLETADO"] { background: var(--bg-exito); color: var(--lg-exito); }
+.estado[data-estado="DENEGADO"] { background: #fbe4e4; color: #9b2c2c; }
+
+/* Ventana de resultado del pago */
+.resultado-pago { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
+.sello { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; font-size: 2rem; font-weight: 700; margin-top: 4px; }
+.sello.ok { background: var(--bg-exito); color: var(--lg-exito); }
+.sello.mal { background: #fbe4e4; color: #9b2c2c; }
+.sello.aviso { background: var(--bg-aviso); color: var(--tx-aviso); }
+.mensaje-pago { margin: 0; font-size: 1.0625rem; font-weight: 600; }
+.detalle-pago { width: 100%; margin: 0; text-align: left; border: 1px solid var(--borde); border-radius: 10px; overflow: hidden; }
+.detalle-pago div { display: flex; justify-content: space-between; gap: 16px; padding: 8px 14px; border-bottom: 1px solid var(--borde); }
+.detalle-pago div:last-child { border-bottom: none; }
+.detalle-pago dt { color: var(--tx-suave); font-size: 0.875rem; }
+.detalle-pago dd { margin: 0; font-weight: 600; text-align: right; }
+.respuesta-niubiz { width: 100%; text-align: left; padding: 12px 14px; background: var(--bg-info); border: 1px solid var(--borde); border-radius: 10px; }
+.respuesta-niubiz p { margin: 4px 0 0; }
+.respuesta-niubiz .codigo { display: inline-block; margin-right: 6px; padding: 1px 8px; border-radius: 6px; background: var(--bg-card); border: 1px solid var(--borde); font-family: Consolas, monospace; font-size: 0.8125rem; font-weight: 700; }
+.resultado-pago .compra-botones { justify-content: center; margin-top: 4px; }
+
+.datos-factura .campo-ruc { display: flex; flex-direction: column; gap: 4px; }
+.datos-factura label { font-weight: 600; font-size: 0.875rem; }
+.ruc-buscar { display: flex; gap: 8px; }
+.ruc-buscar .form-control { min-width: 0; }
+.empresa-encontrada { margin: 10px 0 0; padding: 10px 14px; background: var(--bg-exito); color: var(--lg-exito); border-radius: 10px; font-size: 0.875rem; }
+.empresa-encontrada.alerta { background: var(--bg-aviso); color: var(--tx-aviso); }

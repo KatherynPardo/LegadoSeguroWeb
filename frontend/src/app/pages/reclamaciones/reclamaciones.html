@@ -1,0 +1,65 @@
+<header class="barra">
+  <a class="volver" routerLink="/">← Inicio</a>
+  <h1>Libro de reclamaciones</h1>
+</header>
+
+<section class="pagina">
+  <article class="tarjeta legal">
+    @if (registrado(); as r) {
+    <h2 class="titulo-hoja">Tu hoja quedó registrada</h2>
+    <p>Tu código es:</p>
+    <p class="codigo">{{ r.codigo }}</p>
+    <p>Guárdalo para cualquier consulta. {{ r.correoEnviado ? 'También te enviamos una copia a tu correo.' : 'Por ahora no pudimos enviarte la copia por correo, así que anota este código.' }} Te responderemos dentro del plazo que establece la ley.</p>
+    <button type="button" class="btn btn-primary" (click)="otraHoja()">Presentar otra hoja</button>
+    } @else {
+    <p>Hoja de reclamación de <strong>LegadoSeguro</strong>. {{ contacto.direccion }}.</p>
+    <p class="ayuda">Un <strong>reclamo</strong> es tu disconformidad con el servicio; una <strong>queja</strong>, tu disconformidad con la atención recibida. Los campos con * son obligatorios.</p>
+
+    <form (ngSubmit)="enviar()" #formulario="ngForm" class="hoja">
+      <fieldset>
+        <legend>Tipo *</legend>
+        <label class="opcion"><input type="radio" name="tipo" value="RECLAMO" [(ngModel)]="hoja.tipo" /> Reclamo</label>
+        <label class="opcion"><input type="radio" name="tipo" value="QUEJA" [(ngModel)]="hoja.tipo" /> Queja</label>
+      </fieldset>
+
+      <h2 class="seccion">1. Tus datos</h2>
+      <div class="dos">
+        <div><label for="nombres">Nombres *</label><input id="nombres" name="nombres" class="form-control" required maxlength="100" [(ngModel)]="hoja.nombres" /></div>
+        <div><label for="apellidos">Apellidos *</label><input id="apellidos" name="apellidos" class="form-control" required maxlength="100" [(ngModel)]="hoja.apellidos" /></div>
+      </div>
+      <div class="dos">
+        <div>
+          <label for="tipoDocumento">Tipo de documento *</label>
+          <select id="tipoDocumento" name="tipoDocumento" class="form-select" [(ngModel)]="hoja.tipoDocumento">
+            <option value="DNI">DNI</option><option value="CE">Carné de extranjería</option><option value="PASAPORTE">Pasaporte</option>
+          </select>
+        </div>
+        <div><label for="documento">Número de documento *</label><input id="documento" name="documento" class="form-control" required maxlength="15" [(ngModel)]="hoja.documento" /></div>
+      </div>
+      <div class="dos">
+        <div><label for="correo">Correo *</label><input id="correo" name="correo" type="email" class="form-control" required maxlength="150" [(ngModel)]="hoja.correo" /></div>
+        <div><label for="telefono">Teléfono (9 dígitos)</label><input id="telefono" name="telefono" class="form-control" maxlength="9" [(ngModel)]="hoja.telefono" /></div>
+      </div>
+      <label for="direccion">Dirección *</label>
+      <input id="direccion" name="direccion" class="form-control" required maxlength="200" [(ngModel)]="hoja.direccion" />
+
+      <h2 class="seccion">2. Qué ocurrió</h2>
+      <label for="monto">Monto reclamado en soles (si lo hay)</label>
+      <input id="monto" name="monto" type="number" min="0" step="0.01" class="form-control" [(ngModel)]="hoja.monto" />
+      <label for="detalle">Detalle del {{ hoja.tipo === 'RECLAMO' ? 'reclamo' : 'queja' }} *</label>
+      <textarea id="detalle" name="detalle" class="form-control" rows="4" required maxlength="2000" [(ngModel)]="hoja.detalle"></textarea>
+      <label for="pedido">Qué pides como solución *</label>
+      <textarea id="pedido" name="pedido" class="form-control" rows="3" required maxlength="1000" [(ngModel)]="hoja.pedido"></textarea>
+
+      <label class="opcion autoriza"><input type="checkbox" name="autorizaDatos" [(ngModel)]="hoja.autorizaDatos" /> Autorizo el uso de mis datos personales para atender este reclamo, según la <a routerLink="/privacidad">Política de privacidad</a> *</label>
+
+      @if (error()) { <p class="error-form">{{ error() }}</p> }
+
+      <div class="botones-form">
+        <button type="submit" class="btn btn-primary" [disabled]="enviando()">{{ enviando() ? 'Enviando...' : 'Enviar hoja de reclamación' }}</button>
+      </div>
+    </form>
+    }
+    <p class="enlaces"><a routerLink="/terminos">Términos y condiciones</a> · <a routerLink="/privacidad">Política de privacidad</a></p>
+  </article>
+</section>

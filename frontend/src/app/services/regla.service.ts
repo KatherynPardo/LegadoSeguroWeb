@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_URL } from '../core/api.config';
-import { DatosRegla, Regla, ReglaConContexto } from '../models/regla.model';
+import { DatosRegla, Regla, ReglaConContexto, SugerenciaInactividad } from '../models/regla.model';
 
 // Servicio: consulta y guarda la regla de liberación del usuario con sesión
 @Injectable({ providedIn: 'root' })
@@ -13,6 +13,10 @@ export class ReglaService {
 
     getRegla(): Observable<ReglaConContexto> {
         return this.http.get<ReglaConContexto>(this.apiUrl);
+    }
+
+    getSugerencia(): Observable<SugerenciaInactividad> {
+        return this.http.get<SugerenciaInactividad>(`${this.apiUrl}/sugerencia`);
     }
 
     guardar(datos: DatosRegla): Observable<Regla> {

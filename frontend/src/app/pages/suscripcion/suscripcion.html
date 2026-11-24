@@ -36,35 +36,186 @@
       } @else if (p.precio === 0) {
       <button type="button" class="btn btn-outline-primary" (click)="elegir(p)">Cambiar a este plan</button>
       } @else {
-      <button type="button" class="btn btn-primary" disabled>Pagar con Culqi (próximamente)</button>
+      <button type="button" class="btn btn-primary" (click)="abrirCompra(p)">
+        Pagar con tarjeta
+      </button>
       }
     </article>
     }
   </div>
 
+  <!-- El formulario de Niubiz vive aquí (oculto); su ventana se abre sola al confirmar la compra -->
+  <div class="pago-oculto" #contenedorPago></div>
+
+  <app-modal titulo="Confirmar suscripción" [abierto]="!!planAPagar()" [ancho]="true" (cerrar)="cerrarCompra()">
+    @if (planAPagar(); as plan) {
+    <div class="compra">
+      <div class="compra-resumen">
+        <div>
+          <p class="etiqueta">Plan</p>
+          <h3>{{ plan.nombre }}</h3>
+          <p class="ayuda">{{ plan.descripcion }}</p>
+        </div>
+        <div class="compra-total">
+          <p class="etiqueta">Total a pagar</p>
+          <strong>S/ {{ plan.precio | number:'1.2-2' }}</strong>
+          <span class="ayuda">por mes</span>
+        </div>
+      </div>
+
+      @if (paso() === 'resumen') {
+      <div class="compra-seccion">
+        <div class="compra-titulo"><h4>Comprobante de pago</h4></div>
+        <div class="tipos-comprobante" role="radiogroup" aria-label="Tipo de comprobante">
+          <label [class.activo]="tipoComprobante() === 'BOLETA'">
+            <input type="radio" name="comprobante" [checked]="tipoComprobante() === 'BOLETA'" (change)="tipoComprobante.set('BOLETA')" />
+            <span><strong>Boleta de venta</strong><small>Con tu DNI</small></span>
+          </label>
+          <label [class.activo]="tipoComprobante() === 'FACTURA'">
+            <input type="radio" name="comprobante" [checked]="tipoComprobante() === 'FACTURA'" (change)="tipoComprobante.set('FACTURA')" />
+            <span><strong>Factura</strong><small>Con RUC de empresa</small></span>
+          </label>
+        </div>
+        @if (tipoComprobante() === 'FACTURA') {
+        <div class="datos-factura">
+          <div class="campo-ruc">
+            <label for="ruc">RUC</label>
+            <div class="ruc-buscar">
+              <input id="ruc" class="form-control" inputmode="numeric" maxlength="11" autocomplete="off" [value]="ruc()" (input)="cambiarRuc($any($event.target).value)" (keydown.enter)="buscarRuc()" />
+              <button type="button" class="btn btn-outline-primary" [disabled]="buscandoRuc() || ruc().length !== 11" (click)="buscarRuc()">{{ buscandoRuc() ? 'Buscando...' : 'Buscar' }}</button>
+            </div>
+          </div>
+          <div class="campo-ruc">
+            <label for="razon">Razón social</label>
+            <input id="razon" class="form-control" maxlength="150" autocomplete="organization" [value]="razonSocial()" (input)="razonSocial.set($any($event.target).value)" />
+          </div>
+        </div>
+        @if (errorRuc()) { <p class="error-form">{{ errorRuc() }}</p> }
+        @if (empresa(); as e) {
+        <p class="empresa-encontrada" [class.alerta]="e.estado !== 'ACTIVO' || e.condicion !== 'HABIDO'">
+          <strong>{{ e.razonSocial }}</strong><br />
+          {{ e.direccion }}<br />
+          Estado: {{ e.estado || '—' }} · Condición: {{ e.condicion || '—' }}
+          @if (e.estado !== 'ACTIVO' || e.condicion !== 'HABIDO') { <br /><em>Esta empresa no figura como ACTIVA y HABIDA; revisa el RUC antes de pagar.</em> }
+        </p>
+        }
+        }
+      </div>
+
+      <div class="compra-seccion">
+        <div class="compra-titulo">
+          <h4>Términos y condiciones</h4>
+          <div class="idiomas" role="group" aria-label="Idioma de los términos">
+            <button type="button" [class.activo]="idiomaTerminos() === 'es'" [attr.aria-pressed]="idiomaTerminos() === 'es'" (click)="idiomaTerminos.set('es')">Español</button>
+            <button type="button" [class.activo]="idiomaTerminos() === 'en'" [attr.aria-pressed]="idiomaTerminos() === 'en'" (click)="idiomaTerminos.set('en')">English</button>
+          </div>
+        </div>
+        <div class="caja-terminos" tabindex="0" role="region" aria-label="Texto de los términos y condiciones">
+          <app-documento-legal [documento]="terminos[idiomaTerminos()]" />
+        </div>
+        <label class="acepto">
+          <input type="checkbox" [checked]="aceptoTerminos()" (change)="aceptoTerminos.set(!aceptoTerminos())" />
+          He leído y acepto los términos y condiciones (versión 1.0)
+        </label>
+      </div>
+
+      @if (error()) { <p class="error-form">{{ error() }}</p> }
+
+      <div class="compra-pie">
+        <span class="seguro"><img class="logo-niubiz" src="niubiz.png" alt="Niubiz" /> Pago seguro con tarjeta. LegadoSeguro no guarda los datos de tu tarjeta.</span>
+        <div class="compra-botones">
+          <button type="button" class="btn btn-outline-secondary" (click)="cerrarCompra()">Cancelar</button>
+          <button type="button" class="btn btn-primary" [disabled]="!aceptoTerminos() || pagando()" (click)="confirmarPago()">
+            {{ pagando() ? 'Preparando el pago...' : 'Pagar S/ ' + (plan.precio | number:'1.2-2') }}
+          </button>
+        </div>
+      </div>
+      } @else {
+      <div class="compra-espera">
+        <img class="logo-niubiz" src="niubiz.png" alt="Niubiz" />
+        <p><strong>Completa el pago en la ventana de Niubiz.</strong></p>
+        <p class="ayuda">Si la cerraste sin querer, puedes volver a abrirla.</p>
+        @if (error()) { <p class="error-form">{{ error() }}</p> }
+        <div class="compra-botones">
+          <button type="button" class="btn btn-outline-secondary" (click)="cerrarCompra()">Cancelar</button>
+          <button type="button" class="btn btn-primary" (click)="reabrirPago()">Abrir formulario de pago</button>
+        </div>
+      </div>
+      }
+    </div>
+    }
+  </app-modal>
+
   <div class="aviso-info">
     <strong>Sobre los límites del plan</strong>
-    <p>El plan Básico es gratis e incluye hasta 2 herederos. Si ya tenías más herederos, se conservan, pero no podrás designar nuevos hasta mejorar tu plan. El cobro del plan Premium se conectará con Culqi (modo de pruebas).</p>
+    <p>El plan Básico es gratis e incluye hasta 2 herederos. Si ya tenías más herederos, se conservan, pero no podrás designar nuevos hasta mejorar tu plan. El plan Premium se paga con tarjeta a través de Niubiz.</p>
   </div>
 
   <h2 class="subtitulo">Historial de pagos</h2>
   <div class="tarjeta">
+    <div class="tabla-scroll">
     <table class="tabla">
-      <thead><tr><th>Fecha</th><th>Plan</th><th>Monto</th><th>Estado</th></tr></thead>
+      <thead><tr><th>Fecha y hora</th><th>Pedido</th><th>Plan</th><th>Monto</th><th>Estado</th><th>Comprobante</th></tr></thead>
       <tbody>
         @for (pago of d.pagos; track $index) {
         <tr>
-          <td>{{ pago.fecha | date:'dd/MM/yyyy' }}</td>
+          <td>{{ pago.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td>{{ pago.numeroPedido ?? '—' }}</td>
           <td>{{ pago.plan }}</td>
           <td>S/ {{ pago.monto | number:'1.2-2' }}</td>
-          <td>{{ pago.estado }}</td>
+          <td><span class="estado" [attr.data-estado]="pago.estado">{{ pago.estado }}</span></td>
+          <td class="acciones-pago">
+            @if (pago.numeroPedido) { <button type="button" class="enlace-btn" (click)="verDetalle(pago.numeroPedido)">Ver detalle</button> }
+            @if (pago.comprobante) { <button type="button" class="enlace-btn" [disabled]="descargando()" (click)="descargar(pago.numeroPedido, pago.comprobante)">{{ pago.comprobante }} (PDF)</button> }
+          </td>
         </tr>
         } @empty {
-        <tr><td colspan="4" class="vacio">Todavía no hay pagos registrados.</td></tr>
+        <tr><td colspan="6" class="vacio">Todavía no hay pagos registrados.</td></tr>
         }
       </tbody>
     </table>
+    </div>
   </div>
+
+  <!-- Resultado de un pago: comprobante si se aprobó, o la respuesta de Niubiz si no -->
+  <app-modal [titulo]="resultado() ? tituloResultado(resultado()!.estado) : ''" [abierto]="!!resultado()" (cerrar)="cerrarResultado()">
+    @if (resultado(); as r) {
+    <div class="resultado-pago">
+      <div class="sello" [class.ok]="r.estado === 'COMPLETADO'" [class.mal]="r.estado === 'DENEGADO'" [class.aviso]="r.estado !== 'COMPLETADO' && r.estado !== 'DENEGADO'" aria-hidden="true">
+        {{ r.estado === 'COMPLETADO' ? '✓' : r.estado === 'DENEGADO' ? '✕' : '!' }}
+      </div>
+      <p class="mensaje-pago">{{ r.mensaje }}</p>
+
+      <dl class="detalle-pago">
+        <div><dt>Plan</dt><dd>{{ r.plan }}</dd></div>
+        <div><dt>Monto</dt><dd>S/ {{ r.monto | number:'1.2-2' }}</dd></div>
+        <div><dt>Fecha y hora</dt><dd>{{ r.fecha | date:'dd/MM/yyyy HH:mm:ss' }}</dd></div>
+        <div><dt>N.° de pedido</dt><dd>{{ r.numeroPedido }}</dd></div>
+        @if (r.tarjeta) { <div><dt>Tarjeta</dt><dd>{{ r.marca }} {{ r.tarjeta }}</dd></div> }
+        @if (r.codigoAutorizacion) { <div><dt>Código de autorización</dt><dd>{{ r.codigoAutorizacion }}</dd></div> }
+        @if (r.comprobante) { <div><dt>{{ r.comprobante.tipo === 'FACTURA' ? 'Factura' : 'Boleta' }}</dt><dd>{{ r.comprobante.numero }}</dd></div> }
+      </dl>
+
+      @if (r.estado !== 'COMPLETADO' && r.respuestaNiubiz; as n) {
+      <div class="respuesta-niubiz">
+        <strong>Respuesta de Niubiz</strong>
+        <p><span class="codigo">Código {{ n.codigo }}</span> {{ n.descripcion }}</p>
+      </div>
+      }
+
+      <div class="compra-botones">
+        <button type="button" class="btn btn-outline-secondary" (click)="cerrarResultado()">Cerrar</button>
+        @if (r.estado === 'COMPLETADO' && r.comprobante) {
+        <button type="button" class="btn btn-primary" [disabled]="descargando()" (click)="descargar(r.numeroPedido, r.comprobante.numero, r.comprobante.tipo)">
+          {{ descargando() ? 'Preparando...' : 'Descargar ' + (r.comprobante.tipo === 'FACTURA' ? 'factura' : 'boleta') + ' (PDF)' }}
+        </button>
+        } @else if (r.estado !== 'COMPLETADO' && r.estado !== 'PROCESANDO') {
+        <button type="button" class="btn btn-primary" (click)="reintentar(r)">Intentar de nuevo</button>
+        }
+      </div>
+    </div>
+    }
+  </app-modal>
   } @else {
   <p class="vacio">Cargando tu suscripción...</p>
   }

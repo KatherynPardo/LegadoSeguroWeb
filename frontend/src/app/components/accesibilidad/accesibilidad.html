@@ -1,0 +1,38 @@
+@if (abierto()) {
+<section id="panel-accesibilidad" class="panel" aria-label="Opciones de accesibilidad">
+  <h2>Accesibilidad</h2>
+
+  <div class="fila">
+    <span id="etiqueta-tema">Tema</span>
+    <div class="grupo" role="group" aria-labelledby="etiqueta-tema">
+      <button type="button" [class.activo]="a.tema() === 'claro'" [attr.aria-pressed]="a.tema() === 'claro'" (click)="a.tema.set('claro')">Claro</button>
+      <button type="button" [class.activo]="a.tema() === 'oscuro'" [attr.aria-pressed]="a.tema() === 'oscuro'" (click)="a.tema.set('oscuro')">Oscuro</button>
+    </div>
+  </div>
+
+  <div class="fila">
+    <span id="etiqueta-letra">Tamaño de letra</span>
+    <div class="grupo" role="group" aria-labelledby="etiqueta-letra">
+      <button type="button" aria-label="Reducir la letra" [disabled]="a.escala() <= minimo" (click)="a.cambiarEscala(-1)">A−</button>
+      <output class="valor" aria-live="polite">{{ a.escala() }}%</output>
+      <button type="button" aria-label="Aumentar la letra" [disabled]="a.escala() >= maximo" (click)="a.cambiarEscala(1)">A+</button>
+    </div>
+  </div>
+
+  <div class="fila">
+    <label for="alto-contraste">Alto contraste</label>
+    <input id="alto-contraste" type="checkbox" role="switch" [checked]="a.contrasteAlto()" (change)="a.contrasteAlto.set(!a.contrasteAlto())" />
+  </div>
+
+  @if (a.vozDisponible) {
+  <button type="button" class="ancho" (click)="a.leerPagina()">{{ a.leyendo() ? 'Detener la lectura' : 'Escuchar esta pantalla' }}</button>
+  }
+  <button type="button" class="ancho secundario" (click)="a.restablecer()">Restablecer</button>
+</section>
+}
+
+<button type="button" class="abrir" aria-controls="panel-accesibilidad" [attr.aria-expanded]="abierto()" aria-label="Opciones de accesibilidad" (click)="abierto.set(!abierto())">
+  <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <circle cx="12" cy="4.5" r="2"/><path d="M5 8l7 1.5L19 8"/><path d="M12 9.5V14l-3 6"/><path d="M12 14l3 6"/>
+  </svg>
+</button>

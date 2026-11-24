@@ -48,7 +48,7 @@ Cuando una persona fallece o deja de estar disponible, sus cuentas, correos y da
 Tabla: Alcance del sistema
 | Incluye | No incluye (por ahora) |
 |---|---|
-| Registro e ingreso de usuarios con verificación de correo por código | Cobro real de planes con Culqi |
+| Registro e ingreso de usuarios con verificación de correo por código | Cobro real de planes (solo se probó el ambiente de pruebas de Niubiz) |
 | Activos digitales con tipo, banco, monto cifrado e historial | Despliegue público en Vercel |
 | Herederos con verificación opcional por código y checklist de documentos | Subida de archivos (DNI, certificados) |
 | Regla de liberación configurable y procesos de liberación automáticos | Comparación facial automática de la selfie |
@@ -426,7 +426,7 @@ Qué guía legal se entregó por cada activo en un proceso.
 
 #### pago
 
-Pagos de las suscripciones (se llenará al conectar Culqi).
+Pagos de las suscripciones con Niubiz (ver el procedimiento 8.4).
 
 | Campo | Tipo | PK/FK | Restricción | Descripción |
 |---|---|---|---|---|
@@ -435,7 +435,21 @@ Pagos de las suscripciones (se llenará al conectar Culqi).
 | monto | NUMERIC(10,2) | — | NOT NULL | Monto sin cifrar (queda vacío: el monto va en monto_cifrado). |
 | fecha_pago | TIMESTAMPTZ | — | NOT NULL; Por defecto now() | Fecha y hora del pago. |
 | estado | VARCHAR(20) | — | NOT NULL; Por defecto 'COMPLETADO' | Estado del registro (por ejemplo ACTIVO o INACTIVO). |
-| referencia_pago_externa | VARCHAR(100) | — | Puede ser vacío | Código de operación de la pasarela de pago (Culqi). |
+| referencia_pago_externa | VARCHAR(100) | — | Puede ser vacío | Código de operación de la pasarela de pago (Niubiz). |
+| numero_pedido | INT | — | Único | Número de pedido enviado a Niubiz (único, numérico, máximo 9 dígitos). |
+| id_transaccion | VARCHAR(30) | — | Puede ser vacío | Identificador único de la transacción en Niubiz. |
+| tarjeta_enmascarada | VARCHAR(25) | — | Puede ser vacío | Tarjeta con solo el inicio y los 4 últimos dígitos. |
+| codigo_accion | VARCHAR(5) | — | Puede ser vacío | Código de acción de Niubiz (000 = aprobado). |
+| descripcion_accion | VARCHAR(200) | — | Puede ser vacío | Descripción del código de acción o motivo por el que el pago quedó en revisión. |
+| codigo_autorizacion | VARCHAR(12) | — | Puede ser vacío | Código de autorización que devuelve Niubiz cuando aprueba el pago. |
+| eci | VARCHAR(3) | — | Puede ser vacío | Indicador de comercio electrónico (ECI) de la autenticación 3D Secure. |
+| marca | VARCHAR(20) | — | Puede ser vacío | Marca de la tarjeta (VISA, MASTERCARD...). |
+| fecha_transaccion | TIMESTAMPTZ | — | Puede ser vacío | Fecha y hora de la transacción según Niubiz. |
+| tipo_comprobante | VARCHAR(8) | — | NOT NULL; Por defecto 'BOLETA'; BOLETA o FACTURA | Tipo de comprobante que se emite. |
+| serie | VARCHAR(4) | — | Puede ser vacío | Serie del comprobante (B001 para boletas, F001 para facturas). |
+| numero_comprobante | INT | — | Puede ser vacío | Número correlativo del comprobante dentro de su serie. |
+| ruc_cliente | VARCHAR(11) | — | Puede ser vacío; obligatorio en facturas | RUC del cliente (solo en facturas). |
+| razon_social | VARCHAR(150) | — | Puede ser vacío; obligatorio en facturas | Razón social del cliente (solo en facturas). |
 
 #### plan
 
@@ -703,7 +717,7 @@ Cada fila es una llave foránea. La cardinalidad se lee de la tabla padre (1) a 
 ```
 Usuario ──► Frontend (Angular, puerto 4200) ──HTTP/JSON──► Backend / API (Express, puerto 5000) ──SQL──► Base de datos (Supabase PostgreSQL)
                                                                        │
-                                                                       └──► Servicios externos: apiperu.dev (DNI), correo SMTP, (Culqi: pendiente)
+                                                                       └──► Servicios externos: apiperu.dev (DNI), correo SMTP, (Niubiz: pagos)
 ```
 
 Tabla: Tecnologías utilizadas
@@ -716,6 +730,7 @@ Tabla: Tecnologías utilizadas
 | Datos sensibles | AES-256-GCM (módulo `crypto` de Node) | Cifrado reversible con llave |
 | Sesiones | jsonwebtoken (JWT) | Identificar al usuario en cada pedido |
 | Correos | nodemailer | Códigos de verificación |
+| Visión por computador | MediaPipe Face Detector (`@mediapipe/tasks-vision`) | Revisar en el navegador que la selfie sea de una persona y esté bien encuadrada |
 | DNI | apiperu.dev (a través del backend) | Validar nombres con RENIEC |
 
 **Decisión de diseño:** Angular **nunca** habla con la base de datos. Solo el backend tiene las credenciales, y valida el rol de quien hace cada pedido.
@@ -2698,7 +2713,7 @@ async function revisarLimite(idUsuario: number): Promise<void> {
   }
 }
 ```
-Explicación: El backend responde `403` con el código `LIMITE_PLAN`; el frontend lo reconoce y, en lugar de un error, muestra una ventana invitando a mejorar el plan. El cobro del plan Premium todavía no está conectado (Culqi, procedimiento 8.4), por eso `cambiarPlan` solo permite volver al plan gratuito.
+Explicación: El backend responde `403` con el código `LIMITE_PLAN`; el frontend lo reconoce y, en lugar de un error, muestra una ventana invitando a mejorar el plan. El plan Premium no se cambia con esta ruta: se paga con Niubiz (sección 8.4), por eso `cambiarPlan` solo permite volver al plan gratuito.
 Evidencia:
 resultado: Piezas creadas con Angular CLI en el procedimiento 7.10.2 (carpeta limpia de verificación)
 ```resultado
@@ -2938,7 +2953,7 @@ await pool.query('UPDATE verificacion_beneficiario SET selfie_cifrada = $3, fech
 // Confirmar exige haber pasado las tres verificaciones
 if (!v.rows[0]?.dni_validado || !v.rows[0]?.selfie) throw new ReglaLiberacion('Completa las tres verificaciones primero', 409);
 ```
-Explicación: El paso 1 (código de acceso) ya se cumplió al entrar. El paso 2 compara el DNI escrito con el registrado por el propietario; al validarlo, el heredero queda **validado** (`correo_verificado = true`). El paso 3 guarda una foto cifrada, solo si el heredero marcó antes el consentimiento (procedimiento 7.14.3). Al confirmar, el sistema reevalúa el proceso: cuando confirman las personas que pide la regla, empieza la espera final. Una objeción deja sin efecto la confirmación del heredero y obliga al propietario a resolverla.
+Explicación: El paso 1 (código de acceso) ya se cumplió al entrar. El paso 2 compara el DNI escrito con el registrado por el propietario; al validarlo, el heredero queda **validado** (`correo_verificado = true`). El paso 3 guarda una foto cifrada, solo si el heredero marcó antes el consentimiento (procedimiento 7.14.3) y la pantalla comprobó que es un rostro bien encuadrado (procedimiento 7.14.4). Al confirmar, el sistema reevalúa el proceso: cuando confirman las personas que pide la regla, empieza la espera final. Una objeción deja sin efecto la confirmación del heredero y obliga al propietario a resolverla.
 Evidencia:
 resultado: Piezas creadas con Angular CLI en el procedimiento 7.14.2 (carpeta limpia de verificación)
 ```resultado
@@ -2955,13 +2970,14 @@ Solución: El backend responde 409 "Completa las tres verificaciones primero". C
 Verificación: Con el heredero de prueba (`heredero.demo@example.com`, DNI `12345670`) se puede recorrer el flujo completo.
 :::
 
-:::paso 7.14.3 Pedir el consentimiento antes de guardar la selfie
+:::paso 7.14.3 Pedir el consentimiento para la selfie y permitir eliminarla
 Objetivo: Cumplir la Ley N.° 29733 (Protección de Datos Personales): la imagen del rostro es un dato personal sensible, así que solo se guarda si el heredero lo autoriza de forma expresa, y queda constancia de la fecha y la IP de su aceptación.
 Acción:
 1. Ejecutar `022_consentimiento_biometrico.sql` (ya indicado en el procedimiento 7.14.1), que agrega a `verificacion_beneficiario` las columnas `fecha_consentimiento` e `ip_consentimiento`.
 2. En `guardarSelfie`, recibir el consentimiento y la IP, y rechazar el pedido si no hay consentimiento.
 3. En el controlador, leer `req.body.consentimiento === true` y obtener la IP con `obtenerIp(req)`.
 4. En el frontend, mostrar el texto del consentimiento con una casilla, apagar el botón **Tomar selfie** hasta que se marque y enviar el valor junto con la foto.
+5. Permitir que el heredero elimine su foto si se equivocó (antes de confirmar): crear `eliminarSelfie`, la ruta `DELETE .../selfie` y el botón **Eliminar foto y volver a subirla**. Al eliminar la foto también se retira el consentimiento.
 Comando:
 ```
 -- supabase/migrations/022_consentimiento_biometrico.sql
@@ -3006,8 +3022,22 @@ cambiarConsentimiento(evento: Event): void {
   this.acepta.set((evento.target as HTMLInputElement).checked);
 }
 // ... y al enviar: this.portal.enviarSelfie(this.solicitud(), imagen, this.acepta())
+
+// backend/src/services/liberacion.service.ts: eliminar la foto y retirar el consentimiento (fragmento)
+if (confirmada.rows.length > 0) throw new ReglaLiberacion('Ya confirmaste tu participación: no puedes eliminar tu foto', 409);
+await pool.query(`UPDATE verificacion_beneficiario
+  SET selfie_cifrada = NULL, fecha_selfie = NULL, fecha_consentimiento = NULL, ip_consentimiento = NULL
+  WHERE id_proceso = $1 AND id_beneficiario = $2 AND selfie_cifrada IS NOT NULL`, [idProceso, idBeneficiario]);
+
+// backend/src/routes/portal.routes.ts (fragmento)
+router.delete('/solicitudes/:idProceso/:idBeneficiario/selfie', verificarHeredero, quitarFoto);
+
+<!-- frontend/src/app/components/solicitud/solicitud.html (fragmento, paso 3 completado) -->
+@if (!solicitud().confirmado) {
+  <button type="button" class="eliminar-foto" [disabled]="cargando()" (click)="eliminarFoto()">Eliminar foto y volver a subirla</button>
+}
 ```
-Explicación: La selfie del heredero es un dato biométrico, por lo que no basta con pedirla: el heredero debe aceptar de forma expresa y antes de tomarla. El texto aclara para qué se usa (solo verificar su identidad en ese proceso), que se guarda cifrada y que no se comparte. El botón **Tomar selfie** permanece apagado mientras la casilla esté vacía, pero esa regla de la pantalla no basta: el backend vuelve a exigir el consentimiento y responde 400 si falta, de modo que no se puede guardar una foto saltándose la pantalla. Cuando se guarda la foto también se guardan la fecha y la IP de la aceptación, como constancia.
+Explicación: La selfie del heredero es un dato biométrico, por lo que no basta con pedirla: el heredero debe aceptar de forma expresa y antes de tomarla. El texto aclara para qué se usa (solo verificar su identidad en ese proceso), que se guarda cifrada y que no se comparte. El botón **Tomar selfie** permanece apagado mientras la casilla esté vacía, pero esa regla de la pantalla no basta: el backend vuelve a exigir el consentimiento y responde 400 si falta, de modo que no se puede guardar una foto saltándose la pantalla. Cuando se guarda la foto también se guardan la fecha y la IP de la aceptación, como constancia. Si el heredero se equivoca, puede eliminar la foto con **Eliminar foto y volver a subirla**: la foto y la constancia del consentimiento se borran de la base, y para subir otra tendrá que aceptar de nuevo. Después de confirmar su participación el botón desaparece y el backend rechaza el pedido (409), porque la confirmación ya se apoyó en esa verificación.
 Evidencia:
 ![Paso 3 con el consentimiento visible y el botón Tomar selfie apagado](docs/capturas/7-14_consentimiento_biometrico.png)
 resultado: Respuestas reales del backend al enviar la selfie sin consentimiento y con consentimiento (heredero de prueba, DNI ya validado)
@@ -3026,13 +3056,81 @@ resultado: Constancia guardada en la base tras aceptar (consulta a la base)
 > SELECT LEFT(selfie_cifrada, 4) AS selfie, fecha_consentimiento IS NOT NULL AS tiene_fecha, ip_consentimiento FROM verificacion_beneficiario WHERE id_beneficiario = (SELECT id_beneficiario FROM beneficiario WHERE correo = 'heredero.demo@example.com');
  enc: | true | ::1
 ```
+![Paso 3 completado, con el botón para eliminar la foto](docs/capturas/7-14_eliminar_foto.png)
+resultado: Eliminar la foto: respuestas reales del backend y estado en la base (heredero de prueba)
+```resultado
+> DELETE /api/portal/solicitudes/:idProceso/:idBeneficiario/selfie
+200 {"mensaje":"Foto eliminada"}
+en la base: selfie = false, consentimiento = false
+
+> DELETE /api/portal/solicitudes/:idProceso/:idBeneficiario/selfie  (otra vez)
+409 {"mensaje":"No tienes una foto guardada"}
+```
 Resultado esperado: Sin consentimiento no se guarda ninguna foto; con consentimiento, la foto queda cifrada (`enc:`) junto con la fecha y la IP de la aceptación.
 Error frecuente: El botón **Tomar selfie** aparece apagado y no deja elegir la foto.
-Solución: Marcar primero la casilla del consentimiento; el botón se activa al marcarla.
+Solución: Marcar primero la casilla del consentimiento; el botón se activa al marcarla. Si subió una foto equivocada, usar **Eliminar foto y volver a subirla**.
 Verificación: Con la casilla vacía el backend responde 400 aunque se envíe la foto directamente; con la casilla marcada responde 200 y la consulta anterior devuelve `enc:`, `true` y la IP.
 :::
 
-:::paso 7.14.4 Liberar el legado al terminar la espera
+:::paso 7.14.4 Revisar la selfie con un modelo de visión por computador
+Objetivo: Que la pantalla verifique, antes de enviar la foto, que sea de una persona y esté bien encuadrada (un solo rostro, de frente, de buen tamaño y centrado), y rechace fotos de animales, objetos o varias personas.
+Acción:
+1. En la carpeta `frontend`, instalar la librería de detección de rostros.
+2. Crear `services/rostro.service.ts` con el detector (MediaPipe Face Detector), cargado solo cuando se elige una foto.
+3. En `components/solicitud`, reducir la foto a un lienzo, revisarla con `RostroService` y enviarla únicamente si no hay problemas.
+Comando:
+```
+# Terminal, dentro de la carpeta frontend
+npm install @mediapipe/tasks-vision
+
+// frontend/src/app/services/rostro.service.ts (fragmento)
+// El import dinámico descarga la librería recién al elegir una foto; la imagen nunca sale del equipo
+this.detector ??= import('@mediapipe/tasks-vision').then(async ({ FaceDetector, FilesetResolver }) => {
+  const archivos = await FilesetResolver.forVisionTasks(WASM);
+  return FaceDetector.createFromOptions(archivos, {
+    baseOptions: { modelAssetPath: MODELO },
+    runningMode: 'IMAGE',
+    minDetectionConfidence: 0.6
+  });
+});
+
+const rostros = detector.detect(foto).detections;
+if (rostros.length === 0) return 'No se detecta ningún rostro. Toma una selfie donde se vea tu cara de frente.';
+if (rostros.length > 1) return 'Se detecta más de un rostro. En la foto debes salir solo tú.';
+const ancho = caja.width / foto.width;
+if (ancho < 0.25) return 'Tu rostro se ve muy pequeño. Acércate a la cámara.';
+if (ancho > 0.85) return 'Tu rostro ocupa demasiado espacio. Aléjate un poco para que se vea completo.';
+if (centroX < 0.25 || centroX > 0.75 || centroY < 0.15 || centroY > 0.85) return 'Centra tu rostro en la foto.';
+return null;
+
+// frontend/src/app/components/solicitud/solicitud.ts (fragmento de elegirFoto)
+const lienzo = await this.reducir(archivo);
+const problema = await this.rostro.revisar(lienzo);
+if (problema) {
+  this.cargando.set(false);
+  this.error.set(problema);   // se muestra en rojo debajo del paso 3
+  return;
+}
+const imagen = lienzo.toDataURL('image/jpeg', 0.7);
+```
+Explicación: MediaPipe Face Detector es un modelo de aprendizaje automático (red neuronal BlazeFace) que corre dentro del navegador: recibe la imagen y devuelve los rostros que encuentra con su posición. La pantalla usa esa posición para pedir correcciones concretas (acercarse, centrarse, salir solo). Como se ejecuta en el equipo del heredero, la foto no se envía a ningún servicio externo para revisarla; solo se descargan el modelo y los archivos de la librería (desde jsDelivr y Google Storage). La librería se carga con `import()` dinámico para no hacer más pesada la página principal. Esta revisión es una ayuda para quien sube la foto y no reemplaza una verificación facial: el backend no puede comprobar el contenido de la imagen, y si el modelo no se logra descargar (por ejemplo, sin internet), la foto no se bloquea.
+Evidencia:
+![Foto rechazada porque se detectan dos rostros](docs/capturas/7-14_rostro_rechazado.png)
+resultado: Fotos subidas por la pantalla del heredero y respuesta de la revisión (prueba real en el navegador)
+```resultado
+animal (gato)        RECHAZADA: No se detecta ningún rostro. Toma una selfie donde se vea tu cara de frente.
+rostro muy pequeño   RECHAZADA: No se detecta ningún rostro. Toma una selfie donde se vea tu cara de frente.
+rostro descentrado   RECHAZADA: Centra tu rostro en la foto.
+dos rostros          RECHAZADA: Se detecta más de un rostro. En la foto debes salir solo tú.
+retrato correcto     ACEPTADA (foto guardada)
+```
+Resultado esperado: Las fotos sin rostro, con varios rostros, muy pequeñas o descentradas se rechazan con un mensaje que dice qué corregir; un retrato de frente se acepta y se envía.
+Error frecuente: Una foto correcta aparece como "No se detecta ningún rostro".
+Solución: La cara está de perfil, tapada o muy lejos. Tomar la selfie de frente, con buena luz y acercando la cámara.
+Verificación: Subir una foto de un animal y comprobar que se rechaza; subir un retrato de frente y comprobar que se acepta y aparece el botón **Eliminar foto y volver a subirla**.
+:::
+
+:::paso 7.14.5 Liberar el legado al terminar la espera
 Objetivo: Entregar los activos a los herederos que confirmaron cuando termina la espera final.
 Acción: Crear `liberarProcesosListos` (se ejecuta dentro del monitoreo, módulo 7.5) y `liberar`, que crea las entregas.
 Explicación: Cuando el período de espera termina y no hay objeciones abiertas, el proceso pasa a `LIBERADO` y se crea una entrega por cada activo y heredero que confirmó. Los activos financieros quedan en `PENDIENTE_VALIDADOR` si la regla exige un validador externo (pendiente de construir); el resto pasa a `AUTORIZADA`. Todo ocurre en una transacción y después se avisa por correo a cada heredero.
@@ -3290,9 +3388,90 @@ Solución: Usar Gmail con una contraseña de aplicación.
 Verificación: Pedir un código con un correo real y recibirlo en la bandeja.
 :::
 
-### 8.4 Culqi (pagos): pendiente
+### 8.4 Niubiz (pagos con tarjeta)
 
-El cobro de los planes de pago con **Culqi** no se integró en esta versión. Hoy el cambio a un plan de pago responde "El pago de este plan estará disponible cuando se conecte Culqi", y solo se puede volver al plan gratuito. Los pasos previstos son: crear la cuenta de pruebas de Culqi, obtener las llaves de prueba, generar el token de la tarjeta en el navegador con la librería de Culqi (la tarjeta nunca pasa por el backend), enviar ese token al backend y crear el cargo con la llave privada. Se incluye en las limitaciones del proyecto.
+El plan Premium se cobra con **Niubiz** (VisaNet Perú), mediante su formulario de Pago Web. La tarjeta se escribe dentro del formulario seguro de Niubiz: nunca pasa por el backend ni se guarda en la base de datos. El monto sale siempre de la tabla `plan`, no de lo que envíe el navegador. Esta versión está cerrada en la **fase demo (ambiente de pruebas o sandbox)**: no se cobra dinero real. El cobro real exige afiliar el comercio (RUC, cuenta bancaria, dominio con SSL) y pasar la certificación de Niubiz.
+
+El flujo tiene cinco pasos: (1) el propietario acepta los términos y condiciones dentro de la ventana de compra; (2) el backend pide a Niubiz un token de seguridad y una sesión de pago (válida 30 minutos); (3) el navegador abre el formulario de Niubiz con esa sesión y el cliente escribe su tarjeta; (4) Niubiz devuelve un `transactionToken` al navegador, que lo envía a la ruta pública `POST /api/pago/respuesta`; (5) el backend pide la autorización a Niubiz, guarda el resultado en la tabla `pago` y activa el plan solo si el código de acción es `000`; (6) el usuario vuelve a Suscripción, donde una ventana le muestra el resultado y, si fue aprobado, puede descargar su boleta o factura en PDF. Los 97 códigos de acción de Niubiz, con el mensaje para el cliente, están en `backend/src/data/niubiz.json`.
+
+:::paso 8.4.1 Configurar las credenciales del ambiente de pruebas
+Objetivo: Dejar al backend listo para hablar con el sandbox de Niubiz sin exponer las credenciales.
+Acción: Agregar las cuatro variables de Niubiz al archivo `backend/.env` (que Git ignora) y reiniciar el backend.
+Comando:
+```
+# backend/.env  (los valores los entrega Niubiz; nunca se suben a GitHub)
+NIUBIZ_MERCHANT_ID='código de comercio de pruebas'
+NIUBIZ_USER='usuario de pruebas'
+NIUBIZ_PASSWORD='contraseña de pruebas'
+NIUBIZ_ENV=test
+```
+Explicación: `NIUBIZ_ENV=test` apunta a `apitestenv.vnforapps.com` y al script `checkout.js?qa=true`; con `prod` apuntaría a `apiprod`. Si faltan las variables, el pago queda desactivado y el sistema avisa en lugar de fallar. En modo de pruebas el correo no se envía al formulario, para poder escribir los correos que deciden el resultado.
+Resultado esperado: Al pulsar "Pagar" el backend recibe una `sessionKey` real de Niubiz (respuesta HTTP 200).
+Error frecuente: Usar la fila de producción de las credenciales en lugar de la de desarrollo.
+Solución: Usar solo la fila del ambiente de pruebas; la de producción cobra dinero real.
+Verificación: Iniciar un pago y comprobar que el backend devuelve `sessionKey`, `numeroPedido` y `pruebas: true`.
+:::
+
+:::paso 8.4.2 Comprar el plan Premium desde la ventana de compra
+Objetivo: Recorrer la compra completa como lo haría un propietario.
+Acción: Entrar a Suscripción, pulsar "Pagar con tarjeta" en Premium, leer y aceptar los términos, y pulsar "Pagar S/ 29.90".
+Explicación: La ventana "Confirmar suscripción" reúne el plan, el total, los términos (español e inglés) y la casilla de aceptación. El botón de pago está deshabilitado hasta marcar la casilla. Al aceptar se guarda la versión de los términos y la IP en la auditoría (`ACEPTAR_TERMINOS`), y se abre sola la ventana de Niubiz.
+Evidencia:
+![Ventana de compra con los términos aceptados y el botón de pago habilitado](docs/capturas/niubiz_compra_1_confirmar.png)
+Resultado esperado: Se abre el formulario de Niubiz sobre la ventana de compra.
+Error frecuente: Cerrar la ventana de Niubiz sin querer.
+Solución: Pulsar "Abrir formulario de pago" en la ventana de compra; no hace falta repetir la aceptación.
+Verificación: En la tabla `pago` aparece el pedido en estado `PENDIENTE` y en `auditoria` la acción `ACEPTAR_TERMINOS`.
+:::
+
+**Tarjetas de prueba de Niubiz y resultados comprobados.** Vencimiento 12/30 y CVV 123 en todos los casos.
+
+| N.º | Escenario | Tarjeta | Correo | Resultado obtenido | Estado en `pago` |
+|---|---|---|---|---|---|
+| 1 | Pago correcto (tarjeta nacional) | 4919 1481 0785 9067 | accept@cybersource.com | Aprobado, código 000; plan Premium activado | COMPLETADO |
+| 2 | Pago correcto con revisión | 4919 1481 0785 9067 | review@cybersource.com | Aprobado, código 000; no mostró paso de autenticación | COMPLETADO |
+| 3 | Denegado por fraude | 4444 3333 2222 1111 | reject@cybersource.com | Denegado, código 290 (pide ciudad y país) | DENEGADO |
+| 4 | Denegado con revisión | 4111 1111 1111 1111 | review@cybersource.com | Denegado, código 180 (tarjeta inválida) | DENEGADO |
+| 5 | Pago correcto (tarjeta nacional alterna) | 4500 3400 9000 0016 | accept@cybersource.com | No se probó | — |
+| 6 | Pago correcto (tarjeta foránea) | 4072 2102 9053 6663 | accept@cybersource.com | No se probó | — |
+
+:::paso 8.4.3 Pagar con las tarjetas de prueba de Niubiz
+Objetivo: Comprobar cada resultado del pago con las tarjetas de prueba que Niubiz entrega en su manual de integración.
+Acción: En el formulario de Niubiz elegir "Tarjeta de crédito y débito", escribir la tarjeta, el vencimiento 12/30, el CVV 123 y el correo de la tabla, y pulsar "Pagar". En el escenario de fraude el formulario pide además ciudad y país.
+Explicación: En el sandbox el resultado lo deciden la tarjeta y el **correo** que se escribe en el formulario (`accept@`, `review@` o `reject@` seguido de `cybersource.com`). La tabla anterior resume lo que se **comprobó el 24/11/2026**; las tarjetas del manual que no se probaron figuran como tales.
+
+Evidencia:
+![Formulario de Niubiz con la tarjeta de prueba aprobada](docs/capturas/niubiz_compra_2_formulario.png)
+![Pantalla de Suscripción tras el pago denegado por fraude](docs/capturas/niubiz_compra_3_denegado.png)
+Resultado esperado: Con las tarjetas aprobadas vuelve a Suscripción con el mensaje "Pago aprobado. Ya tienes el plan Premium."; con las denegadas, con el mensaje del código y el plan sigue en Básico.
+Error frecuente: Probar el escenario de fraude sin completar ciudad y país: el formulario no deja pagar y no se registra ningún intento.
+Solución: Escribir ciudad y país (por ejemplo Lima y Perú) y volver a pulsar "Pagar".
+Verificación: Consultar `pago` y `suscripcion`: el pago aprobado queda `COMPLETADO` con código `000` y la suscripción `ACTIVA`; el denegado queda `DENEGADO` con su código y la suscripción `CANCELADA`.
+:::
+
+:::paso 8.4.4 Ver el resultado del pago y descargar el comprobante
+Objetivo: Mostrar al usuario qué pasó con su pago y entregarle su comprobante electrónico.
+Acción: Al volver de Niubiz, Suscripción abre una ventana con el resultado. Si el pago fue aprobado, pulsar "Descargar boleta (PDF)".
+Explicación: La ventana muestra el plan, el monto, la fecha y la hora, el número de pedido, la tarjeta enmascarada, el código de autorización y el número del comprobante. Si el pago fue rechazado u observado, en lugar del comprobante muestra la **respuesta de Niubiz** (código y descripción) y el botón "Intentar de nuevo". En la compra el usuario elige **boleta** (con su DNI) o **factura** (con RUC y razón social); al escribir el RUC, el botón **Buscar** consulta la SUNAT mediante apiperu.dev (ruta `GET /api/reniec/ruc/:ruc`, con el mismo token que el DNI) y trae la razón social, la dirección, el estado y la condición, con un aviso si la empresa no figura como ACTIVA y HABIDA; cada serie (B001 para boletas y F001 para facturas) lleva su propio correlativo en la tabla `comprobante_serie`, que se incrementa **dentro de la misma transacción** que aprueba el pago: así no quedan números saltados si algo falla y se revierte, y dos pagos simultáneos se turnan (migración 027). El PDF tiene formato de ticket de 80 mm, con el IGV (18 %) desglosado, el importe en letras y un código QR; se genera en el backend con `pdfkit` y solo lo puede descargar el dueño del pago. En el ambiente de pruebas el documento lleva el aviso "Documento de demostración" porque no tiene validez tributaria: la boleta o factura real la emite el comercio con su RUC a través de un operador autorizado por la SUNAT.
+Evidencia:
+![Ventana de pago exitoso con el detalle y el botón para descargar la boleta](docs/capturas/niubiz_resultado_aprobado.png)
+![Ventana de pago rechazado con la respuesta de Niubiz](docs/capturas/niubiz_resultado_rechazado.png)
+![Boleta de venta electrónica en PDF (documento de demostración)](docs/capturas/niubiz_boleta_pdf.png)
+![Compra eligiendo factura con RUC y razón social](docs/capturas/niubiz_compra_factura.png)
+![Búsqueda del RUC: razón social, dirección, estado y condición traídos de la SUNAT](docs/capturas/niubiz_compra_ruc_buscar.png)
+Resultado esperado: Con el pago aprobado se descarga `Boleta_B001-0000000N.pdf` (o la factura F001); con el rechazado aparece el código 290 y la tabla Historial de pagos muestra la fecha y la hora de cada intento.
+Error frecuente: Pedir el comprobante de un pago que no fue aprobado.
+Solución: El backend responde 409 "Solo los pagos aprobados tienen comprobante"; solo los pagos en estado COMPLETADO lo tienen.
+Verificación: En la tabla `pago` el pago aprobado tiene `serie`, `numero_comprobante` y `codigo_autorizacion`, y el PDF descargado coincide con esos datos.
+:::
+
+**Estados del pago.** `PENDIENTE` (creado, esperando a Niubiz), `PROCESANDO` (se está autorizando; evita cobrar dos veces), `COMPLETADO`, `DENEGADO`, `OBSERVADO` (el código está marcado como observado en `niubiz.json`; en el sandbox no apareció ninguno), `REVISAR` (falló algo después de autorizar y requiere revisión manual) y `EXPIRADO` (la compra no se completó). La confirmación es atómica: solo un pedido en `PENDIENTE` pasa a `PROCESANDO`, así un doble envío no cobra dos veces.
+
+**Pendiente para producción.** Afiliación del comercio con Niubiz, dominio con SSL, emisión de comprobantes con validez tributaria mediante un operador autorizado por la SUNAT (hoy el PDF es de demostración), envío del comprobante por correo, pantalla del administrador para pagos y la certificación. Los datos de prueba (pagos y suscripciones de las pruebas) se borraron al terminar.
+
+### 8.5 Modelo de visión por computador (MediaPipe)
+
+Para revisar la selfie del heredero se integró **MediaPipe Face Detector** (Google, 2026), un modelo de aprendizaje automático que corre dentro del navegador. Se instala con `npm install @mediapipe/tasks-vision` en el frontend y se carga solo al elegir una foto. La foto no se envía a ningún servicio externo: únicamente se descargan el modelo y los archivos de la librería (desde jsDelivr y Google Storage). Se probó con fotos de un animal, un rostro pequeño, uno descentrado, dos rostros y un retrato correcto (procedimiento 7.14.4). Si no hay internet, la revisión se omite y la foto no se bloquea.
 
 ## 9. Dashboard y reportes
 
@@ -3383,7 +3562,11 @@ Tabla: Pruebas funcionales del backend
 | P-31 | Heredero marca un documento ajeno | 404 | 404 | Aprobado |
 | P-32 | Propietario agrega y quita carta poder | Los obligatorios no se quitan | Quedaron 2 | Aprobado |
 | P-33 | Ver suscripción | Plan y límite | Devolvió el plan y el límite | Aprobado |
-| P-34 | Pagar el Premium | 409 (Culqi pendiente) | 409 | Aprobado |
+| P-34 | Pagar el Premium con la tarjeta de prueba aprobada (procedimiento 8.4.3) | Pago aprobado (código 000) y plan Premium | Aprobado y activó Premium | Aprobado |
+| P-34b | Pagar el Premium con la tarjeta denegada por fraude | Denegado y plan sigue en Básico | Código 290, sigue Básico | Aprobado |
+| P-34c | Descargar la boleta de un pago aprobado | PDF con serie y número | B001-00000001 en PDF de 80 mm | Aprobado |
+| P-34d | Comprar con factura (RUC y razón social) | Factura F001 | F001-00000001 con los datos del RUC | Aprobado |
+| P-34e | Ver el resultado de un pago rechazado | Ventana con el código de Niubiz | Código 290 y botón para reintentar | Aprobado |
 | P-35 | Admin lista usuarios y auditoría | 200 | 200 | Aprobado |
 | P-36 | Admin desactiva y activa un usuario | 200 y auditoría con IP | Verificado | Aprobado |
 | P-37 | Mi historial | Acciones e ingresos | Devolvió registros | Aprobado |
@@ -3416,6 +3599,8 @@ Tabla: Pruebas funcionales del backend
 | P-63 | Selfie sin consentimiento (campo ausente o `false`) | 400 y la foto no se guarda | 400 "Debes aceptar el tratamiento de tu foto para continuar"; sin foto en la base | Aprobado |
 | P-64 | Selfie con consentimiento | 200; la foto queda cifrada con fecha e IP | 200; `enc:`, fecha registrada e IP `::1` | Aprobado |
 | P-65 | Pedido con `X-Forwarded-For: 203.0.113.7` con y sin `TRUST_PROXY` | Sin la variable se ignora; con `TRUST_PROXY=1` se registra | `::1` y `203.0.113.7` | Aprobado |
+| P-66 | Eliminar la selfie y repetir la operación | 200 y se borran la foto y el consentimiento; la segunda vez, 409 | 200, `selfie = false` y `consentimiento = false`; después 409 | Aprobado |
+| P-67 | Subir por la pantalla una foto de un gato, un rostro muy pequeño, uno descentrado, dos rostros y un retrato de frente | Las cuatro primeras se rechazan con su mensaje; el retrato se acepta | 4 rechazos ("No se detecta ningún rostro", "Centra tu rostro en la foto", "Se detecta más de un rostro") y 1 aceptación | Aprobado |
 
 ### 10.2 Pruebas de integración (Frontend → Backend → Supabase)
 
@@ -3526,7 +3711,7 @@ Tabla: Comprobaciones de la puesta en marcha
 | Login y cierre de sesión | Ingresar con `carlos.ramirez@example.com` y cerrar sesión | Verificado |
 | Registros, consultas, modificaciones y eliminaciones | Activos y herederos (crear, editar, eliminar) | Verificado |
 | Dashboard y reportes | Muestran datos reales | Verificado (ver la sección 9) |
-| Pagos o servicios externos | Consulta de DNI y correos funcionan; **Culqi pendiente** | Parcial |
+| Pagos o servicios externos | Consulta de DNI y correos funcionan; Niubiz probado en el ambiente de pruebas (aprobado y denegado); cobro real pendiente | Parcial |
 | Acceso desde Internet | **Pendiente** (depende del despliegue, sección 12) | Pendiente |
 
 
@@ -3669,9 +3854,9 @@ Cuentas externas necesarias: Supabase (obligatoria); apiperu.dev y una cuenta de
 
 **Limitaciones**
 - No está desplegado públicamente.
-- El cobro con Culqi no está conectado.
-- El consentimiento de la selfie se pide y se registra, pero todavía no hay una opción en pantalla para revocarlo y borrar la foto.
-- La selfie del heredero se guarda como evidencia, pero no se compara automáticamente con su DNI.
+- El cobro con Niubiz se probó solo en el ambiente de pruebas; el cobro real requiere afiliación y certificación.
+- El heredero puede eliminar su foto (y con ella su consentimiento) hasta que confirma su participación; después de confirmar, la foto no se puede retirar desde la pantalla.
+- La selfie del heredero se guarda como evidencia, pero no se compara automáticamente con su DNI. La pantalla solo revisa que haya un rostro bien encuadrado, y esa revisión depende de descargar el modelo por internet; no la valida el backend.
 - El portal del validador externo (que aprobaría las entregas de activos financieros) no está hecho.
 - No se adjuntan archivos.
 - Los correos reales requieren configurar una cuenta SMTP.
@@ -3680,7 +3865,7 @@ Cuentas externas necesarias: Supabase (obligatoria); apiperu.dev y una cuenta de
 **Mejoras futuras**
 - Portal del validador externo y comparación facial de la selfie.
 - Indicaciones por activo que viajan al heredero cuando se libera el proceso.
-- Cobro con Culqi y despliegue en la nube.
+- Cobro real con Niubiz (afiliación y certificación) y despliegue en la nube.
 - Notificaciones por SMS o llamada, y autenticador (TOTP).
 - Subida de documentos con Supabase Storage.
 
@@ -3714,6 +3899,7 @@ ref: Bootstrap. (2026). *Bootstrap 5.3 documentation*. https://getbootstrap.com/
 ref: Express. (2026). *Express: Node.js web application framework*. https://expressjs.com/
 ref: Git. (2026). *Git documentation*. https://git-scm.com/doc
 ref: GitHub. (2026). *GitHub Docs*. https://docs.github.com/
+ref: Google. (2026). *MediaPipe Face Detector guide*. https://ai.google.dev/edge/mediapipe/solutions/vision/face_detector
 ref: Microsoft. (2026a). *Visual Studio Code documentation*. https://code.visualstudio.com/docs
 ref: Microsoft. (2026b). *TypeScript documentation*. https://www.typescriptlang.org/docs/
 ref: Nodemailer. (2026). *Nodemailer documentation*. https://nodemailer.com/

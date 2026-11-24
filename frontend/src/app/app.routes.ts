@@ -1,5 +1,9 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/auth.guard';
+import { authGuard, visitanteGuard } from './core/auth.guard';
+import { Landing } from './pages/landing/landing';
+import { Terminos } from './pages/terminos/terminos';
+import { Privacidad } from './pages/privacidad/privacidad';
+import { Reclamaciones } from './pages/reclamaciones/reclamaciones';
 import { Login } from './pages/login/login';
 import { Dashboard } from './pages/dashboard/dashboard';
 import { Beneficiarios } from './pages/beneficiarios/beneficiarios';
@@ -17,11 +21,15 @@ import { Portal } from './pages/portal/portal';
 import { adminGuard } from './core/admin.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+  { path: '', component: Landing, canActivate: [visitanteGuard], pathMatch: 'full' }, // página de inicio pública
   { path: 'login', component: Login },
   { path: 'registro', component: Registro },
   { path: 'recuperar', component: Recuperar },
   { path: 'portal', component: Portal }, // portal del heredero (tiene su propia sesión)
+  // Páginas legales públicas
+  { path: 'terminos', component: Terminos },
+  { path: 'privacidad', component: Privacidad },
+  { path: 'reclamaciones', component: Reclamaciones },
   // Pantallas protegidas: exigen haber iniciado sesión
   { path: 'dashboard', component: Dashboard, canActivate: [authGuard] },
   { path: 'beneficiarios', component: Beneficiarios, canActivate: [authGuard] },

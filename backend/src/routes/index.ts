@@ -18,6 +18,10 @@ import historialRoutes from './historial.routes';
 import suscripcionRoutes from './suscripcion.routes';
 import reporteRoutes from './reporte.routes';
 import portalRoutes from './portal.routes';
+import pagoRoutes from './pago.routes';
+import asistenteRoutes from './asistente.routes';
+import reclamoRoutes from './reclamo.routes';
+import { verPlanes } from '../controllers/suscripcion.controller';
 import { soloAdmin } from '../middlewares/admin.middleware';
 
 const router = Router();
@@ -26,6 +30,11 @@ const router = Router();
 router.use('/salud', saludRoutes);
 router.use('/auth', authRoutes);
 router.use('/portal', portalRoutes); // portal del heredero (tiene su propia sesión)
+
+router.use('/pago', pagoRoutes);     // respuesta del formulario de pago de Niubiz
+router.get('/planes', verPlanes);    // planes y precios, para la página de inicio
+router.use('/asistente', asistenteRoutes); // asistente virtual de orientación
+router.use('/reclamos', reclamoRoutes);    // libro de reclamaciones virtual
 
 // Rutas protegidas: hace falta haber iniciado sesión
 router.use('/beneficiarios', verificarToken, beneficiarioRoutes);

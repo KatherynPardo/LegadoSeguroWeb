@@ -1,0 +1,939 @@
+{
+  "fuente": "Documento de Integración Pago Web - Formulario v6.0 (VisaNet Perú, 2025): sección 7, anexos a, b y c. Los escenarios de prueba son los de la sección 7.vi. Los campos marcados con porConfirmar no están descritos en los documentos y deben comprobarse en el sandbox.",
+  "moneda": {
+    "codigo": "PEN",
+    "descripcion": "Soles"
+  },
+  "ambientes": {
+    "test": {
+      "api": "https://apitestenv.vnforapps.com",
+      "script": "https://static-content-qas.vnforapps.com/v2/js/checkout.js?qa=true"
+    },
+    "prod": {
+      "api": "https://apiprod.vnforapps.com",
+      "script": "https://static-content.vnforapps.com/v2/js/checkout.js"
+    }
+  },
+  "aprobado": {
+    "codigoAccion": "000",
+    "mensajeCliente": "Pago aprobado."
+  },
+  "escenariosPrueba": [
+    {
+      "id": "aprobado_nacional",
+      "nombre": "Pago correcto (tarjeta nacional)",
+      "tarjetas": [
+        "4919 1481 0785 9067",
+        "4500 3400 9000 0016"
+      ],
+      "correo": "accept@cybersource.com",
+      "resultadoEsperado": "APROBADO",
+      "detalle": "Aprobado sin autenticación."
+    },
+    {
+      "id": "aprobado_autenticado",
+      "nombre": "Pago correcto con autenticación (Verified by Visa)",
+      "tarjetas": [
+        "4919 1481 0785 9067",
+        "4500 3400 9000 0016"
+      ],
+      "correo": "review@cybersource.com",
+      "resultadoEsperado": "APROBADO",
+      "detalle": "Se probó en el sandbox el 24/11/2026: con 4919 1481 0785 9067 se aprueba (000) sin mostrar un paso de autenticación aparte.",
+      "porConfirmar": []
+    },
+    {
+      "id": "aprobado_foraneo",
+      "nombre": "Pago correcto (tarjeta foránea)",
+      "tarjetas": [
+        "4072 2102 9053 6663"
+      ],
+      "correo": "accept@cybersource.com",
+      "resultadoEsperado": "APROBADO",
+      "detalle": "El formulario cambia solo cuando el BIN no es peruano."
+    },
+    {
+      "id": "denegado_fraude",
+      "nombre": "Pago denegado por fraude",
+      "tarjetas": [
+        "4444 3333 2222 1111",
+        "4111 1111 1111 1111"
+      ],
+      "correo": "reject@cybersource.com",
+      "resultadoEsperado": "DENEGADO",
+      "detalle": "Se probó en el sandbox el 24/11/2026: con 4444 3333 2222 1111 devuelve el código 290 (denegada por el emisor). El formulario pide ciudad y país.",
+      "porConfirmar": []
+    },
+    {
+      "id": "denegado_autenticado",
+      "nombre": "Pago denegado con revisión (Verified by Visa)",
+      "tarjetas": [
+        "4444 3333 2222 1111",
+        "4111 1111 1111 1111"
+      ],
+      "correo": "review@cybersource.com",
+      "resultadoEsperado": "DENEGADO",
+      "detalle": "Se probó en el sandbox el 24/11/2026: con 4111 1111 1111 1111 devuelve el código 180 (tarjeta inválida, denegada).",
+      "porConfirmar": []
+    }
+  ],
+  "escenariosOperativos": [
+    {
+      "id": "cerrado",
+      "nombre": "Cerrar el formulario sin pagar",
+      "como": "Cerrar el formulario con la X",
+      "resultadoEsperado": "PENDIENTE",
+      "porConfirmar": [
+        "si el navegador envía algo al backend o solo vence la sesión"
+      ]
+    },
+    {
+      "id": "sesion_vencida",
+      "nombre": "Sesión de pago vencida",
+      "como": "Dejar abierto el formulario más minutos de los indicados en data-expirationminutes",
+      "resultadoEsperado": "DENEGADO",
+      "codigosPosibles": [
+        "674",
+        "682"
+      ],
+      "porConfirmar": [
+        "qué código devuelve en el sandbox"
+      ]
+    },
+    {
+      "id": "pedido_repetido",
+      "nombre": "Número de pedido repetido",
+      "como": "Reenviar el mismo número de pedido",
+      "resultadoEsperado": "DENEGADO",
+      "codigosPosibles": [
+        "300"
+      ],
+      "detalle": "Nuestro sistema ya lo evita: cada pedido se procesa una sola vez."
+    }
+  ],
+  "codigosEci": [
+    {
+      "codigo": "5",
+      "descripcion": "Transacción autenticada"
+    },
+    {
+      "codigo": "6",
+      "descripcion": "Comercio intentó autenticación pero el tarjetahabiente no está participando"
+    },
+    {
+      "codigo": "7",
+      "descripcion": "Transacción no autenticada pero enviada en canal seguro"
+    },
+    {
+      "codigo": "10",
+      "descripcion": "Entidad emisora no disponible para autenticación"
+    },
+    {
+      "codigo": "11",
+      "descripcion": "Clave secreta del tarjetahabiente incorrecta"
+    },
+    {
+      "codigo": "12",
+      "descripcion": "Tarjeta vencida"
+    }
+  ],
+  "estadosVenta": {
+    "contable": [
+      "Autorizada",
+      "Anulada",
+      "Liquidada",
+      "Denegada"
+    ],
+    "noContable": [
+      "Por liquidar",
+      "Anulada",
+      "Liquidada",
+      "Vencida",
+      "Denegada"
+    ],
+    "reglas": [
+      "Una venta contable aprobada queda Autorizada y pasa sola a Liquidada en la madrugada del día siguiente.",
+      "Una venta Autorizada solo se puede Anular el mismo día de su aprobación.",
+      "Una venta no contable aprobada queda Por liquidar: se puede Anular hasta que se confirme, y vence al día 8 si no se confirma."
+    ],
+    "nuestraConfiguracion": "El sistema usa countable = true (venta contable, liquidación automática)."
+  },
+  "codigosAccion": [
+    {
+      "codigo": "101",
+      "apoyoComercio": "Operación Denegada. Tarjeta Vencida.",
+      "mensajeCliente": "Operación Denegada. Tarjeta Vencida. Verifique los datos en su tarjeta e ingréselos correctamente.",
+      "categoria": "EMISOR",
+      "accion": "CORREGIR_DATOS",
+      "observada": false
+    },
+    {
+      "codigo": "102",
+      "apoyoComercio": "Operación Denegada. Contactar con la entidad emisora.",
+      "mensajeCliente": "Operación Denegada. Contactar con entidad emisora de su tarjeta.",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "104",
+      "apoyoComercio": "Operación Denegada. Operación no permitida para esta tarjeta.",
+      "mensajeCliente": "Operación Denegada. Operación no permitida para esta tarjeta. Contactar con la entidad emisora de su tarjeta.",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "106",
+      "apoyoComercio": "Operación Denegada. Exceso de intentos de ingreso de clave secreta.",
+      "mensajeCliente": "Operación Denegada. Intentos de clave secreta excedidos. Contactar con la entidad emisora de su tarjeta.",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "107",
+      "apoyoComercio": "Operación Denegada. Contactar con la entidad emisora.",
+      "mensajeCliente": "Operación Denegada. Contactar con la entidad emisora de su tarjeta.",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "108",
+      "apoyoComercio": "Operación Denegada. Exceso de actividad.",
+      "mensajeCliente": "Operación Denegada. Contactar con la entidad emisora de su tarjeta.",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "109",
+      "apoyoComercio": "Operación Denegada. Identificación inválida de establecimiento.",
+      "mensajeCliente": "Operación Denegada. Contactar con el comercio.",
+      "categoria": "COMERCIO",
+      "accion": "CONTACTAR_COMERCIO",
+      "observada": false
+    },
+    {
+      "codigo": "110",
+      "apoyoComercio": "Operación Denegada. Operación no permitida para esta tarjeta.",
+      "mensajeCliente": "Operación Denegada. Operación no permitida para esta tarjeta. Contactar con la entidad emisora de su tarjeta.",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "111",
+      "apoyoComercio": "Operación Denegada. El monto de la transacción supera el valor máximo permitido para operaciones virtuales",
+      "mensajeCliente": "Operación Denegada. Contactar con el comercio.",
+      "categoria": "COMERCIO",
+      "accion": "CONTACTAR_COMERCIO",
+      "observada": false
+    },
+    {
+      "codigo": "112",
+      "apoyoComercio": "Operación Denegada. Se requiere clave secreta.",
+      "mensajeCliente": "Operación Denegada. Se requiere clave secreta.",
+      "categoria": "EMISOR",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "116",
+      "apoyoComercio": "Operación Denegada. Fondos insuficientes.",
+      "mensajeCliente": "Operación Denegada. Fondos insuficientes. Contactar con entidad emisora de su tarjeta",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "117",
+      "apoyoComercio": "Operación Denegada. Clave secreta incorrecta.",
+      "mensajeCliente": "Operación Denegada. Clave secreta incorrecta.",
+      "categoria": "EMISOR",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "118",
+      "apoyoComercio": "Operación Denegada. Tarjeta inválida.",
+      "mensajeCliente": "Operación Denegada. Tarjeta Inválida. Contactar con entidad emisora de su tarjeta.",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "119",
+      "apoyoComercio": "Operación Denegada. Exceso de intentos de ingreso de clave secreta.",
+      "mensajeCliente": "Operación Denegada. Intentos de clave secreta excedidos. Contactar con entidad emisora de su tarjeta.",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "121",
+      "apoyoComercio": "Operación Denegada.",
+      "mensajeCliente": "Operación Denegada.",
+      "categoria": "GENERICO",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "126",
+      "apoyoComercio": "Operación Denegada. Clave secreta inválida.",
+      "mensajeCliente": "Operación Denegada. Clave secreta inválida.",
+      "categoria": "EMISOR",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "129",
+      "apoyoComercio": "Operación Denegada. Tarjeta no operativa.",
+      "mensajeCliente": "Operación Denegada. Código de seguridad invalido. Contactar con entidad emisora de su tarjeta",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "180",
+      "apoyoComercio": "Operación Denegada. Tarjeta inválida.",
+      "mensajeCliente": "Operación Denegada. Tarjeta Inválida. Contactar con entidad emisora de su tarjeta.",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "181",
+      "apoyoComercio": "Operación Denegada. Tarjeta con restricciones de Débito.",
+      "mensajeCliente": "Operación Denegada. Tarjeta con restricciones de débito. Contactar con entidad emisora de su tarjeta.",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "182",
+      "apoyoComercio": "Operación Denegada. Tarjeta con restricciones de Crédito.",
+      "mensajeCliente": "Operación Denegada. Tarjeta con restricciones de crédito. Contactar con entidad emisora de su tarjeta.",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "183",
+      "apoyoComercio": "Operación Denegada. Error de sistema.",
+      "mensajeCliente": "Operación Denegada. Problemas de comunicación. Intente más tarde.",
+      "categoria": "TECNICO",
+      "accion": "REINTENTAR_MAS_TARDE",
+      "observada": false
+    },
+    {
+      "codigo": "190",
+      "apoyoComercio": "Operación Denegada. Contactar con entidad emisora.",
+      "mensajeCliente": "Operación Denegada. Contactar con entidad emisora de su tarjeta.",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "191",
+      "apoyoComercio": "Operación Denegada. Contactar con entidad emisora.",
+      "mensajeCliente": "Oper ación Denegada. Contactar con entidad emisora de su tarjeta.",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "192",
+      "apoyoComercio": "Operación Denegada. Contactar con entidad emisora.",
+      "mensajeCliente": "Operación Denegada. Contactar con entidad emisora de su tarjeta.",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "199",
+      "apoyoComercio": "Operación Denegada.",
+      "mensajeCliente": "Operación Denegada.",
+      "categoria": "GENERICO",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "201",
+      "apoyoComercio": "Operación Denegada. Tarjeta vencida.",
+      "mensajeCliente": "Operación Denegada. Tarjeta vencida. Contactar con entidad emisora de su tarjeta.",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "202",
+      "apoyoComercio": "Operación Denegada. Contactar con entidad emisora.",
+      "mensajeCliente": "Operación Denegada. Contactar con entidad emisora de su tarjeta",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "204",
+      "apoyoComercio": "Operación Denegada. Operación no permitida para esta tarjeta.",
+      "mensajeCliente": "Operación Denegada. Operación no permitida para esta tarjeta. Contactar con entidad emisora de su tarjeta.",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "206",
+      "apoyoComercio": "Operación Denegada. Exceso de intentos de ingreso de clave secreta.",
+      "mensajeCliente": "Operación Denegada. Inte ntos de clave secreta excedidos. Contactar con la entidad emisora de su tarjeta.",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "207",
+      "apoyoComercio": "Operación Denegada. Contactar con entidad emisora.",
+      "mensajeCliente": "Operación Denegada. Contactar con entidad emisora de su tarjeta.",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "208",
+      "apoyoComercio": "Operación Denegada. Tarjeta perdida.",
+      "mensajeCliente": "Operación Denegada. Contactar con entidad emisora de su tarjeta.",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "209",
+      "apoyoComercio": "Operación Denegada. Tarjeta robada.",
+      "mensajeCliente": "Operación Denegada. Contactar con entidad emisora de su tarjeta",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "263",
+      "apoyoComercio": "Operación Denegada. Error en el envío de parámetros.",
+      "mensajeCliente": "Operación Denegada. Contactar con el comercio.",
+      "categoria": "COMERCIO",
+      "accion": "CONTACTAR_COMERCIO",
+      "observada": false
+    },
+    {
+      "codigo": "264",
+      "apoyoComercio": "Operación Denegada. Entidad emisora no está disponible para realizar la autenticación.",
+      "mensajeCliente": "Operación Denegada. Entidad emisora de la tarjeta no está disponible para realizar la autenticación.",
+      "categoria": "AUTENTICACION",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": true
+    },
+    {
+      "codigo": "265",
+      "apoyoComercio": "Operación Denegada. Clave secreta del tarjetahab iente incorrecta.",
+      "mensajeCliente": "Operación Denegada. Clave secreta del tarjetahabiente incorrecta. Contactar con entidad emisora de su tarjeta.",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "266",
+      "apoyoComercio": "Operación Denegada. Tarjeta vencida.",
+      "mensajeCliente": "Operación Denegada. Tarjeta Vencida. Contactar con entidad emisora de su tarjeta.",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "280",
+      "apoyoComercio": "Operación Denegada. Clave errónea.",
+      "mensajeCliente": "Operación Denegada. Clave secreta errónea. Contactar con entidad emisora de su tarjeta.",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "290",
+      "apoyoComercio": "Operación Denegada. Contactar con entidad emisora.",
+      "mensajeCliente": "Operación Denegada. Contactar con entidad emisora de su tarjeta.",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "300",
+      "apoyoComercio": "Operación Denegada. Número de pedido del comercio duplicado. Favor no atender.",
+      "mensajeCliente": "Operación Denegada. Número de pedido del comercio duplicado. Favor no atender.",
+      "categoria": "DUPLICADO",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "306",
+      "apoyoComercio": "Operación Denegada. Contactar con entidad emisora.",
+      "mensajeCliente": "Operación Denegada. Contactar con entidad emisora de su tarjeta.",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "401",
+      "apoyoComercio": "Operación Denegada. Tienda inhabilitada.",
+      "mensajeCliente": "Operación Denegada. Contactar con el comercio. 34",
+      "categoria": "COMERCIO",
+      "accion": "CONTACTAR_COMERCIO",
+      "observada": false
+    },
+    {
+      "codigo": "402",
+      "apoyoComercio": "Operación Denegada.",
+      "mensajeCliente": "Operación Denegada.",
+      "categoria": "GENERICO",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "403",
+      "apoyoComercio": "Operación Denegada. Tarjeta no autenticada",
+      "mensajeCliente": "Operación Denegada. Tarjeta no autenticada.",
+      "categoria": "AUTENTICACION",
+      "accion": "NINGUNA",
+      "observada": true
+    },
+    {
+      "codigo": "404",
+      "apoyoComercio": "Operación Denegada. El monto de la transacción supera el valor máximo permitido.",
+      "mensajeCliente": "Operación Denegada. Contactar con el comercio.",
+      "categoria": "COMERCIO",
+      "accion": "CONTACTAR_COMERCIO",
+      "observada": false
+    },
+    {
+      "codigo": "405",
+      "apoyoComercio": "Operación Denegada. La tarjeta ha superado la cantidad máxima de transacciones en el día.",
+      "mensajeCliente": "Operación Denegada. Contactar con el comercio.",
+      "categoria": "COMERCIO",
+      "accion": "CONTACTAR_COMERCIO",
+      "observada": false
+    },
+    {
+      "codigo": "406",
+      "apoyoComercio": "Operación Denegada. La tienda ha superado la cantidad máxima de transacciones en el día.",
+      "mensajeCliente": "Operación Denegada. Contactar con el comercio.",
+      "categoria": "COMERCIO",
+      "accion": "CONTACTAR_COMERCIO",
+      "observada": false
+    },
+    {
+      "codigo": "407",
+      "apoyoComercio": "Operación Denegada. El monto de la transacción no llega al mínimo permitido.",
+      "mensajeCliente": "Operación Denegada. Contactar con el comercio.",
+      "categoria": "COMERCIO",
+      "accion": "CONTACTAR_COMERCIO",
+      "observada": false
+    },
+    {
+      "codigo": "408",
+      "apoyoComercio": "Operación Denegada. CVV2 no coincide.",
+      "mensajeCliente": "Operación Denegada. Código de seguridad no coincide. Contactar con entidad emisora de su tarjeta",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "409",
+      "apoyoComercio": "Operación Denegada. CVV2 no procesado por entidad emisora.",
+      "mensajeCliente": "Operación Denegada. Código de seguridad no procesado por la entidad emisora de la tarjeta",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "410",
+      "apoyoComercio": "Operación Denegada. CVV2 no procesado por no ingresado.",
+      "mensajeCliente": "Operación Denegada. Código de seguridad no ingresado.",
+      "categoria": "EMISOR",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "411",
+      "apoyoComercio": "Operación Denegada. CVV2 no procesado por entidad emisora.",
+      "mensajeCliente": "Operación Denegada. Código de seguridad no procesado por la entidad emisora de la tarjeta",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "412",
+      "apoyoComercio": "Operación Denegada. CVV2 no reconocido por entidad emisora.",
+      "mensajeCliente": "Operación Denegada. Código de seguridad no reconocid o por la entidad emisora de la tarjeta",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "413",
+      "apoyoComercio": "Operación Denegada. Contactar con entidad emisora.",
+      "mensajeCliente": "Operación Denegada. Contactar con entidad emisora de su tarjeta.",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "414",
+      "apoyoComercio": "Operación Denegada.",
+      "mensajeCliente": "Operación Denegada.",
+      "categoria": "GENERICO",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "415",
+      "apoyoComercio": "Operación Denegada.",
+      "mensajeCliente": "Operación Denegada.",
+      "categoria": "GENERICO",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "416",
+      "apoyoComercio": "Operación Denegada.",
+      "mensajeCliente": "Operación Denegada.",
+      "categoria": "GENERICO",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "417",
+      "apoyoComercio": "Operación Denegada.",
+      "mensajeCliente": "Operación Denegada.",
+      "categoria": "GENERICO",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "418",
+      "apoyoComercio": "Operación Denegada.",
+      "mensajeCliente": "Operación Denegada.",
+      "categoria": "GENERICO",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "419",
+      "apoyoComercio": "Operación Denegada.",
+      "mensajeCliente": "Operación Denegada.",
+      "categoria": "GENERICO",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "420",
+      "apoyoComercio": "Operación Denegada. Tarjeta no es VISA.",
+      "mensajeCliente": "Operación Denegada. Tarjeta no es VISA.",
+      "categoria": "EMISOR",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "421",
+      "apoyoComercio": "Operación Denegada. Contactar con entidad emisora.",
+      "mensajeCliente": "Operación Denegada. Contactar con entidad emisora de su tarjeta.",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "422",
+      "apoyoComercio": "Operación Denegada. El comercio no está configurado para usar este medio de pago.",
+      "mensajeCliente": "Operación Denegada. El comercio no está configurado para usar este medio de pago. Contactar con el comercio.",
+      "categoria": "COMERCIO",
+      "accion": "CONTACTAR_COMERCIO",
+      "observada": false
+    },
+    {
+      "codigo": "423",
+      "apoyoComercio": "Operación Denegada. Se canceló el proceso de pago.",
+      "mensajeCliente": "Operación Denegada. Se canceló el proceso de pago.",
+      "categoria": "CANCELADO",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "424",
+      "apoyoComercio": "Operación Denegada. Contactar con entidad emi sora.",
+      "mensajeCliente": "Operación Denegada.",
+      "categoria": "GENERICO",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "666",
+      "apoyoComercio": "Operación Denegada. Problemas de comunicación. Intente más tarde.",
+      "mensajeCliente": "Operación Denegada. Problemas de comunicación. Intente más tarde.",
+      "categoria": "TECNICO",
+      "accion": "REINTENTAR_MAS_TARDE",
+      "observada": false
+    },
+    {
+      "codigo": "667",
+      "apoyoComercio": "Operación Denegada. Transacción sin autenticación. Inicio del Proceso de Pago",
+      "mensajeCliente": "Operación Denegada. Transacción sin respuesta de Verified by Visa.",
+      "categoria": "AUTENTICACION",
+      "accion": "NINGUNA",
+      "observada": true
+    },
+    {
+      "codigo": "668",
+      "apoyoComercio": "Operación Denegada.",
+      "mensajeCliente": "Operación Denegada. Contactar con el comercio.",
+      "categoria": "COMERCIO",
+      "accion": "CONTACTAR_COMERCIO",
+      "observada": false
+    },
+    {
+      "codigo": "669",
+      "apoyoComercio": "Operación Denegada.",
+      "mensajeCliente": "Operación Denegada. Contactar con el comercio.",
+      "categoria": "COMERCIO",
+      "accion": "CONTACTAR_COMERCIO",
+      "observada": false
+    },
+    {
+      "codigo": "670",
+      "apoyoComercio": "Operación Denegada. Módulo antifraude.",
+      "mensajeCliente": "Operación Denegada. Contactar con el comercio.",
+      "categoria": "ANTIFRAUDE",
+      "accion": "CONTACTAR_COMERCIO",
+      "observada": true
+    },
+    {
+      "codigo": "672",
+      "apoyoComercio": "Operación Denegada. Transacción sin respuesta de Antifraude.",
+      "mensajeCliente": "Operación Denegada. Módulo antifraude.",
+      "categoria": "ANTIFRAUDE",
+      "accion": "NINGUNA",
+      "observada": true
+    },
+    {
+      "codigo": "673",
+      "apoyoComercio": "Operación Denegada. Transacción sin respuesta del Autorizador.",
+      "mensajeCliente": "Operación Denegada. Contactar con el comercio.",
+      "categoria": "TECNICO",
+      "accion": "CONTACTAR_COMERCIO",
+      "observada": false
+    },
+    {
+      "codigo": "674",
+      "apoyoComercio": "Operación Denegada. Sesión no válida.",
+      "mensajeCliente": "Operación Denegada. Contactar con el comercio.",
+      "categoria": "SESION",
+      "accion": "CONTACTAR_COMERCIO",
+      "observada": false
+    },
+    {
+      "codigo": "675",
+      "apoyoComercio": "Inicialización de transacción",
+      "mensajeCliente": "Inicialización de transacción",
+      "categoria": "TECNICO",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "676",
+      "apoyoComercio": "Operación Denegada. No activa la opción Revisar Enviar al Autorizador.",
+      "mensajeCliente": "Operación Denegada. Contactar con el comercio.",
+      "categoria": "ANTIFRAUDE",
+      "accion": "CONTACTAR_COMERCIO",
+      "observada": true
+    },
+    {
+      "codigo": "677",
+      "apoyoComercio": "Operación Denegada. Respuesta Antifraude con parámetros nos válidos.",
+      "mensajeCliente": "Operación Denegada. Contactar con el comercio.",
+      "categoria": "ANTIFRAUDE",
+      "accion": "CONTACTAR_COMERCIO",
+      "observada": true
+    },
+    {
+      "codigo": "678",
+      "apoyoComercio": "Operación Denegada. Valor ECI no válido.",
+      "mensajeCliente": "Operación Denegada. Contactar con el comercio.",
+      "categoria": "AUTENTICACION",
+      "accion": "CONTACTAR_COMERCIO",
+      "observada": true
+    },
+    {
+      "codigo": "682",
+      "apoyoComercio": "Operación Denegada. Intento de Pago fuera del tiempo permitido.",
+      "mensajeCliente": "Operación Denegada.",
+      "categoria": "SESION",
+      "accion": "REINTENTAR",
+      "observada": false
+    },
+    {
+      "codigo": "683",
+      "apoyoComercio": "Operación Denegada. Registro incorrecto de sesión.",
+      "mensajeCliente": "Operación Denegada. Registro incorrecto de sesión.",
+      "categoria": "TECNICO",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "684",
+      "apoyoComercio": "Operación Denegada Registro Incorrecto Antifraude",
+      "mensajeCliente": "Operación Denegada Registro Incorrecto Antifraude",
+      "categoria": "TECNICO",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "685",
+      "apoyoComercio": "Operación Denegada Registro Incorrecto Autorizador",
+      "mensajeCliente": "Operación Denegada Registro Incorrecto Autorizador",
+      "categoria": "TECNICO",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "904",
+      "apoyoComercio": "Operación Denegada. Formato de mensaje erróneo.",
+      "mensajeCliente": "Operación Denegada.",
+      "categoria": "GENERICO",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "909",
+      "apoyoComercio": "Operación Denegada. Error de sistema.",
+      "mensajeCliente": "Operación Denegada. Problemas de comunicación. Intente más tarde.",
+      "categoria": "TECNICO",
+      "accion": "REINTENTAR_MAS_TARDE",
+      "observada": false
+    },
+    {
+      "codigo": "910",
+      "apoyoComercio": "Operación Denegada. Error de sistema.",
+      "mensajeCliente": "Operación Denegada.",
+      "categoria": "TECNICO",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "912",
+      "apoyoComercio": "Operación Denegada. Entidad emisora no disponible.",
+      "mensajeCliente": "Operación Denegada. Entidad emisora de la tarjeta no disponible",
+      "categoria": "EMISOR",
+      "accion": "CONTACTAR_EMISOR",
+      "observada": false
+    },
+    {
+      "codigo": "913",
+      "apoyoComercio": "Operación Denegada. Transmisión duplicada.",
+      "mensajeCliente": "Operación Denegada.",
+      "categoria": "DUPLICADO",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "916",
+      "apoyoComercio": "Operación Denegada. Contactar con entidad emisora.",
+      "mensajeCliente": "Operación Denegada.",
+      "categoria": "EMISOR",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "928",
+      "apoyoComercio": "Operación Denegada. Contactar con entidad emisora.",
+      "mensajeCliente": "Operación Denegada.",
+      "categoria": "EMISOR",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "940",
+      "apoyoComercio": "Operación Denegada. Transacción anulada previamente.",
+      "mensajeCliente": "Operación Denegada.",
+      "categoria": "GENERICO",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "941",
+      "apoyoComercio": "Operación Denegada. Transacción ya anulada previamente.",
+      "mensajeCliente": "Operación Denegada.",
+      "categoria": "GENERICO",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "942",
+      "apoyoComercio": "Operación Denegada.",
+      "mensajeCliente": "Operación Denegada.",
+      "categoria": "GENERICO",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "943",
+      "apoyoComercio": "Operación Denegada. Datos originales distintos.",
+      "mensajeCliente": "Operación Denegada.",
+      "categoria": "GENERICO",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "945",
+      "apoyoComercio": "Operación Denegada. Referencia repetida.",
+      "mensajeCliente": "Operación Denegada.",
+      "categoria": "DUPLICADO",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "946",
+      "apoyoComercio": "Operación Denegada. Operación de anulación en proceso.",
+      "mensajeCliente": "Operación Denegada. Operación de anulación en proceso.",
+      "categoria": "GENERICO",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "947",
+      "apoyoComercio": "Operación Denegada. Comunicación duplicada.",
+      "mensajeCliente": "Operación Denegada. Problemas de comunicación. Intente más tarde.",
+      "categoria": "DUPLICADO",
+      "accion": "REINTENTAR_MAS_TARDE",
+      "observada": false
+    },
+    {
+      "codigo": "948",
+      "apoyoComercio": "Operación Denegada. Contactar con entidad emisora.",
+      "mensajeCliente": "Operación Denegada.",
+      "categoria": "EMISOR",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "949",
+      "apoyoComercio": "Operación Denegada. Contactar con entidad emisora.",
+      "mensajeCliente": "Operación Denegada.",
+      "categoria": "EMISOR",
+      "accion": "NINGUNA",
+      "observada": false
+    },
+    {
+      "codigo": "965",
+      "apoyoComercio": "Operación Denegada. Contactar con entidad emisora.",
+      "mensajeCliente": "Operación Denegada.",
+      "categoria": "EMISOR",
+      "accion": "NINGUNA",
+      "observada": false
+    }
+  ]
+}

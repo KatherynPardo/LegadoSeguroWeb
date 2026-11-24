@@ -22,9 +22,9 @@
 
 .banco {
   display: block;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 400;
-  color: #6B7280;
+  color: var(--tx-suave);
 }
 
 .sin-dato {
@@ -49,13 +49,13 @@
 
 .ayuda-campo {
   margin: 4px 0 0;
-  font-size: 13px;
-  color: #6B7280;
+  font-size: 0.8125rem;
+  color: var(--tx-suave);
 }
 
 .ayuda {
-  color: #6B7280;
-  font-size: 14px;
+  color: var(--tx-suave);
+  font-size: 0.875rem;
 }
 
 .form-check {
@@ -69,8 +69,8 @@
 
 .nota-sens {
   margin: 6px 0 0;
-  font-size: 14px;
-  color: #6B7280;
+  font-size: 0.875rem;
+  color: var(--tx-suave);
 }
 
 /* Estado como en el diseño: verde si ya tiene heredero, naranja si está pendiente */
@@ -90,7 +90,7 @@
 .caja-tarjeta {
   margin: 12px 0;
   padding: 12px 14px;
-  background: #F7F8FA;
-  border: 1px solid #D9D9D9;
+  background: var(--bg-suave);
+  border: 1px solid var(--borde);
   border-radius: 8px;
 }

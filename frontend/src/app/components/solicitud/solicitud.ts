@@ -1,6 +1,7 @@
 import { Component, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PortalService } from '../../services/portal.service';
+import { RostroService } from '../../services/rostro.service';
 import { Solicitud as DatosSolicitud } from '../../models/documento.model';
 import { Modal } from '../modal/modal';
 
@@ -27,7 +28,7 @@ export class Solicitud {
   motivo = '';
   errorObjecion = signal('');
 
-  constructor(private portal: PortalService) {}
+  constructor(private portal: PortalService, private rostro: RostroService) {}
 
   // Paso 2: comparar el DNI escrito con el que registró el propietario
   validarDni(): void {
@@ -52,16 +53,26 @@ export class Solicitud {
     this.acepta.set((evento.target as HTMLInputElement).checked);
   }
 
-  // Paso 3: con el consentimiento marcado, la foto se reduce a un tamaño pequeño y se envía
+  // Paso 3: con el consentimiento marcado, la foto se reduce a un tamaño pequeño, se revisa que sea un rostro bien encuadrado y se envía
   async elegirFoto(evento: Event): Promise<void> {
-    const archivo = (evento.target as HTMLInputElement).files?.[0];
+    const entrada = evento.target as HTMLInputElement;
+    const archivo = entrada.files?.[0];
+    entrada.value = ''; // así se puede volver a elegir el mismo archivo
     if (!archivo || !this.acepta()) return;
 
     this.error.set('');
     this.cargando.set(true);
 
     try {
-      const imagen = await this.reducir(archivo);
+      const lienzo = await this.reducir(archivo);
+      const problema = await this.rostro.revisar(lienzo);
+      if (problema) {
+        this.cargando.set(false);
+        this.error.set(problema);
+        return;
+      }
+
+      const imagen = lienzo.toDataURL('image/jpeg', 0.7);
       this.vistaPrevia.set(imagen);
       this.portal.enviarSelfie(this.solicitud(), imagen, this.acepta()).subscribe({
         next: () => {
@@ -79,15 +90,34 @@ export class Solicitud {
     }
   }
 
-  // Dibuja la foto en un lienzo de máximo 480 píxeles y la guarda como JPEG liviano
-  private async reducir(archivo: File): Promise<string> {
+  // Si se equivocó, el heredero elimina su foto (y con ella su consentimiento) y vuelve a empezar el paso 3
+  eliminarFoto(): void {
+    this.error.set('');
+    this.cargando.set(true);
+
+    this.portal.eliminarSelfie(this.solicitud()).subscribe({
+      next: () => {
+        this.cargando.set(false);
+        this.vistaPrevia.set('');
+        this.acepta.set(false);
+        this.cambio.emit();
+      },
+      error: err => {
+        this.cargando.set(false);
+        this.error.set(err.error?.mensaje ?? 'No se pudo eliminar la foto');
+      }
+    });
+  }
+
+  // Dibuja la foto en un lienzo de máximo 480 píxeles (después se guarda como JPEG liviano)
+  private async reducir(archivo: File): Promise<HTMLCanvasElement> {
     const imagen = await createImageBitmap(archivo);
     const escala = Math.min(1, 480 / Math.max(imagen.width, imagen.height));
     const lienzo = document.createElement('canvas');
     lienzo.width = Math.round(imagen.width * escala);
     lienzo.height = Math.round(imagen.height * escala);
     lienzo.getContext('2d')!.drawImage(imagen, 0, 0, lienzo.width, lienzo.height);
-    return lienzo.toDataURL('image/jpeg', 0.7);
+    return lienzo;
   }
 
   pasosCompletos(): boolean {

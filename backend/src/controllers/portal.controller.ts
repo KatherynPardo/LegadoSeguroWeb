@@ -4,7 +4,7 @@ import { Request, Response } from 'express';
 import { enviarCodigoPortal, entrarAlPortal } from '../services/portal.service';
 import { checklistDelHeredero, marcarDocumento, avisarDocumentosListos } from '../services/documento.service';
 import {
-  solicitudesDelHeredero, validarDni, guardarSelfie, confirmarParticipacion, presentarObjecion, ReglaLiberacion
+  solicitudesDelHeredero, validarDni, guardarSelfie, eliminarSelfie, confirmarParticipacion, presentarObjecion, ReglaLiberacion
 } from '../services/liberacion.service';
 import { texto } from '../utils/validar';
 import { esCorreo } from '../utils/validar';
@@ -154,6 +154,18 @@ export async function paso3Selfie(req: Request, res: Response) {
     res.json({ mensaje: 'Foto guardada' });
   } catch (error) {
     responderError(error, res, 'guardar la foto');
+  }
+}
+
+export async function quitarFoto(req: Request, res: Response) {
+  const ids = leerIds(req, res);
+  if (!ids) return;
+
+  try {
+    await eliminarSelfie(res.locals.correoHeredero, ids.idProceso, ids.idBeneficiario);
+    res.json({ mensaje: 'Foto eliminada' });
+  } catch (error) {
+    responderError(error, res, 'eliminar la foto');
   }
 }
 

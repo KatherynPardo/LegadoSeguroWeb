@@ -50,6 +50,10 @@ export class PortalService {
         return this.http.post<{ mensaje: string }>(`${this.apiUrl}/solicitudes/${s.idProceso}/${s.idBeneficiario}/selfie`, { imagen, consentimiento });
     }
 
+    eliminarSelfie(s: Solicitud): Observable<{ mensaje: string }> {
+        return this.http.delete<{ mensaje: string }>(`${this.apiUrl}/solicitudes/${s.idProceso}/${s.idBeneficiario}/selfie`);
+    }
+
     confirmarParticipacion(s: Solicitud): Observable<{ estadoProceso: string }> {
         return this.http.post<{ estadoProceso: string }>(`${this.apiUrl}/solicitudes/${s.idProceso}/${s.idBeneficiario}/confirmar`, {});
     }

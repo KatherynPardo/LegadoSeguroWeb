@@ -1,0 +1,25 @@
+/* Estilos compartidos por las páginas legales (términos, privacidad y reclamaciones) */
+.volver { display: inline-block; margin-bottom: 6px; color: var(--azul-tx); font-size: 0.875rem; font-weight: 600; text-decoration: none; }
+.legal { max-width: 860px; margin: 0 auto; }
+.enlaces { margin: 22px 0 0; padding-top: 14px; border-top: 1px solid var(--borde); color: var(--tx-suave); font-size: 0.875rem; }
+.enlaces a { color: var(--azul-tx); font-weight: 600; }
+
+.idiomas { display: flex; gap: 6px; margin-bottom: 14px; }
+.idiomas button { padding: 4px 14px; background: var(--bg-card); border: 1px solid var(--borde); border-radius: 999px; color: var(--tx); font-size: 0.875rem; font-weight: 600; cursor: pointer; }
+.idiomas button.activo { background: #1A4E8A; border-color: #1A4E8A; color: #fff; }
+
+/* Hoja de reclamación */
+.hoja label { display: block; margin-top: 14px; font-weight: 600; }
+.hoja .opcion { display: inline-flex; align-items: center; gap: 6px; margin: 0 16px 0 0; font-weight: 400; }
+.hoja .autoriza { display: flex; margin-top: 18px; }
+.hoja fieldset { margin: 12px 0 0; padding: 0; border: 0; }
+.hoja legend { margin: 0 0 4px; font-size: 1rem; font-weight: 700; }
+.dos { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.seccion { margin: 26px 0 0; font-size: 1.0625rem; font-weight: 700; color: var(--azul-tx); }
+.ayuda { color: var(--tx-suave); }
+.codigo { margin: 0 0 10px; font-size: 2rem; font-weight: 800; color: var(--azul-tx); letter-spacing: 0.05em; }
+.titulo-hoja { margin: 0 0 12px; font-size: 1.25rem; font-weight: 700; color: var(--lg-exito); }
+
+@media (max-width: 768px) {
+  .dos { grid-template-columns: 1fr; }
+}

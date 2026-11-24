@@ -13,3 +13,7 @@
     flex-direction: column;
   }
 }
+
+.contenido:focus {
+  outline: none;
+}

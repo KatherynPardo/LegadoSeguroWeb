@@ -1,0 +1,15 @@
+<header class="barra">
+  <a class="volver" routerLink="/">← Inicio</a>
+  <h1>{{ terminos[idioma()].titulo }}</h1>
+</header>
+
+<section class="pagina">
+  <article class="tarjeta legal">
+    <div class="idiomas" role="group" aria-label="Idioma del documento">
+      <button type="button" [class.activo]="idioma() === 'es'" [attr.aria-pressed]="idioma() === 'es'" (click)="idioma.set('es')">Español</button>
+      <button type="button" [class.activo]="idioma() === 'en'" [attr.aria-pressed]="idioma() === 'en'" (click)="idioma.set('en')">English</button>
+    </div>
+    <app-documento-legal [documento]="terminos[idioma()]" />
+    <p class="enlaces"><a routerLink="/privacidad">Política de privacidad</a> · <a routerLink="/reclamaciones">Libro de reclamaciones</a></p>
+  </article>
+</section>

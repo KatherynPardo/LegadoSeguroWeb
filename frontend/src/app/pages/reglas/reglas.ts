@@ -1,7 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ReglaService } from '../../services/regla.service';
-import { DatosRegla } from '../../models/regla.model';
+import { DatosRegla, SugerenciaInactividad } from '../../models/regla.model';
 
 @Component({
   selector: 'app-reglas',
@@ -11,6 +11,7 @@ import { DatosRegla } from '../../models/regla.model';
 })
 export class Reglas implements OnInit {
   cargado = signal(false); // el formulario se muestra cuando ya llegaron los datos
+  sugerencia = signal<SugerenciaInactividad | null>(null); // plazo sugerido según los ingresos del usuario
   mensaje = signal('');
   error = signal('');
 
@@ -45,6 +46,9 @@ export class Reglas implements OnInit {
       this.regla.minConfirmaciones = Math.min(this.regla.minConfirmaciones, this.maxConfirmaciones);
       this.cargado.set(true);
     });
+
+    // Si la sugerencia falla, la pantalla funciona igual sin ella
+    this.reglaService.getSugerencia().subscribe({ next: s => this.sugerencia.set(s), error: () => this.sugerencia.set(null) });
   }
 
   // Convierte los días a una frase fácil de leer: "≈ 6 meses"

@@ -93,6 +93,9 @@
     <div class="paso-texto">
       <strong>3. Verificación facial</strong>
       <span>Tu foto fue enviada con tu consentimiento y quedó guardada, cifrada, como evidencia.</span>
+      @if (!solicitud().confirmado) {
+      <button type="button" class="eliminar-foto" [disabled]="cargando()" (click)="eliminarFoto()">Eliminar foto y volver a subirla</button>
+      }
     </div>
     @if (vistaPrevia()) { <img class="foto" [src]="vistaPrevia()" alt="Tu selfie" /> }
     <span class="estado ok">Completado</span>

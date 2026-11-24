@@ -1,0 +1,11 @@
+<header class="barra">
+  <a class="volver" routerLink="/">← Inicio</a>
+  <h1>{{ privacidad.titulo }}</h1>
+</header>
+
+<section class="pagina">
+  <article class="tarjeta legal">
+    <app-documento-legal [documento]="privacidad" />
+    <p class="enlaces"><a routerLink="/terminos">Términos y condiciones</a> · <a routerLink="/reclamaciones">Libro de reclamaciones</a></p>
+  </article>
+</section>

@@ -10,7 +10,7 @@
 }
 
 .ventana {
-  background: #fff;
+  background: var(--bg-card);
   border-radius: 12px;
   width: 100%;
   max-width: 520px;
@@ -29,16 +29,16 @@
 
 .cabecera h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 700;
 }
 
 .x {
   background: none;
   border: none;
-  font-size: 28px;
+  font-size: 1.75rem;
   line-height: 1;
-  color: #6B7280;
+  color: var(--tx-suave);
   cursor: pointer;
 }
 

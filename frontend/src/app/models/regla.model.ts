@@ -11,6 +11,15 @@ export interface Regla {
 // Datos que se envían al guardar (sin el id)
 export type DatosRegla = Omit<Regla, 'id'>;
 
+// Sugerencia de días de inactividad calculada con los ingresos del usuario (/api/reglas/sugerencia)
+export interface SugerenciaInactividad {
+    dias: number;
+    intervaloTipico: number | null; // días que normalmente pasan entre un ingreso y otro (null si falta historial)
+    intervalos: number;             // intervalos medidos
+    minimoIntervalos: number;       // intervalos necesarios para confiar en el cálculo
+    suficiente: boolean;
+}
+
 export interface ReglaConContexto {
     regla: Regla | null;
     totalBeneficiarios: number;

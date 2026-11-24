@@ -35,12 +35,13 @@ const TABLAS: Record<string, string> = {
   validacion_externa: 'Resultado de la validación del validador externo en un proceso.',
   objecion: 'Objeciones presentadas durante un proceso (por un heredero o por el propietario).',
   entrega: 'Entrega de cada activo a su heredero, con el acceso autorizado.',
-  guia_legal: 'Textos de orientación legal para guiar a los herederos.',
+  guia_legal: 'Guía de preguntas frecuentes y orientación general que consulta el asistente virtual.',
+  reclamo: 'Libro de reclamaciones virtual: cada hoja de reclamo o queja, con su código y su estado.',
   orientacion_legal_generada: 'Qué guía legal se entregó por cada activo en un proceso.',
   notificacion: 'Mensajes enviados a propietarios o herederos durante un proceso.',
   plan: 'Planes de suscripción (Básico gratuito y Premium) y su límite de herederos.',
   suscripcion: 'Plan que tiene o tuvo cada usuario.',
-  pago: 'Pagos de las suscripciones (se llenará al conectar Culqi).',
+  pago: 'Pagos de las suscripciones con Niubiz: un intento de cobro por fila, con su número de pedido y el resultado.',
   requisito_documental: 'Catálogo de documentos que debe reunir un heredero (lo mantiene el administrador).',
   documento_heredero: 'Checklist de cada heredero: qué documento, en qué estado y dónde está el original.'
 };
@@ -76,7 +77,17 @@ const CAMPOS: Record<string, string> = {
   canal: 'Canal de envío (correo, SMS, llamada...).', asunto: 'Asunto del mensaje.', mensaje: 'Contenido del mensaje.',
   tema: 'Tema de la guía.', contenido: 'Texto completo.', version: 'Número de versión.', entidad_referencial: 'Entidad a la que acudir.',
   tipo: 'Tipo (FREE o PREMIUM en los planes).', precio: 'Precio mensual en soles.', limite_herederos: 'Máximo de herederos del plan (vacío = ilimitado).',
-  referencia_pago_externa: 'Código de operación de la pasarela de pago (Culqi).', obligatorio: 'Si el documento se asigna a todos los herederos.',
+  referencia_pago_externa: 'Código de operación de la pasarela de pago (Niubiz).',
+  palabras_clave: 'Palabras y sinónimos que ayudan al asistente virtual a encontrar el tema.',
+  detalle: 'Descripción del reclamo o la queja, tal como la escribió el consumidor.', pedido: 'Lo que el consumidor pide como solución.',
+  servicio: 'Servicio sobre el que se presenta el reclamo.',
+  numero_pedido: 'Número de pedido enviado a Niubiz (único, numérico, máximo 9 dígitos).', id_transaccion: 'Identificador único de la transacción en Niubiz.',
+  tarjeta_enmascarada: 'Tarjeta con solo el inicio y los 4 últimos dígitos.', codigo_accion: 'Código de acción de Niubiz (000 = aprobado).',
+  descripcion_accion: 'Descripción del código de acción o motivo por el que el pago quedó en revisión.',
+  codigo_autorizacion: 'Código de autorización que devuelve Niubiz cuando aprueba el pago.', eci: 'Indicador de comercio electrónico (ECI) de la autenticación 3D Secure.',
+  marca: 'Marca de la tarjeta (VISA, MASTERCARD...).', fecha_transaccion: 'Fecha y hora de la transacción según Niubiz.',
+  tipo_comprobante: 'BOLETA (por defecto) o FACTURA.', serie: 'Serie del comprobante (B001 para boletas, F001 para facturas).',
+  numero_comprobante: 'Número correlativo del comprobante dentro de su serie.', ruc_cliente: 'RUC del cliente (solo en facturas).', razon_social: 'Razón social del cliente (solo en facturas).', obligatorio: 'Si el documento se asigna a todos los herederos.',
   ubicacion: 'Dónde está el original del documento (nota del propietario).'
 };
 

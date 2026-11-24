@@ -1,6 +1,6 @@
 .portal {
   min-height: 100vh;
-  background: #F7F8FA;
+  background: var(--bg-suave);
 }
 
 .cabecera-portal {
@@ -13,7 +13,7 @@
 }
 
 .marca {
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 700;
 }
 
@@ -48,7 +48,7 @@
 .caja {
   width: 100%;
   max-width: 440px;
-  background: #fff;
+  background: var(--bg-card);
   border-radius: 16px;
   box-shadow: 0 6px 24px rgba(15, 35, 80, 0.12);
   padding: 36px;
@@ -56,13 +56,13 @@
 
 h1 {
   margin: 0 0 8px;
-  font-size: 26px;
+  font-size: 1.625rem;
   font-weight: 700;
 }
 
 .sub {
   margin: 0;
-  color: #6B7280;
+  color: var(--tx-suave);
 }
 
 label {
@@ -76,15 +76,15 @@ input[name='codigo'] {
   width: 100%;
   height: 48px;
   padding: 0 14px;
-  background: #F7F8FA;
-  border: 1px solid #D9D9D9;
+  background: var(--bg-suave);
+  border: 1px solid var(--borde);
   border-radius: 8px;
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 input:focus {
-  outline: 2px solid #1A4E8A;
-  background: #fff;
+  outline: 2px solid var(--azul-tx);
+  background: var(--bg-card);
 }
 
 .boton {
@@ -93,7 +93,7 @@ input:focus {
   margin-top: 24px;
   background: #1A4E8A;
   color: #fff;
-  font-size: 17px;
+  font-size: 1.0625rem;
   font-weight: 600;
   border: none;
   border-radius: 8px;
@@ -108,11 +108,11 @@ input:focus {
 .enlace {
   margin: 20px 0 0;
   text-align: center;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 .enlace a {
-  color: #1A4E8A;
+  color: var(--azul-tx);
 }
 
 .error {
@@ -128,12 +128,12 @@ input:focus {
 }
 
 .aviso-naranja {
-  background: #FFF4E8;
-  border: 1px solid #F0D3A0;
+  background: var(--bg-aviso);
+  border: 1px solid var(--borde);
   border-radius: 12px;
   padding: 18px 22px;
   margin-bottom: 24px;
-  color: #8A5A12;
+  color: var(--tx-aviso);
 }
 
 .aviso-naranja strong,
@@ -142,8 +142,8 @@ input:focus {
 }
 
 .lista {
-  background: #fff;
-  border: 1px solid #E3E7ED;
+  background: var(--bg-card);
+  border: 1px solid var(--borde);
   border-radius: 12px;
   box-shadow: 0 2px 6px rgba(15, 35, 80, 0.06);
   padding: 24px 28px;
@@ -159,20 +159,20 @@ input:focus {
 
 .lista-cabecera h2 {
   margin: 0 0 4px;
-  font-size: 19px;
+  font-size: 1.1875rem;
   font-weight: 700;
 }
 
 .porcentaje {
-  font-size: 28px;
+  font-size: 1.75rem;
   font-weight: 700;
-  color: #1A4E8A;
+  color: var(--azul-tx);
 }
 
 .riel {
   height: 8px;
   margin: 14px 0 8px;
-  background: #EEF1F5;
+  background: var(--bg-suave);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -190,7 +190,7 @@ input:focus {
   gap: 14px;
   margin: 0;
   padding: 16px 0;
-  border-top: 1px solid #F0F2F5;
+  border-top: 1px solid var(--borde);
   font-weight: 400;
   cursor: pointer;
 }
@@ -209,13 +209,13 @@ input:focus {
 }
 
 .doc-texto span {
-  color: #6B7280;
-  font-size: 14px;
+  color: var(--tx-suave);
+  font-size: 0.875rem;
 }
 
 .doc-texto .donde {
   margin-top: 4px;
-  color: #1A4E8A;
+  color: var(--azul-tx);
 }
 
 .documento.listo .doc-texto strong {
@@ -227,15 +227,15 @@ input:focus {
   display: inline;
   margin-left: 8px;
   padding: 2px 8px;
-  background: #FDF1DE;
+  background: var(--bg-aviso);
   border-radius: 999px;
-  color: #8A5A12;
-  font-size: 11px;
+  color: var(--tx-aviso);
+  font-size: 0.6875rem;
   font-weight: 600;
 }
 
 .vacio {
-  color: #6B7280;
+  color: var(--tx-suave);
   text-align: center;
 }
 
@@ -251,6 +251,6 @@ input:focus {
 
 .ayuda-aviso {
   margin: 8px 0 0;
-  font-size: 13px;
-  color: var(--lg-texto-suave, #6b7280);
+  font-size: 0.8125rem;
+  color: var(--lg-texto-suave, var(--tx-suave));
 }

@@ -1,7 +1,9 @@
 <div class="portal">
   <header class="cabecera-portal">
-    <app-logo [tamano]="32" />
-    <span class="marca">LegadoSeguro</span>
+    <a routerLink="/" class="marca-enlace" aria-label="LegadoSeguro, ir a la página de inicio">
+      <app-logo [tamano]="32" />
+      <span class="marca">LegadoSeguro</span>
+    </a>
     @if (portal.ingresado()) {
     <span class="espacio"></span>
     <span class="quien">{{ portal.heredero()?.nombres }}</span>

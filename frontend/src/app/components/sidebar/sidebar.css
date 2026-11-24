@@ -1,7 +1,7 @@
 .sidebar {
   position: sticky;
   top: 0;
-  width: 260px;
+  width: 16.25rem; /* crece con el tamaño de letra */
   height: 100vh;
   flex-shrink: 0;
   overflow-y: auto;
@@ -16,7 +16,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 700;
   padding: 0 24px 32px;
 }
@@ -57,7 +57,7 @@ nav a.activo {
   height: 44px;
   border-radius: 50%;
   background: #C9962C;
-  color: #0F2350;
+  color: var(--tx);
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -85,7 +85,7 @@ nav a.activo {
   padding: 0;
   text-align: left;
   color: rgba(255, 255, 255, 0.7);
-  font-size: 14px;
+  font-size: 0.875rem;
   cursor: pointer;
 }
 

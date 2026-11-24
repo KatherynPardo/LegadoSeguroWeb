@@ -2,7 +2,7 @@
 
 import { Request, Response } from 'express';
 import { DIAS_INACTIVIDAD_MAX, DIAS_INACTIVIDAD_MIN, PERIODOS_ESPERA_VALIDOS } from '../models/regla.model';
-import { contarBeneficiarios, guardarRegla, obtenerRegla } from '../services/regla.service';
+import { contarBeneficiarios, guardarRegla, obtenerRegla, sugerirDias } from '../services/regla.service';
 import { limiteDeHerederos } from '../services/suscripcion.service';
 
 export async function verRegla(_req: Request, res: Response) {
@@ -11,6 +11,15 @@ export async function verRegla(_req: Request, res: Response) {
   } catch (error) {
     console.error('Error al obtener la regla:', error);
     res.status(500).json({ mensaje: 'Error al obtener la regla de liberación' });
+  }
+}
+
+export async function verSugerencia(_req: Request, res: Response) {
+  try {
+    res.json(await sugerirDias(res.locals.usuarioId));
+  } catch (error) {
+    console.error('Error al calcular la sugerencia de inactividad:', error);
+    res.status(500).json({ mensaje: 'Error al calcular la sugerencia' });
   }
 }
 

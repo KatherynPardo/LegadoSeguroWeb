@@ -10,9 +10,9 @@
 
 .fila-dni button {
   padding: 0 20px;
-  background: #fff;
-  color: #1A4E8A;
-  border: 1px solid #1A4E8A;
+  background: var(--bg-card);
+  color: var(--azul-tx);
+  border: 1px solid var(--azul-tx);
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
@@ -25,11 +25,11 @@
 
 .aviso {
   margin: -12px 0 20px;
-  font-size: 14px;
-  color: #6B7280;
+  font-size: 0.875rem;
+  color: var(--tx-suave);
 }
 
 input[readonly] {
-  background: #ECEEF1;
-  color: #374151;
+  background: var(--bg-suave);
+  color: var(--tx-2);
 }

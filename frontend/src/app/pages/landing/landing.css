@@ -1,0 +1,182 @@
+:host {
+  --azul: #1A4E8A;
+  --azul-claro: #2E7BC6;
+  --dorado: #C9962C;
+  --dorado-luz: #F4C95D;
+  --coral: #C8432A;
+  --crema: var(--bg-crema);
+  --fondo: var(--bg-pagina);
+  display: block;
+  color: var(--tx);
+}
+
+.ic { width: 18px; height: 18px; flex: none; }
+.ic.grande { width: 34px; height: 34px; color: var(--dorado); }
+.ic.ok { color: #1E6B36; }
+.ic.aviso { color: #D68A26; }
+
+/* ===== Barra superior ===== */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 12px 40px;
+  background: var(--azul);
+  color: #fff;
+}
+
+.marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  font-size: 1.125rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.enlaces { display: flex; gap: 22px; margin-left: auto; }
+.enlaces a { color: rgba(255, 255, 255, 0.9); font-size: 0.875rem; text-decoration: none; }
+.enlaces a:hover { color: var(--dorado-luz); }
+
+.entrar {
+  padding: 7px 18px;
+  background: var(--bg-card);
+  border-radius: 8px;
+  color: var(--azul-tx);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* ===== Botones ===== */
+.boton {
+  display: inline-block;
+  padding: 11px 24px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 0.15s, background 0.15s;
+}
+
+.boton:hover { transform: translateY(-1px); }
+.boton.coral { background: var(--coral); color: #fff; }
+.boton.coral:hover { background: #B33A23; }
+.boton.borde { border-color: var(--azul-tx); color: var(--azul-tx); background: transparent; }
+.boton.borde:hover { background: var(--bg-card); }
+
+/* ===== Portada ===== */
+.portada {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 40px;
+  align-items: center;
+  padding: 64px 40px;
+  background: linear-gradient(135deg, var(--fondo) 0%, var(--crema) 100%);
+}
+
+.etiqueta { margin: 0 0 8px; color: var(--dorado); font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.portada h1 { margin: 0 0 16px; color: var(--azul-tx); font-size: 2.5rem; font-weight: 800; line-height: 1.15; }
+.bajada { margin: 0 0 28px; color: var(--tx-suave); font-size: 1.125rem; line-height: 1.6; }
+.botones { display: flex; flex-wrap: wrap; gap: 12px; }
+
+.ejemplo {
+  padding: 22px 26px;
+  background: var(--bg-card);
+  border: 1px solid var(--borde);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(15, 35, 80, 0.08);
+}
+
+.ejemplo-titulo { display: flex; justify-content: space-between; margin: 0 0 14px; color: var(--tx-suave); font-size: 0.875rem; }
+.ejemplo-titulo span { padding: 1px 10px; background: var(--crema); border-radius: 999px; color: var(--tx-aviso); font-size: 0.75rem; font-weight: 600; }
+.ejemplo-cuerpo { display: flex; align-items: center; gap: 22px; }
+
+.anillo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 92px;
+  height: 92px;
+  flex: none;
+  border-radius: 50%;
+  background: conic-gradient(var(--dorado) 0 60%, var(--bg-suave) 60% 100%);
+  position: relative;
+}
+
+.anillo::before { content: ''; position: absolute; inset: 10px; border-radius: 50%; background: var(--bg-card); }
+.anillo span { position: relative; color: var(--azul-tx); font-size: 1.625rem; font-weight: 700; }
+
+.ejemplo ul { list-style: none; margin: 0; padding: 0; line-height: 2; color: var(--tx-suave); }
+.ejemplo li { display: flex; align-items: center; gap: 8px; }
+
+/* ===== Secciones ===== */
+.seccion { padding: 56px 40px; }
+.seccion.blanca { background: var(--bg-card); }
+.seccion h2, .llamado h2 { margin: 0 0 28px; text-align: center; color: var(--azul-tx); font-size: 1.75rem; font-weight: 700; }
+
+.rejilla { display: grid; gap: 18px; max-width: 1000px; margin: 0 auto; }
+.rejilla.tres { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.rejilla.dos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+.paso, .seguro, .plan {
+  background: var(--bg-card);
+  border: 1px solid var(--borde);
+  border-radius: 14px;
+  padding: 22px;
+}
+
+.seccion:not(.blanca) .seguro { box-shadow: 0 2px 6px rgba(15, 35, 80, 0.05); }
+.paso { text-align: center; background: var(--fondo); }
+.paso h3 { margin: 10px 0 6px; font-size: 1.125rem; font-weight: 700; color: var(--azul-tx); }
+.paso p { margin: 0; color: var(--tx-2); }
+.seguro { display: flex; align-items: center; gap: 16px; font-weight: 500; }
+
+.plan h3 { margin: 0; font-size: 1.125rem; font-weight: 700; }
+.plan .precio { margin: 4px 0 8px; color: var(--azul-tx); font-size: 1.75rem; font-weight: 800; }
+.plan .precio small { color: var(--tx-suave); font-size: 0.875rem; font-weight: 400; }
+.plan .detalle { margin: 0 0 18px; color: var(--tx-suave); }
+.plan.destacado { border: 2px solid var(--dorado); background: var(--crema); }
+.nota { margin: 22px auto 0; max-width: 700px; text-align: center; color: var(--tx-suave); }
+
+/* ===== Llamado final y pie ===== */
+.llamado { padding: 56px 40px; text-align: center; background: linear-gradient(135deg, var(--azul) 0%, var(--azul-claro) 100%); }
+.llamado h2 { color: #fff; margin-bottom: 8px; }
+.llamado p { margin: 0 0 22px; color: rgba(255, 255, 255, 0.9); }
+
+.pie {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  padding: 36px 40px 20px;
+  background: #1F2937;
+  color: #D1D5DB;
+  font-size: 0.875rem;
+}
+
+.pie h3 { margin: 0 0 8px; color: #fff; font-size: 1rem; font-weight: 700; }
+.pie p { margin: 0; line-height: 1.7; }
+.pie .derechos { grid-column: 1 / -1; padding-top: 16px; border-top: 1px solid #374151; text-align: center; color: #9CA3AF; }
+
+/* ===== Pantallas pequeñas ===== */
+@media (max-width: 860px) {
+  .nav { padding: 12px 16px; gap: 12px; }
+  .enlaces { display: none; }
+  .entrar { margin-left: auto; }
+  .portada { grid-template-columns: 1fr; padding: 40px 16px; gap: 28px; }
+  .portada h1 { font-size: 1.875rem; }
+  .bajada { font-size: 1rem; }
+  .seccion, .llamado { padding: 40px 16px; }
+  .rejilla.tres, .rejilla.dos, .pie { grid-template-columns: 1fr; }
+  .pie { padding: 28px 16px 16px; }
+}
+
+.pie .legales { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px 22px; }
+.pie .legales a { color: #fff; font-weight: 600; }
+
+.pie .logo-pago { display: block; height: 30px; width: auto; margin-top: 12px; border-radius: 6px; }

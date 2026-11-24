@@ -4,7 +4,7 @@
 }
 
 .subtitulo {
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 700;
   margin: 32px 0 12px;
 }
@@ -22,8 +22,8 @@
 
 .nota-tipos {
   margin: 0 0 8px;
-  color: #6B7280;
-  font-size: 14px;
+  color: var(--tx-suave);
+  font-size: 0.875rem;
 }
 
 /* Monitoreo de inactividad */
@@ -36,20 +36,20 @@
 
 .resumen-monitoreo strong {
   display: block;
-  font-size: 26px;
-  color: #1A4E8A;
+  font-size: 1.625rem;
+  color: var(--azul-tx);
 }
 
 .resumen-monitoreo span {
-  color: #6B7280;
-  font-size: 14px;
+  color: var(--tx-suave);
+  font-size: 0.875rem;
 }
 
 .correo-chico {
   display: block;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 400;
-  color: #6B7280;
+  color: var(--tx-suave);
 }
 
 .ok-form {

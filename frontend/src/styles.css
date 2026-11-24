@@ -3,9 +3,9 @@
   /* Colores de LegadoSeguro (Figma) */
   --bs-primary: #1A4E8A;
   --bs-primary-rgb: 26, 78, 138;
-  --bs-body-bg: #F2F5FA;
-  --bs-body-color: #1F2937;
-  --bs-border-color: #D9D9D9;
+  --bs-body-bg: var(--bg-pagina);
+  --bs-body-color: var(--tx);
+  --bs-border-color: var(--borde);
   --bs-border-radius: 8px;
   --bs-body-font-family: 'Inter', sans-serif;
 
@@ -13,7 +13,89 @@
   --lg-exito: #1E6B36;
   --lg-advertencia: #D68A26;
   --lg-error: #B23A3A;
+
+  /* Colores que cambian con el tema (claro por defecto) */
+  --bg-pagina: #F2F5FA;
+  --bg-card: #FFFFFF;
+  --bg-suave: #EEF1F5;
+  --bg-crema: #FFF7E8;
+  --bg-aviso: #FDF1DE;
+  --bg-exito: #E2F3E7;
+  --bg-error: #FBE4E4;
+  --bg-info: #E8F1FA;
+  --tx: #1F2937;
+  --tx-2: #374151;
+  --tx-suave: #5F6673;
+  --azul-tx: #1A4E8A;
+  --tx-aviso: #8A5A12;
+  --tx-error: #9B2C2C;
+  --borde: #D9D9D9;
 }
+
+/* ===== Accesibilidad: modo oscuro, alto contraste y navegación por teclado (ver AccesibilidadService) ===== */
+[data-tema='oscuro'] {
+  color-scheme: dark;
+  --bg-pagina: #121821;
+  --bg-card: #1E2633;
+  --bg-suave: #2A3342;
+  --bg-crema: #2B2416;
+  --bg-aviso: #3A2F1A;
+  --bg-exito: #17301F;
+  --bg-error: #3A1E1E;
+  --bg-info: #1B2D44;
+  --tx: #E5E7EB;
+  --tx-2: #D1D5DB;
+  --tx-suave: #A8B0BD;
+  --azul-tx: #8DB8EC;
+  --tx-aviso: #F0C98A;
+  --tx-error: #F2A3A3;
+  --borde: #3A4456;
+  --lg-exito: #6FCF8A;
+  --lg-error: #F28B8B;
+  --lg-advertencia: #F0A94D;
+}
+
+[data-contraste='alto'] {
+  --tx: #000000;
+  --tx-2: #000000;
+  --tx-suave: #1F2937;
+  --azul-tx: #0B2F5E;
+  --tx-aviso: #4A2F00;
+  --tx-error: #6B1212;
+  --borde: #4B5563;
+}
+
+[data-tema='oscuro'][data-contraste='alto'] {
+  --tx: #FFFFFF;
+  --tx-2: #FFFFFF;
+  --tx-suave: #E5E7EB;
+  --azul-tx: #B9D6F7;
+  --tx-aviso: #FFE0A8;
+  --tx-error: #FFC2C2;
+  --borde: #9CA3AF;
+}
+
+[data-contraste='alto'] a { text-decoration: underline; }
+
+:focus-visible {
+  outline: 3px solid var(--lg-dorado);
+  outline-offset: 2px;
+}
+
+.saltar {
+  position: absolute;
+  left: 8px;
+  top: -60px;
+  z-index: 100;
+  padding: 10px 16px;
+  background: #1A4E8A;
+  color: #fff;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.saltar:focus { top: 8px; }
 
 .btn-primary {
   --bs-btn-bg: #1A4E8A;
@@ -24,14 +106,14 @@
 
 /* ===== Estilos compartidos de las pantallas ===== */
 .barra {
-  background: #fff;
+  background: var(--bg-card);
   padding: 24px 40px;
-  border-bottom: 1px solid #D9D9D9;
+  border-bottom: 1px solid var(--borde);
 }
 
 .barra h1 {
   margin: 0;
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 700;
 }
 
@@ -46,9 +128,9 @@
 }
 
 .tarjeta {
-  background: #fff;
+  background: var(--bg-card);
   box-shadow: 0 2px 6px rgba(15, 35, 80, 0.06);
-  border: 1px solid #E3E7ED;
+  border: 1px solid var(--borde);
   border-radius: 12px;
   padding: 24px 30px;
 }
@@ -60,16 +142,16 @@
 
 .tabla th {
   text-align: left;
-  font-size: 13px;
+  font-size: 0.8125rem;
   text-transform: uppercase;
-  color: #6B7280;
+  color: var(--tx-suave);
   padding: 12px 0;
-  border-bottom: 1px solid #D9D9D9;
+  border-bottom: 1px solid var(--borde);
 }
 
 .tabla td {
   padding: 16px 0;
-  border-bottom: 1px solid #F0F2F5;
+  border-bottom: 1px solid var(--borde);
 }
 
 .nombre {
@@ -78,7 +160,7 @@
 
 .vacio {
   text-align: center;
-  color: #6B7280;
+  color: var(--tx-suave);
 }
 /* ===== Campos de formulario (dentro de los modales) ===== */
 .campos label {
@@ -131,16 +213,16 @@
   background: transparent;
   border: 1px solid transparent;
   border-radius: 8px;
-  color: #6B7280;
+  color: var(--tx-suave);
   cursor: pointer;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 
 .accion:hover,
 .accion:focus-visible {
-  background: #EEF3FA;
-  border-color: #D5E1F2;
-  color: #1A4E8A;
+  background: var(--bg-suave);
+  border-color: var(--borde);
+  color: var(--azul-tx);
   outline: none;
 }
 
@@ -159,4 +241,37 @@
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+/* Logo que lleva a la página de inicio y enlace "Volver al inicio" */
+.marca-enlace {
+  display: inline-flex;
+  flex-direction: inherit;
+  align-items: inherit;
+  gap: inherit;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 6px;
+}
+.marca-enlace:focus-visible,
+.volver-inicio:focus-visible { outline: 2px solid var(--acento, #c9972b); outline-offset: 3px; }
+.volver-inicio {
+  display: inline-block;
+  margin-top: 1.5rem;
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  font-size: 0.9375rem;
+}
+.volver-inicio:hover { text-decoration: underline; }
+.panel-azul .marca-enlace { align-self: flex-start; }
+.solo-movil { display: none; }
+@media (max-width: 900px) { .solo-movil { display: block; } }
+
+/* Pantallas táctiles: áreas de toque de al menos 40 px (recomendación de accesibilidad) */
+@media (pointer: coarse) {
+  button, .btn, select { min-height: 40px; }
+  a.ir, a.volver, .volver-inicio, .enlace a { display: inline-flex; align-items: center; min-height: 40px; }
+  input[type="checkbox"], input[type="radio"] { width: 20px; height: 20px; min-width: 20px; flex: none; }
+  a.ir { min-width: 40px; justify-content: center; }
+  .pie a, .marca { display: inline-flex; align-items: center; min-height: 40px; }
 }

@@ -231,6 +231,27 @@ export async function guardarSelfie(correo: string, idProceso: number, idBenefic
   );
 }
 
+// El heredero puede eliminar su foto si se equivocó (antes de confirmar). Al eliminarla retira también su consentimiento:
+// para subir otra foto tendrá que aceptarlo de nuevo.
+export async function eliminarSelfie(correo: string, idProceso: number, idBeneficiario: number) {
+  const h = await buscarHeredero(pool, correo, idProceso, idBeneficiario);
+  exigirProcesoAbierto(h);
+
+  const confirmada = await pool.query(
+    "SELECT 1 FROM confirmacion_beneficiario WHERE id_proceso = $1 AND id_beneficiario = $2 AND resultado = 'CONFIRMADA' LIMIT 1",
+    [idProceso, idBeneficiario]
+  );
+  if (confirmada.rows.length > 0) throw new ReglaLiberacion('Ya confirmaste tu participación: no puedes eliminar tu foto', 409);
+
+  const r = await pool.query(
+    `UPDATE verificacion_beneficiario
+     SET selfie_cifrada = NULL, fecha_selfie = NULL, fecha_consentimiento = NULL, ip_consentimiento = NULL
+     WHERE id_proceso = $1 AND id_beneficiario = $2 AND selfie_cifrada IS NOT NULL`,
+    [idProceso, idBeneficiario]
+  );
+  if (r.rowCount === 0) throw new ReglaLiberacion('No tienes una foto guardada', 409);
+}
+
 // Confirmar participación: exige haber pasado los 3 pasos
 export async function confirmarParticipacion(correo: string, idProceso: number, idBeneficiario: number) {
   const h = await buscarHeredero(pool, correo, idProceso, idBeneficiario);

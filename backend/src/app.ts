@@ -14,6 +14,7 @@ if (TRUST_PROXY > 0) app.set('trust proxy', TRUST_PROXY);
 
 app.use(cors());         // permite que Angular (puerto 4200) se conecte
 app.use(express.json({ limit: '1mb' })); // recibe datos en JSON (el límite permite la selfie del heredero)
+app.use(express.urlencoded({ extended: false, limit: '10kb' })); // recibe el formulario de pago de Niubiz
 
 // Ruta raíz: solo confirma que el servidor está encendido
 app.get('/', (_req, res) => {

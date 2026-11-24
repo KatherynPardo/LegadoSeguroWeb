@@ -1,8 +1,11 @@
+<a class="saltar" href="#contenido" (click)="saltar($event)">Saltar al contenido</a>
 <div class="layout">
   @if (auth.logueado()) {
   <app-sidebar />
   }
-  <main class="contenido">
+  <main id="contenido" class="contenido" tabindex="-1">
     <router-outlet />
   </main>
 </div>
+<app-asistente />
+<app-accesibilidad />

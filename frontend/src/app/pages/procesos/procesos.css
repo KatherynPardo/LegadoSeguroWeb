@@ -11,14 +11,14 @@
 }
 
 .titulo {
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 700;
   margin: 0;
 }
 
 .ayuda {
-  color: #6B7280;
-  font-size: 14px;
+  color: var(--tx-suave);
+  font-size: 0.875rem;
   margin: 4px 0 0;
 }
 
@@ -31,16 +31,16 @@
 .estado-proceso {
   padding: 4px 12px;
   border-radius: 999px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
-  background: #FDF1DE;
-  color: #8A5A12;
+  background: var(--bg-aviso);
+  color: var(--tx-aviso);
 }
 
-.e-EN_CONFIRMACION { background: #E3ECF8; color: #1A4E8A; }
-.e-EN_ESPERA { background: #FDF1DE; color: #8A5A12; }
-.e-LIBERADO { background: #E2F3E7; color: var(--lg-exito); }
-.e-CANCELADO { background: #ECEEF1; color: #6B7280; }
+.e-EN_CONFIRMACION { background: var(--bg-info); color: var(--azul-tx); }
+.e-EN_ESPERA { background: var(--bg-aviso); color: var(--tx-aviso); }
+.e-LIBERADO { background: var(--bg-exito); color: var(--lg-exito); }
+.e-CANCELADO { background: var(--bg-suave); color: var(--tx-suave); }
 
 .metricas {
   display: grid;
@@ -51,18 +51,18 @@
 
 .metricas strong {
   display: block;
-  font-size: 22px;
-  color: #1A4E8A;
+  font-size: 1.375rem;
+  color: var(--azul-tx);
 }
 
 .metricas span {
-  color: #6B7280;
-  font-size: 14px;
+  color: var(--tx-suave);
+  font-size: 0.875rem;
 }
 
 /* Detalle (modal) */
 .seccion {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 700;
   margin: 24px 0 8px;
 }

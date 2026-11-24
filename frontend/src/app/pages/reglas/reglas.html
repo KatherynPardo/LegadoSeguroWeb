@@ -28,6 +28,22 @@
       <p class="error-form">Escribe un número entero de días entre {{ minDias }} y {{ maxDias }}.</p>
       }
 
+      @if (sugerencia(); as s) {
+      <div class="sugerencia">
+        <div>
+          <strong>Sugerencia para ti: {{ s.dias }} días</strong>
+          @if (s.suficiente) {
+          <span class="ayuda">Normalmente pasas hasta {{ s.intervaloTipico }} días entre un ingreso y otro. Este plazo deja un margen para no recibir alertas innecesarias.</span>
+          } @else {
+          <span class="ayuda">Todavía no hay suficiente historial de ingresos ({{ s.intervalos }} de {{ s.minimoIntervalos }} necesarios), así que te proponemos el plazo más habitual.</span>
+          }
+        </div>
+        @if (regla.diasInactividad !== s.dias) {
+        <button type="button" class="atajo" (click)="regla.diasInactividad = s.dias">Usar {{ s.dias }} días</button>
+        }
+      </div>
+      }
+
       <div class="dos-columnas">
         <div>
           <label for="confirmaciones">Confirmaciones mínimas</label>

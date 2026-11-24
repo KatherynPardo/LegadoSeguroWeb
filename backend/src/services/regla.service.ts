@@ -4,6 +4,7 @@
 import { pool } from '../config/database';
 import { DatosRegla, Regla, ReglaConContexto } from '../models/regla.model';
 import { limiteDeHerederos } from './suscripcion.service';
+import { calcularSugerencia, Sugerencia } from '../utils/sugerencia-inactividad';
 
 const COLUMNAS = `id_regla AS id,
                   dias_inactividad AS "diasInactividad",
@@ -39,6 +40,17 @@ export async function obtenerRegla(idUsuario: number): Promise<ReglaConContexto>
     limiteHerederos: limite,
     maxConfirmaciones: limite === null ? total : Math.min(total, limite)
   };
+}
+
+// Sugiere los días de inactividad según los ingresos del propio usuario en los últimos 12 meses
+export async function sugerirDias(idUsuario: number): Promise<Sugerencia> {
+  const r = await pool.query<{ fecha: Date }>(
+    `SELECT fecha_actividad AS fecha FROM actividad_usuario
+     WHERE id_usuario = $1 AND tipo_evento = 'INICIO_SESION' AND fecha_actividad > NOW() - INTERVAL '12 months'
+     ORDER BY fecha_actividad`,
+    [idUsuario]
+  );
+  return calcularSugerencia(r.rows.map(f => f.fecha));
 }
 
 export async function guardarRegla(datos: DatosRegla, idUsuario: number): Promise<Regla> {

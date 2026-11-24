@@ -1,8 +1,9 @@
 <div class="login">
   <section class="panel-azul">
-    <app-logo class="escudo" [tamano]="64" />
-
-    <h1>LegadoSeguro</h1>
+    <a routerLink="/" class="marca-enlace" aria-label="LegadoSeguro, ir a la página de inicio">
+      <app-logo class="escudo" [tamano]="64" />
+      <h1>LegadoSeguro</h1>
+    </a>
     <p class="lema">Crea tu cuenta y empieza a proteger tu legado digital: tus activos, tus herederos y tus reglas de entrega.</p>
 
     <ul class="beneficios">
@@ -10,6 +11,8 @@
       <li>La entrega solo ocurre con tus reglas</li>
       <li>Tu contraseña se guarda cifrada</li>
     </ul>
+
+    <a routerLink="/" class="volver-inicio">← Volver al inicio</a>
 
     <p class="pie">© 2026 LegadoSeguro — Proyecto académico UTP</p>
   </section>
@@ -58,6 +61,7 @@
       <hr />
 
       <p class="enlace gris">¿Ya tienes cuenta? <a routerLink="/login"><strong>Inicia sesión</strong></a></p>
+      <p class="enlace gris solo-movil"><a routerLink="/">← Volver al inicio</a></p>
     </form>
     } @else {
     <form (ngSubmit)="confirmarCodigo()" autocomplete="off">

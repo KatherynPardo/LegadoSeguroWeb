@@ -1,0 +1,10 @@
+{
+  "name": "legadoseguro-herramientas",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Herramientas para generar el manual en Word, los diagramas ER y las capturas de LegadoSeguro",
+  "dependencies": {
+    "jszip": "^3.10.1",
+    "puppeteer-core": "^24.0.0"
+  }
+}
